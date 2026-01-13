@@ -28,7 +28,7 @@ const OnboardingFeedback = () => {
           navigate('/dashboard');
           return;
         }
-        
+
         // Fetch options
         const optionsRes = await onboardingAPI.getOptions();
         setOptions(optionsRes.data.data || []);
@@ -61,7 +61,7 @@ const OnboardingFeedback = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedFeedback) {
       setError('Please select how you found us');
       return;
@@ -73,7 +73,7 @@ const OnboardingFeedback = () => {
     try {
       await onboardingAPI.submitFeedback(selectedFeedback);
       // Redirect to dashboard after successful submission
-      navigate('/dashboard', { 
+      navigate('/dashboard', {
         state: { message: 'Thank you for your feedback! Welcome to eDu Live!' }
       });
     } catch (error) {

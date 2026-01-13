@@ -78,7 +78,7 @@ const Register = () => {
 
     if (result.success) {
       // Redirect to onboarding feedback after registration
-      navigate('/onboarding-feedback');
+      navigate('/onboardingFeedback');
     } else {
       if (result.errors) {
         const errorObj = {};

@@ -54,7 +54,7 @@ function App() {
           
           {/* Protected routes with onboarding check */}
           <Route element={<ProtectedRoute><OnboardingRoute><Layout /></OnboardingRoute></ProtectedRoute>}>
-            <Route path="/onboarding-feedback" element={<OnboardingFeedback />} />
+            <Route path="/onboardingFeedback" element={<OnboardingFeedback />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/questions" element={<QuestionsList />} />
             <Route path="/questions/create" element={<QuestionCreate />} />
