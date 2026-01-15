@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: 'https://edu-live-99hc.onrender.com/api/v1',
+  baseURL: 'http://localhost:5000/api/v1',
   withCredentials: true, // For cookies
   headers: {
     'Content-Type': 'application/json',
@@ -101,6 +101,8 @@ export const passTestsAPI = {
   create: (data) => api.post('/pass-tests', data),
   update: (id, data) => api.put(`/pass-tests/${id}`, data),
   delete: (id) => api.delete(`/pass-tests/${id}`),
+  approve: (id) => api.post(`/pass-tests/${id}/approve`),
+  reject: (id) => api.post(`/pass-tests/${id}/reject`),
 };
 
 // Communities API

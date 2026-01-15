@@ -9,16 +9,22 @@ const PassTestsList = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
+  const [status, setStatus] = useState('approved'); // 'approved' or 'pending'
+
+  const canApprove = user && (user.isAdmin || user.role === 'class_rep' || user.isClassRep);
 
   useEffect(() => {
     fetchTests();
-  }, [search, type]);
+  }, [search, type, status]);
 
   const fetchTests = async () => {
     try {
+      setLoading(true);
       const params = {};
       if (search) params.search = search;
       if (type) params.type = type;
+      params.status = status;
+
       const response = await passTestsAPI.getAll(params);
       setTests(response.data.data || []);
     } catch (error) {
@@ -28,12 +34,30 @@ const PassTestsList = () => {
     }
   };
 
+  const handleHandleAction = async (e, id, action) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm(`Are you sure you want to ${action} this item?`)) return;
+
+    try {
+      if (action === 'approve') {
+        await passTestsAPI.approve(id);
+      } else {
+        await passTestsAPI.reject(id);
+      }
+      fetchTests(); // Refresh list
+    } catch (error) {
+      console.error(`Error ${action}ing test:`, error);
+      alert(`Failed to ${action} item`);
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     fetchTests();
   };
 
-  if (loading) {
+  if (loading && !tests.length) {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
@@ -54,7 +78,23 @@ const PassTestsList = () => {
             </p>
           </div>
         </div>
-        
+
+        {/* Dashboard Link for Class Reps */}
+        {canApprove && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-semibold text-blue-900">Class Representative Access</h3>
+              <p className="text-sm text-blue-700">Manage pending approvals for your semester in the dashboard.</p>
+            </div>
+            <Link
+              to="/class-rep/dashboard"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              Go to Dashboard
+            </Link>
+          </div>
+        )}
+
         <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2">
@@ -100,38 +140,47 @@ const PassTestsList = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {tests.length === 0 ? (
           <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
-            <p className="text-gray-500 text-lg">No tests or assignments found</p>
+            <p className="text-gray-500 text-lg">
+              No tests or assignments found
+            </p>
           </div>
         ) : (
           tests.map((test) => (
-            <Link
+            <div
               key={test._id}
-              to={`/pass-tests/${test._id}`}
-              className="block bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 card-hover"
+              className="relative group bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 card-hover flex flex-col h-full"
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  test.type === 'test' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-                }`}>
-                  {test.type}
-                </span>
-              </div>
-              <h2 className="text-xl font-semibold mb-2 text-gray-900 line-clamp-2">{test.title}</h2>
-              <p className="text-gray-600 mb-4 text-sm line-clamp-3">{test.content?.substring(0, 150)}...</p>
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-400 to-rose-400 flex items-center justify-center text-white text-xs font-semibold">
-                    {test.user?.name?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                  <span>{test.user?.name}</span>
-                </div>
-                {test.courseName && (
-                  <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
-                    {test.courseName}
+              <Link to={`/pass-tests/${test._id}`} className="flex-1">
+                <div className="flex items-center justify-between mb-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${test.type === 'test' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                    }`}>
+                    {test.type}
                   </span>
-                )}
-              </div>
-            </Link>
+                  {!test.isApproved && (
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">
+                      Pending
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-xl font-semibold mb-2 text-gray-900 line-clamp-2">{test.title}</h2>
+                <p className="text-gray-600 mb-4 text-sm line-clamp-3">{test.content?.substring(0, 150)}...</p>
+                <div className="flex items-center justify-between text-sm text-gray-500 mt-auto">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-400 to-rose-400 flex items-center justify-center text-white text-xs font-semibold">
+                      {test.user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <span>{test.user?.name}</span>
+                  </div>
+                  {test.courseName && (
+                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
+                      {test.courseName}
+                    </span>
+                  )}
+                </div>
+              </Link>
+
+              {/* No Approval Buttons Here */}
+            </div>
           ))
         )}
       </div>

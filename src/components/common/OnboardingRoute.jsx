@@ -65,7 +65,7 @@ const OnboardingRoute = ({ children }) => {
 
   // If user needs onboarding, redirect to onboarding page
   if (needsOnboarding) {
-    return <Navigate to="/onboarding-feedback" replace />;
+    return <Navigate to="/onboardingFeedback" replace />;
   }
 
   return children;

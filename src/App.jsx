@@ -52,10 +52,13 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
+
           {/* Protected routes with onboarding check */}
-          <Route element={<ProtectedRoute><OnboardingRoute><Layout /></OnboardingRoute></ProtectedRoute>}>
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/onboardingFeedback" element={<OnboardingFeedback />} />
+          </Route>
+
+          <Route element={<ProtectedRoute><OnboardingRoute><Layout /></OnboardingRoute></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/questions" element={<QuestionsList />} />
             <Route path="/questions/create" element={<QuestionCreate />} />
@@ -73,10 +76,10 @@ function App() {
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/my-questions" element={<MyQuestions />} />
-            
+
             {/* Class Rep routes */}
             <Route path="/class-rep/dashboard" element={<ClassRepDashboard />} />
-            
+
             {/* Admin routes */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
@@ -92,7 +95,7 @@ function App() {
             <Route path="/admin/onboarding-feedback" element={<AdminOnboardingFeedback />} />
             <Route path="/admin/end-season" element={<AdminEndSeason />} />
           </Route>
-          
+
           {/* Redirect unknown routes */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

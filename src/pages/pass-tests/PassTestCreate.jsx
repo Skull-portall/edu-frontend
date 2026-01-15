@@ -65,7 +65,7 @@ const PassTestCreate = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Share Test/Assignment</h1>
-      
+
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -81,7 +81,7 @@ const PassTestCreate = () => {
             <option value="assignment">Assignment</option>
           </select>
         </div>
-        
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Title <span className="text-red-600">*</span>
@@ -95,7 +95,7 @@ const PassTestCreate = () => {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
           />
         </div>
-        
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Content <span className="text-red-600">*</span>
@@ -110,7 +110,7 @@ const PassTestCreate = () => {
             placeholder="Describe the test or assignment..."
           />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,29 +125,27 @@ const PassTestCreate = () => {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Semester <span className="text-red-600">*</span>
+              Semester <span className="text-gray-500 font-normal">(Optional - Defaults to your active semester)</span>
             </label>
             <select
               name="semesterId"
               value={formData.semesterId}
               onChange={handleChange}
-              required
               disabled={loadingSemesters}
-              className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${
-                loadingSemesters ? 'bg-gray-100 cursor-not-allowed' : ''
-              }`}
+              className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${loadingSemesters ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
             >
-              <option value="">{loadingSemesters ? 'Loading semesters...' : 'Select semester'}</option>
+              <option value="">Default (Active Semester)</option>
               {semesters.map(sem => (
                 <option key={sem._id} value={sem._id}>Semester {sem.number}</option>
               ))}
             </select>
           </div>
         </div>
-        
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Attachment (optional)
@@ -158,7 +156,7 @@ const PassTestCreate = () => {
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
-        
+
         <div className="flex gap-4">
           <button
             type="submit"

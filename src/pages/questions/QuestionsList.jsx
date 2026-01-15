@@ -59,17 +59,17 @@ const QuestionsList = () => {
             <p className="text-sm sm:text-base text-gray-600">Browse and explore questions from the community</p>
           </div>
         </div>
-        
+
         {/* Search Bar */}
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
-              <input 
-                type="text" 
-                name="search" 
+              <input
+                type="text"
+                name="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search questions by title, content, or course..." 
+                placeholder="Search questions by title, content, or course..."
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-base"
               />
             </div>
@@ -88,8 +88,8 @@ const QuestionsList = () => {
       {/* Ask Question Button */}
       <div className="mb-6">
         {user ? (
-          <Link 
-            to="/questions/create" 
+          <Link
+            to="/questions/create"
             className="btn-create btn-create-animate"
           >
             <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -98,8 +98,8 @@ const QuestionsList = () => {
             <span className="btn-text">Ask Question</span>
           </Link>
         ) : (
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="btn-create btn-create-animate"
           >
             <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -114,9 +114,9 @@ const QuestionsList = () => {
       <div className="space-y-4 lg:space-y-6 min-h-[400px] max-w-5xl mx-auto">
         {questions.length > 0 ? (
           questions.map((question, index) => (
-            <article 
+            <article
               key={question._id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 p-5 sm:p-6 lg:p-8 card-hover cursor-pointer animate-fade-in" 
+              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 p-5 sm:p-6 lg:p-8 card-hover cursor-pointer animate-fade-in"
               onClick={() => navigate(`/questions/${question._id}`)}
               style={{ animationDelay: `${index * 0.05}s` }}
             >
@@ -135,9 +135,9 @@ const QuestionsList = () => {
                       <div className="flex items-center space-x-2 sm:space-x-2.5">
                         <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full overflow-hidden flex-shrink-0 ring-2 ring-gray-100">
                           {question.user?.profile_picture ? (
-                            <img 
-                              src={question.user.profile_picture} 
-                              alt={question.user.name} 
+                            <img
+                              src={question.user.profile_picture}
+                              alt={question.user.name}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -148,7 +148,7 @@ const QuestionsList = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Link
-                            to={`/users/${question.user?._id || question.user?.id}`}
+                            to={`/profile/${question.user?._id || question.user?.id}`}
                             onClick={(e) => e.stopPropagation()}
                             className="text-sm sm:text-base text-gray-600 font-medium truncate max-w-[120px] sm:max-w-[200px] md:max-w-none hover:text-red-600 hover:underline transition-colors"
                           >
@@ -183,8 +183,8 @@ const QuestionsList = () => {
                     }}>
                       {question.attachment_type === 'image' ? (
                         <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-lg overflow-hidden border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity">
-                          <img 
-                            src={question.attachment} 
+                          <img
+                            src={question.attachment}
                             alt="Preview"
                             className="w-full h-full object-cover"
                           />
@@ -245,8 +245,8 @@ const QuestionsList = () => {
                 )}
               </p>
               {user && (
-                <Link 
-                  to="/questions/create" 
+                <Link
+                  to="/questions/create"
                   className="btn-create btn-create-animate"
                 >
                   <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">

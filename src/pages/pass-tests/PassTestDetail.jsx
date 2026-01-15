@@ -41,13 +41,17 @@ const PassTestDetail = () => {
     );
   }
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link copied to clipboard!');
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-            test.type === 'test' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
-          }`}>
+          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${test.type === 'test' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+            }`}>
             {test.type}
           </span>
         </div>

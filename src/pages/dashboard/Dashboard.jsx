@@ -47,7 +47,7 @@ const Dashboard = () => {
   const markAsRead = async (notificationId) => {
     try {
       await notificationsAPI.markAsRead(notificationId);
-      setNotifications(notifications.map(n => 
+      setNotifications(notifications.map(n =>
         n._id === notificationId ? { ...n, read_at: new Date() } : n
       ));
     } catch (error) {
@@ -85,7 +85,7 @@ const Dashboard = () => {
   }
 
   const unreadCount = notifications.filter(n => !n.read_at).length;
-  const questions = data?.questions || [];
+  const questions = data?.recentQuestions || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
@@ -100,8 +100,8 @@ const Dashboard = () => {
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 welcome-subtitle">Explore questions, share knowledge, and help others learn</p>
           </div>
-          <Link 
-            to="/questions/create" 
+          <Link
+            to="/questions/create"
             className="btn-create btn-create-animate"
           >
             <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -164,7 +164,7 @@ const Dashboard = () => {
                 const isRead = !!notification.read_at;
 
                 return (
-                  <div 
+                  <div
                     key={notification._id}
                     className={`notification-item p-4 sm:p-5 hover:bg-gray-50 transition-colors ${!isRead ? 'bg-red-50 border-l-4 border-red-600' : ''}`}
                     data-notification-id={notification._id}
@@ -300,12 +300,12 @@ const Dashboard = () => {
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">Search Questions</label>
               <div>
-                <input 
-                  type="text" 
-                  name="search" 
+                <input
+                  type="text"
+                  name="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by title or content..." 
+                  placeholder="Search by title or content..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 transform focus:scale-[1.01] text-base"
                 />
               </div>
@@ -313,8 +313,8 @@ const Dashboard = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Course</label>
               <div className="relative">
-                <select 
-                  name="course_name" 
+                <select
+                  name="course_name"
                   value={courseName}
                   onChange={(e) => setCourseName(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 appearance-none bg-white cursor-pointer hover:border-red-300 transform focus:scale-[1.02]"
@@ -334,8 +334,8 @@ const Dashboard = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Semester</label>
               <div className="relative">
-                <select 
-                  name="semester_id" 
+                <select
+                  name="semester_id"
                   value={semesterId}
                   onChange={(e) => setSemesterId(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 appearance-none bg-white cursor-pointer hover:border-red-300 transform focus:scale-[1.02]"
@@ -372,8 +372,8 @@ const Dashboard = () => {
       <div className="space-y-4 lg:space-y-6 max-w-5xl">
         {questions.length > 0 ? (
           questions.map((question) => (
-            <div 
-              key={question._id} 
+            <div
+              key={question._id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-all duration-200 cursor-pointer card-hover question-item"
               onClick={() => navigate(`/questions/${question._id}`)}
             >
@@ -386,9 +386,9 @@ const Dashboard = () => {
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-full overflow-hidden">
                           {question.user?.profile_picture ? (
-                            <img 
-                              src={question.user.profile_picture} 
-                              alt={question.user.name} 
+                            <img
+                              src={question.user.profile_picture}
+                              alt={question.user.name}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -398,8 +398,8 @@ const Dashboard = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Link 
-                            to={`/users/${question.user?._id || question.user?.id}`}
+                          <Link
+                            to={`/profile/${question.user?._id || question.user?.id}`}
                             onClick={(e) => e.stopPropagation()}
                             className="text-sm text-gray-600 font-medium hover:text-red-600 hover:underline transition-colors"
                           >
@@ -414,27 +414,27 @@ const Dashboard = () => {
                     <span className="text-gray-400">•</span>
                     <span className="text-sm text-gray-500">{new Date(question.created_at || question.createdAt).toLocaleDateString()}</span>
                   </div>
-                  
+
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4 hover:text-red-600 transition-colors">
                     <Link to={`/questions/${question._id}`} onClick={(e) => e.stopPropagation()}>
                       {question.title}
                     </Link>
                   </h3>
-                  
+
                   <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-4 lg:mb-5 line-clamp-2">{question.body?.substring(0, 250)}</p>
-                  
+
                   {question.attachment && (
                     <div className="mb-4">
                       {question.attachment_type === 'image' ? (
-                        <div 
+                        <div
                           className="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-300 cursor-pointer hover:opacity-90 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/questions/${question._id}`);
                           }}
                         >
-                          <img 
-                            src={question.attachment} 
+                          <img
+                            src={question.attachment}
                             alt="Preview"
                             className="w-full h-full object-cover"
                           />
@@ -449,7 +449,7 @@ const Dashboard = () => {
                       )}
                     </div>
                   )}
-                  
+
                   <div className="flex flex-wrap items-center gap-4 lg:gap-5 text-sm lg:text-base">
                     <div className="flex items-center space-x-2 text-gray-600">
                       <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
