@@ -5,8 +5,6 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import OnboardingRoute from './components/common/OnboardingRoute';
 import Layout from './components/layout/Layout';
 
-
-
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/auth/Login';
