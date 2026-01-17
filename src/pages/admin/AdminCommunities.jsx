@@ -1,57 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const AdminCommunities = () => {
-  const [communities, setCommunities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [inactiveCommunitiesCount, setInactiveCommunitiesCount] = useState(0);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const limit = 20;
 
-  useEffect(() => {
-    fetchCommunities();
-  }, [pagination.page]);
+  // Fetch Communities
+  const { data: communitiesData, isLoading: loading } = useQuery({
+    queryKey: ['adminCommunities', page],
+    queryFn: async () => {
+      const response = await adminAPI.getCommunities({ page, limit });
+      return response.data;
+    },
+    keepPreviousData: true,
+    onError: () => toast.error('Failed to load communities')
+  });
 
-  const fetchCommunities = async () => {
-    setLoading(true);
-    try {
-      const response = await adminAPI.getCommunities({ page: pagination.page, limit: pagination.limit });
-      if (response.data.success) {
-        setCommunities(response.data.data || []);
-        setInactiveCommunitiesCount(response.data.inactiveCommunitiesCount || 0);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.pagination?.total || 0,
-          pages: response.data.pagination?.pages || 0
-        }));
-      }
-    } catch (error) {
-      console.error('Error fetching communities:', error);
-      setMessage({ type: 'error', text: 'Failed to load communities' });
-    } finally {
-      setLoading(false);
-    }
+  const communities = communitiesData?.data || [];
+  const inactiveCommunitiesCount = communitiesData?.inactiveCommunitiesCount || 0;
+  const pagination = communitiesData?.pagination || { page: 1, total: 0, pages: 0 };
+
+  // Mutations
+  const toggleMutation = useMutation({
+    mutationFn: (id) => adminAPI.toggleCommunity(id),
+    onSuccess: () => {
+      toast.success('Community status updated successfully!');
+      queryClient.invalidateQueries(['adminCommunities']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update community')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => adminAPI.deleteCommunity(id),
+    onSuccess: () => {
+      toast.success('Community deleted successfully!');
+      queryClient.invalidateQueries(['adminCommunities']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete community')
+  });
+
+  const handleToggle = (communityId) => {
+    toggleMutation.mutate(communityId);
   };
 
-  const handleToggle = async (communityId) => {
-    try {
-      await adminAPI.toggleCommunity(communityId);
-      setMessage({ type: 'success', text: 'Community status updated successfully!' });
-      fetchCommunities();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update community' });
-    }
-  };
-
-  const handleDelete = async (communityId) => {
-    if (!window.confirm('Are you sure you want to delete this community? This action cannot be undone!')) return;
-    try {
-      await adminAPI.deleteCommunity(communityId);
-      setMessage({ type: 'success', text: 'Community deleted successfully!' });
-      fetchCommunities();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to delete community' });
+  const handleDelete = (communityId) => {
+    if (window.confirm('Are you sure you want to delete this community? This action cannot be undone!')) {
+      deleteMutation.mutate(communityId);
     }
   };
 
@@ -88,23 +87,9 @@ const AdminCommunities = () => {
         </div>
       </div>
 
-      {/* Messages */}
-      {message.text && (
-        <div className={`mb-6 border-l-4 p-4 rounded-lg shadow-sm ${
-          message.type === 'success' 
-            ? 'bg-green-100 border-green-500 text-green-700' 
-            : 'bg-red-100 border-red-500 text-red-700'
-        }`}>
-          <p className="font-medium">{message.text}</p>
-        </div>
-      )}
-
       {/* Communities Table */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading communities...</p>
-        </div>
+        <Loader />
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -162,17 +147,18 @@ const AdminCommunities = () => {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
                             onClick={() => handleToggle(community._id)}
-                            className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                              community.isActive
+                            disabled={toggleMutation.isLoading}
+                            className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${community.isActive
                                 ? 'bg-red-100 text-red-800 hover:bg-red-200'
                                 : 'bg-green-100 text-green-800 hover:bg-green-200'
-                            }`}
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
                             {community.isActive ? 'Deactivate' : 'Activate'}
                           </button>
                           <button
                             onClick={() => handleDelete(community._id)}
-                            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                            disabled={deleteMutation.isLoading}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Delete
                           </button>
@@ -189,20 +175,20 @@ const AdminCommunities = () => {
 
       {/* Pagination */}
       {pagination.pages > 1 && (
-        <div className="mt-6 flex justify-center gap-2">
+        <div className="mt-6 lg:mt-8 flex justify-center gap-2">
           <button
-            onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-            disabled={pagination.page === 1}
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
             className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             Previous
           </button>
           <span className="px-4 py-2 text-gray-700">
-            Page {pagination.page} of {pagination.pages}
+            Page {page} of {pagination.pages}
           </span>
           <button
-            onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
-            disabled={pagination.page === pagination.pages}
+            onClick={() => setPage(Math.min(pagination.pages, page + 1))}
+            disabled={page === pagination.pages}
             className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             Next

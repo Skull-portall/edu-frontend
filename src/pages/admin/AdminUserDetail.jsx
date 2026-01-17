@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { adminAPI, metaAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const AdminUserDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [semesters, setSemesters] = useState([]);
+  const queryClient = useQueryClient();
   const [showSemesterForm, setShowSemesterForm] = useState(false);
   const [semesterFormData, setSemesterFormData] = useState({ semester_id: '' });
   const [showRoleForm, setShowRoleForm] = useState(false);
@@ -29,117 +29,111 @@ const AdminUserDetail = () => {
     return `${baseUrl}/uploads/${picturePath}`;
   };
 
-  useEffect(() => {
-    fetchUser();
-    fetchSemesters();
-    setImageError(false);
-  }, [id]);
-
-  const fetchUser = async () => {
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-    try {
-      console.log('Fetching user with ID:', id);
+  // Fetch User
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['adminUser', id],
+    queryFn: async () => {
       const response = await adminAPI.getUserById(id);
-      console.log('User response:', response.data);
-      if (response.data.success && response.data.data) {
-        setUser(response.data.data);
-        setRoleFormData({ role: response.data.data.role || 'student' });
-        setMessage({ type: '', text: '' });
-      } else {
-        setUser(null);
-        setMessage({ type: 'error', text: response.data?.message || 'User not found' });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.data) {
+        setRoleFormData({ role: data.data.role || 'student' });
       }
-    } catch (error) {
-      console.error('Error fetching user:', error);
-      console.error('Error response:', error.response);
-      setUser(null);
-      if (error.response?.status === 404 || error.response?.status === 400) {
-        setMessage({ type: 'error', text: error.response?.data?.message || 'User not found' });
-      } else if (error.response?.status === 403) {
-        setMessage({ type: 'error', text: 'Access denied. You do not have permission to view this user.' });
-      } else if (error.response?.status === 401) {
-        setMessage({ type: 'error', text: 'Authentication required. Please log in again.' });
-      } else {
-        setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to load user details. Please check your connection and try again.' });
-      }
-    } finally {
-      setLoading(false);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to load user details');
     }
-  };
+  });
 
-  const fetchSemesters = async () => {
-    try {
+  // Fetch Semesters
+  const { data: semestersData } = useQuery({
+    queryKey: ['metaSemesters'],
+    queryFn: async () => {
       const response = await metaAPI.getSemesters();
-      setSemesters(response.data.data || []);
-    } catch (error) {
-      console.error('Error fetching semesters:', error);
-    }
-  };
+      return response.data;
+    },
+  });
 
-  const handleSuspend = async () => {
-    if (!window.confirm('Are you sure you want to suspend this user?')) return;
-    try {
-      await adminAPI.suspendUser(id);
-      setMessage({ type: 'success', text: 'User suspended successfully!' });
-      fetchUser();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to suspend user' });
-    }
-  };
+  const user = userData?.data;
+  const semesters = semestersData?.data || [];
 
-  const handleReactivate = async () => {
-    try {
-      await adminAPI.reactivateUser(id);
-      setMessage({ type: 'success', text: 'User reactivated successfully!' });
-      fetchUser();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to reactivate user' });
-    }
-  };
+  // Mutations
+  const suspendMutation = useMutation({
+    mutationFn: () => adminAPI.suspendUser(id),
+    onSuccess: () => {
+      toast.success('User suspended successfully!');
+      queryClient.invalidateQueries(['adminUser', id]);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to suspend user')
+  });
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone!')) return;
-    try {
-      await adminAPI.deleteUser(id);
-      setMessage({ type: 'success', text: 'User deleted successfully!' });
+  const reactivateMutation = useMutation({
+    mutationFn: () => adminAPI.reactivateUser(id),
+    onSuccess: () => {
+      toast.success('User reactivated successfully!');
+      queryClient.invalidateQueries(['adminUser', id]);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to reactivate user')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => adminAPI.deleteUser(id),
+    onSuccess: () => {
+      toast.success('User deleted successfully!');
       setTimeout(() => navigate('/admin/users'), 2000);
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to delete user' });
-    }
-  };
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete user')
+  });
 
-  const handleUpdateSemester = async (e) => {
-    e.preventDefault();
-    try {
-      await adminAPI.updateUserSemester(id, semesterFormData.semester_id);
-      setMessage({ type: 'success', text: 'User semester updated successfully!' });
+  const updateSemesterMutation = useMutation({
+    mutationFn: (semesterId) => adminAPI.updateUserSemester(id, semesterId),
+    onSuccess: () => {
+      toast.success('User semester updated successfully!');
       setShowSemesterForm(false);
-      fetchUser();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update semester' });
-    }
-  };
+      queryClient.invalidateQueries(['adminUser', id]);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update semester')
+  });
 
-  const handleUpdateRole = async (e) => {
-    e.preventDefault();
-    try {
-      await adminAPI.updateUserRole(id, roleFormData.role);
-      setMessage({ type: 'success', text: 'User role updated successfully!' });
+  const updateRoleMutation = useMutation({
+    mutationFn: (role) => adminAPI.updateUserRole(id, role),
+    onSuccess: () => {
+      toast.success('User role updated successfully!');
       setShowRoleForm(false);
-      fetchUser();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update role' });
+      queryClient.invalidateQueries(['adminUser', id]);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update role')
+  });
+
+  const handleSuspend = () => {
+    if (window.confirm('Are you sure you want to suspend this user?')) {
+      suspendMutation.mutate();
     }
   };
 
-  if (loading) {
+  const handleReactivate = () => reactivateMutation.mutate();
+
+  const handleDelete = () => {
+    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone!')) {
+      deleteMutation.mutate();
+    }
+  };
+
+  const handleUpdateSemester = (e) => {
+    e.preventDefault();
+    updateSemesterMutation.mutate(semesterFormData.semester_id);
+  };
+
+  const handleUpdateRole = (e) => {
+    e.preventDefault();
+    updateRoleMutation.mutate(roleFormData.role);
+  };
+
+  if (userLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading user details...</p>
-        </div>
+        <Loader />
       </div>
     );
   }
@@ -149,7 +143,7 @@ const AdminUserDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">User not found</p>
-          <Link to="/admin/users" className="text-red-600 hover:text-red-700 mt-4 inline-block">
+          <Link to="/admin/users" className="text-red-600 hover:text-red-700 mt-4 inline-block font-medium">
             Back to Users
           </Link>
         </div>
@@ -178,17 +172,6 @@ const AdminUserDetail = () => {
         </div>
       </div>
 
-      {/* Messages */}
-      {message.text && (
-        <div className={`mb-6 border-l-4 p-4 rounded-lg shadow-sm ${
-          message.type === 'success' 
-            ? 'bg-green-100 border-green-500 text-green-700' 
-            : 'bg-red-100 border-red-500 text-red-700'
-        }`}>
-          <p className="font-medium">{message.text}</p>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* User Info Card */}
         <div className="lg:col-span-1">
@@ -196,9 +179,9 @@ const AdminUserDetail = () => {
             <div className="text-center mb-6">
               <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 ring-4 ring-gray-100 relative">
                 {user.profilePicture && !imageError ? (
-                  <img 
-                    src={getProfilePictureUrl(user.profilePicture)} 
-                    alt={user.name} 
+                  <img
+                    src={getProfilePictureUrl(user.profilePicture)}
+                    alt={user.name}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
                   />
@@ -251,8 +234,12 @@ const AdminUserDetail = () => {
                       <option value="administrative_staff">Admin Staff</option>
                     </select>
                     <div className="flex gap-2">
-                      <button type="submit" className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm">
-                        Save
+                      <button
+                        type="submit"
+                        disabled={updateRoleMutation.isLoading}
+                        className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm disabled:opacity-50"
+                      >
+                        {updateRoleMutation.isLoading ? 'Saving...' : 'Save'}
                       </button>
                       <button type="button" onClick={() => setShowRoleForm(false)} className="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
                         Cancel
@@ -288,8 +275,12 @@ const AdminUserDetail = () => {
                       ))}
                     </select>
                     <div className="flex gap-2">
-                      <button type="submit" className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm">
-                        Save
+                      <button
+                        type="submit"
+                        disabled={updateSemesterMutation.isLoading}
+                        className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm disabled:opacity-50"
+                      >
+                        {updateSemesterMutation.isLoading ? 'Saving...' : 'Save'}
                       </button>
                       <button type="button" onClick={() => setShowSemesterForm(false)} className="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
                         Cancel
@@ -323,7 +314,7 @@ const AdminUserDetail = () => {
                     >
                       {user.phoneNumber}
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                       </svg>
                     </a>
                   </div>
@@ -348,24 +339,27 @@ const AdminUserDetail = () => {
               {user.suspendedAt ? (
                 <button
                   onClick={handleReactivate}
-                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                  disabled={reactivateMutation.isLoading}
+                  className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold disabled:opacity-50"
                 >
-                  Activate User
+                  {reactivateMutation.isLoading ? 'Activating...' : 'Activate User'}
                 </button>
               ) : (
                 <button
                   onClick={handleSuspend}
-                  className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors font-semibold"
+                  disabled={suspendMutation.isLoading}
+                  className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors font-semibold disabled:opacity-50"
                 >
-                  Suspend User
+                  {suspendMutation.isLoading ? 'Suspending...' : 'Suspend User'}
                 </button>
               )}
               {user._id !== currentUser?._id && (
                 <button
                   onClick={handleDelete}
-                  className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                  disabled={deleteMutation.isLoading}
+                  className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold disabled:opacity-50"
                 >
-                  Delete User
+                  {deleteMutation.isLoading ? 'Deleting...' : 'Delete User'}
                 </button>
               )}
             </div>

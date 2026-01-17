@@ -1,51 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usersAPI, questionsAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const MyQuestions = () => {
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, pages: 0 });
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    fetchQuestions();
-  }, [pagination.page]);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['myQuestions', page],
+    queryFn: async () => {
+      const response = await usersAPI.getMyQuestions(page);
+      return response.data; // Assuming API returns { success, data, pagination }
+    },
+    keepPreviousData: true,
+  });
 
-  const fetchQuestions = async () => {
-    setLoading(true);
-    try {
-      const response = await usersAPI.getMyQuestions();
-      if (response.data.success) {
-        setQuestions(response.data.data || []);
-        setPagination(response.data.pagination || pagination);
-      }
-    } catch (error) {
-      console.error('Error fetching questions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (questionId) => {
-    if (!window.confirm('Are you sure you want to delete this question?')) return;
-    try {
-      await questionsAPI.delete(questionId);
-      fetchQuestions();
-    } catch (error) {
+  const deleteMutation = useMutation({
+    mutationFn: (id) => questionsAPI.delete(id),
+    onSuccess: () => queryClient.invalidateQueries(['myQuestions']),
+    onError: (error) => {
       console.error('Error deleting question:', error);
       alert('Failed to delete question');
     }
+  });
+
+  const handleDelete = async (questionId) => {
+    if (!window.confirm('Are you sure you want to delete this question?')) return;
+    deleteMutation.mutate(questionId);
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your questions...</p>
-        </div>
-      </div>
-    );
+  const questions = data?.data || [];
+  const pagination = data?.pagination || { page: 1, limit: 15, total: 0, pages: 0 };
+
+  if (loading && !questions.length) {
+    return <Loader />;
   }
 
   return (
@@ -57,7 +47,7 @@ const MyQuestions = () => {
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">My Questions</h1>
             <p className="text-sm sm:text-base text-gray-600">Manage all your questions in one place</p>
           </div>
-          <Link 
+          <Link
             to="/questions/create"
             className="inline-flex items-center space-x-2 bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold"
           >
@@ -73,8 +63,8 @@ const MyQuestions = () => {
       <div className="space-y-4 lg:space-y-6 max-w-5xl">
         {questions.length > 0 ? (
           questions.map((question, index) => (
-            <div 
-              key={question._id} 
+            <div
+              key={question._id}
               className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1"
             >
               <div className="flex flex-col lg:flex-row items-start justify-between gap-4 lg:gap-6">
@@ -84,9 +74,9 @@ const MyQuestions = () => {
                       <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Anonymous</span>
                     )}
                     <span className="text-sm text-gray-500">
-                      {new Date(question.createdAt).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
+                      {new Date(question.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
                         year: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit'
@@ -103,17 +93,17 @@ const MyQuestions = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-4 hover:text-red-600 transition-colors break-words">
                     <Link to={`/questions/${question._id}`}>
                       {question.title}
                     </Link>
                   </h3>
-                  
+
                   <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-4 lg:mb-5 line-clamp-2 break-words">
                     {question.body?.substring(0, 250)}{question.body?.length > 250 ? '...' : ''}
                   </p>
-                  
+
                   <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
                     <div className="flex items-center space-x-2 text-gray-600">
                       <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +123,7 @@ const MyQuestions = () => {
 
                 {/* Action Buttons */}
                 <div className="flex flex-row lg:flex-col gap-2 lg:gap-3 lg:ml-6 w-full lg:w-auto lg:min-w-[140px]">
-                  <Link 
+                  <Link
                     to={`/questions/${question._id}`}
                     className="flex-1 lg:flex-none inline-flex items-center justify-center px-4 lg:px-5 py-2.5 lg:py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm lg:text-base font-medium"
                   >
@@ -163,8 +153,8 @@ const MyQuestions = () => {
             </svg>
             <p className="text-gray-500 text-lg mb-4">You haven't asked any questions yet</p>
             <p className="text-gray-400 mb-6">Start by asking your first question!</p>
-            <Link 
-              to="/questions/create" 
+            <Link
+              to="/questions/create"
               className="inline-flex items-center space-x-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

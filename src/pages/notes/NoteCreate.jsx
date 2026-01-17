@@ -1,173 +1,187 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { notesAPI, metaAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const NoteCreate = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     courseName: '',
     semesterId: ''
   });
-  const [semesters, setSemesters] = useState([]);
   const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingSemesters, setLoadingSemesters] = useState(true);
-  const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    const fetchSemesters = async () => {
-      try {
-        const response = await metaAPI.getSemesters();
-        setSemesters(response.data.data || []);
-      } catch (error) {
-        console.error('Error fetching semesters:', error);
-        setErrors({ general: 'Failed to load semesters. Please refresh the page.' });
-      } finally {
-        setLoadingSemesters(false);
-      }
-    };
+  // Fetch Semesters
+  const { data: semesters = [], isLoading: loadingSemesters } = useQuery({
+    queryKey: ['metaSemesters'],
+    queryFn: async () => {
+      const response = await metaAPI.getSemesters();
+      return response.data.data || [];
+    }
+  });
 
-    fetchSemesters();
-  }, []);
+  // Mutation for creating note
+  const createMutation = useMutation({
+    mutationFn: (data) => notesAPI.create(data),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries(['notes']);
+      toast.success('Note posted! It will be reviewed by admin before publishing.', {
+        duration: 5000,
+        position: 'top-center',
+      });
+      navigate(`/notes/${res.data.data._id}`);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to share note');
+    }
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: '' });
-    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('content', formData.content);
-      formDataToSend.append('courseName', formData.courseName);
-      formDataToSend.append('semesterId', formData.semesterId);
-      if (file) {
-        formDataToSend.append('attachment', file);
-      }
-
-      const response = await notesAPI.create(formDataToSend);
-      navigate(`/notes/${response.data.data._id}`);
-    } catch (error) {
-      setErrors({ general: error.response?.data?.message || 'Failed to create note' });
-    } finally {
-      setLoading(false);
+    const formDataToSend = new FormData();
+    formDataToSend.append('title', formData.title);
+    formDataToSend.append('content', formData.content);
+    formDataToSend.append('courseName', formData.courseName.toUpperCase());
+    formDataToSend.append('semesterId', formData.semesterId);
+    if (file) {
+      formDataToSend.append('attachment', file);
     }
+    createMutation.mutate(formDataToSend);
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Share a Note</h1>
-      
-      {errors.general && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg">
-          <p className="font-medium">{errors.general}</p>
-        </div>
-      )}
+    <div className="max-w-4xl mx-auto px-4 py-8 lg:py-12">
+      <div className="mb-10 animate-fade-in text-center">
+        <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 tracking-tight">
+          Share <span className="text-red-600">Knowledge</span>
+        </h1>
+        <p className="text-gray-500 font-medium max-w-xl mx-auto">
+          Contribute to the community by sharing your study notes. Your input helps fellow students excel!
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Title <span className="text-red-600">*</span>
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
-          />
-        </div>
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Content <span className="text-red-600">*</span>
-          </label>
-          <textarea
-            name="content"
-            value={formData.content}
-            onChange={handleChange}
-            required
-            rows="12"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
-            placeholder="Write your note content here..."
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 sm:p-10 animate-slide-up">
+        <div className="space-y-8">
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Course Name <span className="text-red-600">*</span>
+            <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
+              Note Title <span className="text-red-600">*</span>
             </label>
             <input
               type="text"
-              name="courseName"
-              value={formData.courseName}
+              name="title"
+              value={formData.title}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              placeholder="e.g. Introduction to Thermal Physics - Week 3"
+              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-medium text-gray-900 placeholder-gray-400"
             />
           </div>
-          
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Course Name */}
+            <div>
+              <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
+                Course Code/Name <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="text"
+                name="courseName"
+                value={formData.courseName}
+                onChange={handleChange}
+                required
+                placeholder="e.g. PHY101"
+                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-black text-gray-900 placeholder-gray-400"
+              />
+            </div>
+
+            {/* Semester */}
+            <div>
+              <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
+                Target Semester <span className="text-red-600">*</span>
+              </label>
+              <select
+                name="semesterId"
+                value={formData.semesterId}
+                onChange={handleChange}
+                required
+                disabled={loadingSemesters}
+                className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-bold text-gray-700 appearance-none cursor-pointer disabled:opacity-50"
+              >
+                <option value="">Select Semester</option>
+                {semesters.map(sem => (
+                  <option key={sem._id} value={sem._id}>Semester {sem.number}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Content */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Semester <span className="text-red-600">*</span>
+            <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
+              Key Concepts / Summary <span className="text-red-600">*</span>
             </label>
-            <select
-              name="semesterId"
-              value={formData.semesterId}
+            <textarea
+              name="content"
+              value={formData.content}
               onChange={handleChange}
               required
-              disabled={loadingSemesters}
-              className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${
-                loadingSemesters ? 'bg-gray-100 cursor-not-allowed' : ''
-              }`}
-            >
-              <option value="">{loadingSemesters ? 'Loading semesters...' : 'Select semester'}</option>
-              {semesters.map(sem => (
-                <option key={sem._id} value={sem._id}>Semester {sem.number}</option>
-              ))}
-            </select>
+              rows="8"
+              placeholder="Summarize the main points of your note here..."
+              className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-medium text-gray-900 placeholder-gray-400 leading-relaxed italic"
+            />
           </div>
-        </div>
-        
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Attachment (optional)
-          </label>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-        </div>
-        
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-rose-700 disabled:opacity-50 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
-          >
-            {loading ? 'Sharing...' : 'Share Note'}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/notes')}
-            className="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 font-semibold"
-          >
-            Cancel
-          </button>
+
+          {/* File Upload */}
+          <div className="relative group">
+            <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
+              Document Attachment <span className="text-gray-400 font-medium lowercase">(PDF, Doc, Image)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                onChange={(e) => setFile(e.target.files[0])}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div className="px-5 py-8 bg-dashed bg-red-50 border-2 border-dashed border-red-200 rounded-3xl text-center transition-all group-hover:bg-red-100 group-hover:border-red-400">
+                <svg className="w-10 h-10 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p className="text-red-600 font-black uppercase tracking-wider text-xs">
+                  {file ? file.name : 'Click or Drag to Upload File'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <button
+              type="submit"
+              disabled={createMutation.isLoading}
+              className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50"
+            >
+              {createMutation.isLoading ? 'Processing Material...' : 'Share with Community'}
+            </button>
+            <Link
+              to="/notes"
+              className="px-8 py-5 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 hover:text-gray-900 transition-all text-center"
+            >
+              Cancel
+            </Link>
+          </div>
         </div>
       </form>
     </div>

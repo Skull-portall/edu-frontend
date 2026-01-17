@@ -1,69 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const AdminPassTests = () => {
-  const [passTests, setPassTests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pendingPassTestsCount, setPendingPassTestsCount] = useState(0);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const limit = 20;
 
-  useEffect(() => {
-    fetchPassTests();
-  }, [pagination.page]);
+  // Fetch Pass Tests
+  const { data: passTestsData, isLoading: loading } = useQuery({
+    queryKey: ['adminPassTests', page],
+    queryFn: async () => {
+      const response = await adminAPI.getPassTests({ page, limit });
+      return response.data;
+    },
+    keepPreviousData: true,
+    onError: () => toast.error('Failed to load pass tests')
+  });
 
-  const fetchPassTests = async () => {
-    setLoading(true);
-    try {
-      const response = await adminAPI.getPassTests({ page: pagination.page, limit: pagination.limit });
-      if (response.data.success) {
-        setPassTests(response.data.data || []);
-        setPendingPassTestsCount(response.data.pendingPassTestsCount || 0);
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.pagination?.total || 0,
-          pages: response.data.pagination?.pages || 0
-        }));
-      }
-    } catch (error) {
-      console.error('Error fetching pass tests:', error);
-      setMessage({ type: 'error', text: 'Failed to load pass tests' });
-    } finally {
-      setLoading(false);
-    }
+  const passTests = passTestsData?.data || [];
+  const pendingPassTestsCount = passTestsData?.pendingPassTestsCount || 0;
+  const pagination = passTestsData?.pagination || { page: 1, total: 0, pages: 0 };
+
+  // Mutations
+  const approveMutation = useMutation({
+    mutationFn: (id) => adminAPI.approvePassTest(id),
+    onSuccess: () => {
+      toast.success('Test/Assignment approved successfully!');
+      queryClient.invalidateQueries(['adminPassTests']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to approve test')
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (id) => adminAPI.rejectPassTest(id),
+    onSuccess: () => {
+      toast.success('Test/Assignment rejected and deleted!');
+      queryClient.invalidateQueries(['adminPassTests']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to reject test')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => adminAPI.deletePassTest(id),
+    onSuccess: () => {
+      toast.success('Test/Assignment deleted successfully!');
+      queryClient.invalidateQueries(['adminPassTests']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete test')
+  });
+
+  const handleApprove = (id) => approveMutation.mutate(id);
+
+  const handleReject = (id) => {
+    if (window.confirm('Are you sure you want to reject this test/assignment?')) rejectMutation.mutate(id);
   };
 
-  const handleApprove = async (testId) => {
-    try {
-      await adminAPI.approvePassTest(testId);
-      setMessage({ type: 'success', text: 'Test/Assignment approved successfully!' });
-      fetchPassTests();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to approve test' });
-    }
-  };
-
-  const handleReject = async (testId) => {
-    if (!window.confirm('Are you sure you want to reject this test/assignment?')) return;
-    try {
-      await adminAPI.rejectPassTest(testId);
-      setMessage({ type: 'success', text: 'Test/Assignment rejected and deleted!' });
-      fetchPassTests();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to reject test' });
-    }
-  };
-
-  const handleDelete = async (testId) => {
-    if (!window.confirm('Are you sure you want to delete this test/assignment? This action cannot be undone.')) return;
-    try {
-      await adminAPI.deletePassTest(testId);
-      setMessage({ type: 'success', text: 'Test/Assignment deleted successfully!' });
-      fetchPassTests();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to delete test' });
-    }
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this test/assignment? This action cannot be undone.')) deleteMutation.mutate(id);
   };
 
   return (
@@ -73,7 +70,7 @@ const AdminPassTests = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">Manage Pass Tests</h1>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">Manage Past Papers</h1>
               {pendingPassTestsCount > 0 && (
                 <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-bold leading-none text-white bg-red-600 rounded-full animate-pulse shadow-lg border-2 border-red-700">
                   {pendingPassTestsCount > 99 ? '99+' : pendingPassTestsCount}
@@ -99,32 +96,9 @@ const AdminPassTests = () => {
         </div>
       </div>
 
-      {/* Success/Error Messages */}
-      {message.text && (
-        <div className={`mb-6 border-l-4 p-4 rounded-lg shadow-sm ${
-          message.type === 'success' 
-            ? 'bg-green-100 border-green-500 text-green-700' 
-            : 'bg-red-100 border-red-500 text-red-700'
-        }`}>
-          <div className="flex items-center">
-            <svg className={`w-5 h-5 mr-2`} fill="currentColor" viewBox="0 0 20 20">
-              {message.type === 'success' ? (
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-              ) : (
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-              )}
-            </svg>
-            <p className="font-medium">{message.text}</p>
-          </div>
-        </div>
-      )}
-
       {/* Pass Tests Table */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading pass tests...</p>
-        </div>
+        <Loader />
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
@@ -148,7 +122,7 @@ const AdminPassTests = () => {
                         <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
-                        <p className="text-gray-500 text-lg font-medium">No pass tests found</p>
+                        <p className="text-gray-500 text-lg font-medium">No past papers found</p>
                         <p className="text-gray-400 text-sm mt-1">Tests/Assignments will appear here once submitted</p>
                       </div>
                     </td>
@@ -189,13 +163,15 @@ const AdminPassTests = () => {
                             <>
                               <button
                                 onClick={() => handleApprove(test._id)}
-                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-800 hover:bg-green-200 transition-colors"
+                                disabled={approveMutation.isLoading}
+                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-800 hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleReject(test._id)}
-                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                                disabled={rejectMutation.isLoading}
+                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
                                 Reject
                               </button>
@@ -203,7 +179,8 @@ const AdminPassTests = () => {
                           )}
                           <button
                             onClick={() => handleDelete(test._id)}
-                            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors"
+                            disabled={deleteMutation.isLoading}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Delete
                           </button>
@@ -222,18 +199,18 @@ const AdminPassTests = () => {
       {pagination.pages > 1 && (
         <div className="mt-6 lg:mt-8 flex justify-center gap-2">
           <button
-            onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-            disabled={pagination.page === 1}
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
             className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             Previous
           </button>
           <span className="px-4 py-2 text-gray-700">
-            Page {pagination.page} of {pagination.pages}
+            Page {page} of {pagination.pages}
           </span>
           <button
-            onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
-            disabled={pagination.page === pagination.pages}
+            onClick={() => setPage(Math.min(pagination.pages, page + 1))}
+            disabled={page === pagination.pages}
             className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             Next

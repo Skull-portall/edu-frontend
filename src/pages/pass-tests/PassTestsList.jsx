@@ -1,187 +1,241 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { passTestsAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const PassTestsList = () => {
   const { user } = useAuth();
-  const [tests, setTests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [type, setType] = useState('');
-  const [status, setStatus] = useState('approved'); // 'approved' or 'pending'
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
 
-  const canApprove = user && (user.isAdmin || user.role === 'class_rep' || user.isClassRep);
+  const currentSearch = searchParams.get('search') || '';
+  const currentType = searchParams.get('type') || '';
+  const currentStatus = searchParams.get('status') || 'approved';
 
-  useEffect(() => {
-    fetchTests();
-  }, [search, type, status]);
+  const [search, setSearch] = useState(currentSearch);
 
-  const fetchTests = async () => {
-    try {
-      setLoading(true);
-      const params = {};
-      if (search) params.search = search;
-      if (type) params.type = type;
-      params.status = status;
-
+  // Fetch Tests
+  const { data: tests = [], isLoading: loading } = useQuery({
+    queryKey: ['passTests', { search: currentSearch, type: currentType, status: currentStatus }],
+    queryFn: async () => {
+      const params = { status: currentStatus };
+      if (currentSearch) params.search = currentSearch;
+      if (currentType) params.type = currentType;
       const response = await passTestsAPI.getAll(params);
-      setTests(response.data.data || []);
-    } catch (error) {
-      console.error('Error fetching tests:', error);
-    } finally {
-      setLoading(false);
+      return response.data.data || [];
+    },
+    keepPreviousData: true,
+  });
+
+  // Action Mutation
+  const mutation = useMutation({
+    mutationFn: ({ id, action }) =>
+      action === 'approve' ? passTestsAPI.approve(id) : passTestsAPI.reject(id),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries(['passTests']);
+      toast.success(`Intel ${variables.action === 'approve' ? 'validated' : 'discarded'} successfully!`, {
+        position: 'top-center'
+      });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Operation failed');
+    }
+  });
+
+  const handleAction = (e, id, action) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (window.confirm(`Initiate ${action} sequence for this record?`)) {
+      mutation.mutate({ id, action });
     }
   };
 
-  const handleHandleAction = async (e, id, action) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!window.confirm(`Are you sure you want to ${action} this item?`)) return;
-
-    try {
-      if (action === 'approve') {
-        await passTestsAPI.approve(id);
-      } else {
-        await passTestsAPI.reject(id);
-      }
-      fetchTests(); // Refresh list
-    } catch (error) {
-      console.error(`Error ${action}ing test:`, error);
-      alert(`Failed to ${action} item`);
-    }
+  const updateFilters = (updates) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    });
+    navigate(`/pass-tests?${params.toString()}`);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchTests();
+    updateFilters({ search });
   };
 
   if (loading && !tests.length) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+      <div className="min-h-[400px] flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6 lg:mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
+      <div className="mb-16 animate-fade-in">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-12">
           <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">
-              Past Tests & Assignments
+            <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 tracking-tight uppercase">
+              Past <span className="text-red-600">Papers</span>
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              Browse past exams and assignments shared by students
+            <p className="text-gray-500 font-medium max-w-xl">
+              Access previous exams, tests, and assignments from the community library.
             </p>
+          </div>
+
+          <div className="shrink-0">
+            {user && (
+              <Link
+                to="/pass-tests/create"
+                className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Upload Paper
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Dashboard Link for Class Reps */}
-        {canApprove && (
-          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="font-semibold text-blue-900">Class Representative Access</h3>
-              <p className="text-sm text-blue-700">Manage pending approvals for your semester in the dashboard.</p>
-            </div>
-            <Link
-              to="/class-rep/dashboard"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
-            >
-              Go to Dashboard
-            </Link>
-          </div>
-        )}
-
-        <div className="mb-6 bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <form onSubmit={handleSearch} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2">
+        {/* Global Control Interface */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1 bg-white p-2 rounded-[2rem] shadow-2xl shadow-gray-200/50 border border-gray-100 flex flex-col sm:flex-row gap-2">
+            <form onSubmit={handleSearch} className="flex-1 relative flex items-center">
+              <svg className="absolute left-6 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search tests and assignments..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all text-base"
+                placeholder="Search past papers..."
+                className="w-full bg-transparent border-none py-6 pl-16 pr-8 text-lg font-bold text-gray-900 placeholder-gray-400 focus:ring-0"
               />
-            </div>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
-            >
-              <option value="">All Types</option>
-              <option value="test">Tests</option>
-              <option value="assignment">Assignments</option>
-            </select>
+            </form>
             <button
-              type="submit"
-              className="bg-gradient-to-r from-red-600 to-rose-600 text-white px-4 sm:px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold"
+              onClick={handleSearch}
+              className="px-10 py-6 bg-red-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95"
             >
-              Search
+              Search Papers
             </button>
-          </form>
-        </div>
+          </div>
 
-        {user && (
-          <Link
-            to="/pass-tests/create"
-            className="btn-create btn-create-animate inline-flex items-center gap-2"
-          >
-            <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            <span className="btn-text">Share Test/Assignment</span>
-          </Link>
-        )}
+          {/* Quick Filters */}
+          <div className="bg-gray-100 p-2 rounded-[2rem] flex items-center gap-2">
+            {[
+              { id: '', label: 'All' },
+              { id: 'test', label: 'Tests' },
+              { id: 'assignment', label: 'Assignments' }
+            ].map((type) => (
+              <button
+                key={type.id}
+                onClick={() => updateFilters({ type: type.id })}
+                className={`px-8 py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${currentType === type.id
+                  ? 'bg-gray-900 text-white shadow-xl'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'
+                  }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="animate-slide-up">
         {tests.length === 0 ? (
-          <div className="col-span-full text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
-            <p className="text-gray-500 text-lg">
-              No tests or assignments found
-            </p>
+          <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 animate-fade-in">
+            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">No Papers Found</h3>
+            <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">No past papers match your search. Try different keywords.</p>
+            <button
+              onClick={() => navigate('/pass-tests')}
+              className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10"
+            >
+              Clear Filters
+            </button>
           </div>
         ) : (
-          tests.map((test) => (
-            <div
-              key={test._id}
-              className="relative group bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 card-hover flex flex-col h-full"
-            >
-              <Link to={`/pass-tests/${test._id}`} className="flex-1">
-                <div className="flex items-center justify-between mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${test.type === 'test' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {tests.map((test, index) => (
+              <article
+                key={test._id}
+                onClick={() => navigate(`/pass-tests/${test._id}`)}
+                className="group bg-white rounded-3xl border border-gray-100 p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-8">
+                  <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${test.type === 'test'
+                    ? 'bg-red-50 text-red-700 border-red-100'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                     }`}>
                     {test.type}
                   </span>
-                  {!test.isApproved && (
-                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider">
-                      Pending
-                    </span>
+
+                  {user?.isAdmin && !test.isApproved && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => handleAction(e, test._id, 'approve')}
+                        className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => handleAction(e, test._id, 'reject')}
+                        className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   )}
                 </div>
-                <h2 className="text-xl font-semibold mb-2 text-gray-900 line-clamp-2">{test.title}</h2>
-                <p className="text-gray-600 mb-4 text-sm line-clamp-3">{test.content?.substring(0, 150)}...</p>
-                <div className="flex items-center justify-between text-sm text-gray-500 mt-auto">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-red-400 to-rose-400 flex items-center justify-center text-white text-xs font-semibold">
-                      {test.user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <span>{test.user?.name}</span>
+
+                <h2 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-red-600 transition-colors uppercase tracking-tight line-clamp-2 leading-tight">
+                  {test.title}
+                </h2>
+                <p className="text-gray-500 font-medium line-clamp-3 leading-relaxed mb-10 italic flex-1">
+                  "{test.content?.replace(/<[^>]*>/g, '').substring(0, 150)}..."
+                </p>
+
+                <div className="flex items-center gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
+                    {test.user?.profile_picture ? (
+                      <img src={test.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
+                        {test.user?.name?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Submitted by</span>
+                    <span className="block text-xs font-black text-gray-900 uppercase truncate max-w-[120px]">{test.user?.name || 'STUDENT'}</span>
                   </div>
                   {test.courseName && (
-                    <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">
-                      {test.courseName}
-                    </span>
+                    <div className="ml-auto">
+                      <span className="bg-gray-950 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl group-hover:bg-red-600 transition-colors italic">
+                        {test.courseName}
+                      </span>
+                    </div>
                   )}
                 </div>
-              </Link>
-
-              {/* No Approval Buttons Here */}
-            </div>
-          ))
+              </article>
+            ))}
+          </div>
         )}
       </div>
     </div>

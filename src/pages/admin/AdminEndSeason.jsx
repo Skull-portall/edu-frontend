@@ -1,86 +1,83 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI, metaAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const AdminEndSeason = () => {
-  const [campuses, setCampuses] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [semesters, setSemesters] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({ campus_id: '', department_id: '' });
-  const [studentCounts, setStudentCounts] = useState({});
   const [showPreview, setShowPreview] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (formData.campus_id && formData.department_id) {
-      fetchStudentCounts();
-      setShowPreview(true);
-    } else {
-      setShowPreview(false);
-      setStudentCounts({});
-    }
-  }, [formData.campus_id, formData.department_id]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
+  // Fetch Metadata
+  const { data: metaData, isLoading: metaLoading } = useQuery({
+    queryKey: ['adminEndSeasonMeta'],
+    queryFn: async () => {
       const [campusesRes, departmentsRes, semestersRes] = await Promise.all([
         metaAPI.getCampuses(),
         metaAPI.getDepartments(),
         metaAPI.getSemesters()
       ]);
-      setCampuses(campusesRes.data.data || []);
-      setDepartments(departmentsRes.data.data || []);
-      setSemesters(semestersRes.data.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setMessage({ type: 'error', text: 'Failed to load data' });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return {
+        campuses: campusesRes.data.data || [],
+        departments: departmentsRes.data.data || [],
+        semesters: semestersRes.data.data || []
+      };
+    },
+    onError: () => toast.error('Failed to load metadata')
+  });
 
-  const fetchStudentCounts = async () => {
-    try {
+  const campuses = metaData?.campuses || [];
+  const departments = metaData?.departments || [];
+  const semesters = metaData?.semesters || [];
+
+  // Fetch Student Counts
+  const { data: studentCountsData, isLoading: countsLoading } = useQuery({
+    queryKey: ['adminStudentCounts', formData.campus_id, formData.department_id],
+    queryFn: async () => {
       const response = await adminAPI.getStudentCounts(formData.campus_id, formData.department_id);
-      setStudentCounts(response.data.data || {});
-    } catch (error) {
-      console.error('Error fetching student counts:', error);
-    }
-  };
+      return response.data.data || {};
+    },
+    enabled: !!(formData.campus_id && formData.department_id),
+    onSuccess: () => setShowPreview(true)
+  });
 
-  const handleSubmit = async (e) => {
+  const studentCounts = studentCountsData || {};
+
+  // Mutation
+  const promoteMutation = useMutation({
+    mutationFn: () => adminAPI.promoteUsersByCampusDepartment(formData.campus_id, formData.department_id),
+    onSuccess: (response) => {
+      toast.success(response.data.message || 'Students promoted successfully!');
+      setFormData({ campus_id: '', department_id: '' });
+      setShowPreview(false);
+      queryClient.invalidateQueries(['adminStudentCounts']);
+      queryClient.invalidateQueries(['adminUsers']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to promote students')
+  });
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (!window.confirm('Are you sure you want to promote all students from the selected campus and department to the next semester? This action cannot be undone.')) {
       return;
     }
-
-    setSubmitting(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      const response = await adminAPI.promoteUsersByCampusDepartment(formData.campus_id, formData.department_id);
-      setMessage({ type: 'success', text: response.data.message || 'Students promoted successfully!' });
-      setFormData({ campus_id: '', department_id: '' });
-      setStudentCounts({});
-      setShowPreview(false);
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to promote students' });
-    } finally {
-      setSubmitting(false);
-    }
+    promoteMutation.mutate();
   };
 
   const selectedCampus = campuses.find(c => c._id === formData.campus_id);
   const selectedDepartment = departments.find(d => d._id === formData.department_id);
   const uniqueSemesters = Array.from(new Map(semesters.map(s => [s.number, s])).values()).sort((a, b) => a.number - b.number);
   const maxSemester = uniqueSemesters.length > 0 ? Math.max(...uniqueSemesters.map(s => s.number)) : 0;
+
+  if (metaLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -97,7 +94,7 @@ const AdminEndSeason = () => {
                 </div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                    End Season
+                    Semester Update
                   </h1>
                   <p className="text-sm sm:text-base text-gray-600 mt-1.5 leading-relaxed">
                     Promote students to the next semester level
@@ -129,24 +126,13 @@ const AdminEndSeason = () => {
             <div className="flex-1 min-w-0 pt-0.5">
               <h3 className="text-sm sm:text-base font-bold text-blue-900 mb-2">Important Notice</h3>
               <p className="text-sm text-blue-800 leading-relaxed">
-                This action will promote all students from the selected campus and department to the next semester level. 
-                Students already in the highest semester will be automatically skipped. 
+                This action will promote all students from the selected campus and department to the next semester level.
+                Students already in the highest semester will be automatically skipped.
                 <strong className="text-blue-900 font-semibold"> This action cannot be undone.</strong>
               </p>
             </div>
           </div>
         </div>
-
-        {/* Messages */}
-        {message.text && (
-          <div className={`mb-6 border-l-4 p-4 rounded-lg shadow-sm ${
-            message.type === 'success' 
-              ? 'bg-green-100 border-green-500 text-green-700' 
-              : 'bg-red-100 border-red-500 text-red-700'
-          }`}>
-            <p className="font-medium">{message.text}</p>
-          </div>
-        )}
 
         {/* Promotion Form Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-6 sm:mb-8">
@@ -164,7 +150,7 @@ const AdminEndSeason = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Form Body */}
           <form onSubmit={handleSubmit} className="p-6 sm:p-8 lg:p-10 space-y-8">
             {/* Campus Selection */}
@@ -181,7 +167,7 @@ const AdminEndSeason = () => {
                 value={formData.campus_id}
                 onChange={(e) => setFormData({ ...formData, campus_id: e.target.value })}
                 required
-                className="block w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-gray-400"
+                className="block w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-gray-400"
               >
                 <option value="">-- Select Campus --</option>
                 {campuses.map(campus => (
@@ -206,7 +192,7 @@ const AdminEndSeason = () => {
                 value={formData.department_id}
                 onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
                 required
-                className="block w-full px-4 py-3 pl-12 border-2 border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-gray-400"
+                className="block w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-gray-400"
               >
                 <option value="">-- Select Department --</option>
                 {departments.map(dept => (
@@ -229,7 +215,7 @@ const AdminEndSeason = () => {
                   <div className="flex-1 min-w-0 pt-0.5">
                     <h4 className="text-sm sm:text-base font-bold text-green-900 mb-2">Ready to Proceed</h4>
                     <p className="text-sm text-green-800 mb-2 leading-relaxed">
-                      All students from <span className="font-semibold">{selectedCampus.name}</span> - 
+                      All students from <span className="font-semibold">{selectedCampus.name}</span> -
                       <span className="font-semibold"> {selectedDepartment.name}</span> will be promoted to the next semester level.
                     </p>
                     <p className="text-xs text-green-700 italic">
@@ -253,13 +239,13 @@ const AdminEndSeason = () => {
               </Link>
               <button
                 type="submit"
-                disabled={submitting || !formData.campus_id || !formData.department_id}
+                disabled={promoteMutation.isLoading || !formData.campus_id || !formData.department_id}
                 className="inline-flex items-center justify-center px-12 py-4 sm:px-16 sm:py-5 text-base sm:text-lg font-bold text-white bg-gradient-to-r from-red-600 via-red-600 to-rose-600 rounded-xl hover:from-red-700 hover:via-red-700 hover:to-rose-700 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-[1.03] active:translate-y-0 active:scale-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none w-full sm:w-auto gap-3"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                 </svg>
-                <span>{submitting ? 'Promoting...' : 'Promote All Students'}</span>
+                <span>{promoteMutation.isLoading ? 'Promoting...' : 'Promote All Students'}</span>
               </button>
             </div>
           </form>
@@ -281,13 +267,13 @@ const AdminEndSeason = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Semester Cards Grid */}
           <div className="p-6 sm:p-8">
-            {loading ? (
+            {countsLoading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading semesters...</p>
+                <p className="text-gray-600">Loading student counts...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
@@ -321,7 +307,7 @@ const AdminEndSeason = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                         <span>
-                          {studentCounts[semester._id] !== undefined 
+                          {studentCounts[semester._id] !== undefined
                             ? `${studentCounts[semester._id]} student${studentCounts[semester._id] !== 1 ? 's' : ''}`
                             : 'Select campus & department'
                           }

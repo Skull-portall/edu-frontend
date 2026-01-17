@@ -1,50 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const AdminCampuses = () => {
-  const [campuses, setCampuses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({ name: '', code: '', description: '' });
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({ name: '', code: '', description: '' });
-  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchCampuses();
-  }, []);
-
-  const fetchCampuses = async () => {
-    setLoading(true);
-    try {
+  // Fetch Campuses
+  const { data: campusesData, isLoading: loading } = useQuery({
+    queryKey: ['adminCampuses'],
+    queryFn: async () => {
       const response = await adminAPI.getCampuses();
-      if (response.data.success) {
-        setCampuses(response.data.data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching campuses:', error);
-      setMessage({ type: 'error', text: 'Failed to load campuses' });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data;
+    },
+    onError: () => toast.error('Failed to load campuses')
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setMessage({ type: '', text: '' });
+  const campuses = campusesData?.data || [];
 
-    try {
-      await adminAPI.createCampus(formData);
-      setMessage({ type: 'success', text: 'Campus created successfully!' });
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (newCampus) => adminAPI.createCampus(newCampus),
+    onSuccess: () => {
+      toast.success('Campus created successfully!');
       setFormData({ name: '', code: '', description: '' });
-      fetchCampuses();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to create campus' });
-    } finally {
-      setSubmitting(false);
-    }
+      queryClient.invalidateQueries(['adminCampuses']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to create campus')
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => adminAPI.updateCampus(id, data),
+    onSuccess: () => {
+      toast.success('Campus updated successfully!');
+      setEditingId(null);
+      setEditFormData({ name: '', code: '', description: '' });
+      queryClient.invalidateQueries(['adminCampuses']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to update campus')
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => adminAPI.deleteCampus(id),
+    onSuccess: () => {
+      toast.success('Campus deleted successfully!');
+      queryClient.invalidateQueries(['adminCampuses']);
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete campus')
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createMutation.mutate(formData);
   };
 
   const handleEdit = (campus) => {
@@ -61,30 +73,13 @@ const AdminCampuses = () => {
     setEditFormData({ name: '', code: '', description: '' });
   };
 
-  const handleUpdate = async (campusId) => {
-    setSubmitting(true);
-    setMessage({ type: '', text: '' });
-    try {
-      await adminAPI.updateCampus(campusId, editFormData);
-      setMessage({ type: 'success', text: 'Campus updated successfully!' });
-      setEditingId(null);
-      setEditFormData({ name: '', code: '', description: '' });
-      fetchCampuses();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update campus' });
-    } finally {
-      setSubmitting(false);
-    }
+  const handleUpdate = (campusId) => {
+    updateMutation.mutate({ id: campusId, data: editFormData });
   };
 
-  const handleDelete = async (campusId) => {
-    if (!window.confirm('Are you sure you want to delete this campus? This action cannot be undone!')) return;
-    try {
-      await adminAPI.deleteCampus(campusId);
-      setMessage({ type: 'success', text: 'Campus deleted successfully!' });
-      fetchCampuses();
-    } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to delete campus' });
+  const handleDelete = (campusId) => {
+    if (window.confirm('Are you sure you want to delete this campus? This action cannot be undone!')) {
+      deleteMutation.mutate(campusId);
     }
   };
 
@@ -108,17 +103,6 @@ const AdminCampuses = () => {
           </Link>
         </div>
       </div>
-
-      {/* Messages */}
-      {message.text && (
-        <div className={`mb-6 border-l-4 p-4 rounded-lg shadow-sm ${
-          message.type === 'success' 
-            ? 'bg-green-100 border-green-500 text-green-700' 
-            : 'bg-red-100 border-red-500 text-red-700'
-        }`}>
-          <p className="font-medium">{message.text}</p>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Add Campus Form */}
@@ -164,10 +148,10 @@ const AdminCampuses = () => {
             </div>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={createMutation.isLoading}
               className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Adding...' : 'Add Campus'}
+              {createMutation.isLoading ? 'Adding...' : 'Add Campus'}
             </button>
           </form>
         </div>
@@ -176,14 +160,12 @@ const AdminCampuses = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Existing Campuses</h2>
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-            </div>
+            <Loader />
           ) : campuses.length === 0 ? (
             <p className="text-gray-500">No campuses yet. Add one to get started!</p>
           ) : (
             <div className="space-y-3">
-              {campuses.map((campus, index) => (
+              {campuses.map((campus) => (
                 <div key={campus._id} className="border border-gray-200 rounded-md p-4 hover:bg-gray-50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-md">
                   {editingId === campus._id ? (
                     <form onSubmit={(e) => { e.preventDefault(); handleUpdate(campus._id); }}>
@@ -220,10 +202,10 @@ const AdminCampuses = () => {
                         <div className="flex gap-2">
                           <button
                             type="submit"
-                            disabled={submitting}
+                            disabled={updateMutation.isLoading}
                             className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
                           >
-                            {submitting ? 'Saving...' : 'Save'}
+                            {updateMutation.isLoading ? 'Saving...' : 'Save'}
                           </button>
                           <button
                             type="button"
@@ -258,7 +240,8 @@ const AdminCampuses = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(campus._id)}
-                            className="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200"
+                            disabled={deleteMutation.isLoading}
+                            className="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>

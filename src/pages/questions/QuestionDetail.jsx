@@ -1,312 +1,360 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { questionsAPI, answersAPI, votesAPI } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const QuestionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [question, setQuestion] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [answerBody, setAnswerBody] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchQuestion();
-  }, [id]);
-
-  const fetchQuestion = async () => {
-    try {
+  // Fetch Question and Answers
+  const { data: questionData, isLoading } = useQuery({
+    queryKey: ['question', id],
+    queryFn: async () => {
       const response = await questionsAPI.getById(id);
-      setQuestion(response.data.data);
-      setAnswers(response.data.data.answers || []);
-    } catch (error) {
-      console.error('Error fetching question:', error);
-      setError('Failed to load question');
-    } finally {
-      setLoading(false);
+      return response.data;
+    },
+    onError: () => {
+      toast.error('Failed to load question');
     }
-  };
+  });
 
-  const handleSubmitAnswer = async (e) => {
+  const question = questionData?.data;
+  const answers = questionData?.data?.answers || [];
+
+  // Submit Answer Mutation
+  const submitAnswerMutation = useMutation({
+    mutationFn: (newAnswer) => answersAPI.create(id, newAnswer),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['question', id]);
+      setAnswerBody('');
+      toast.success('Your contribution was posted!', {
+        position: 'top-center'
+      });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Failed to submit answer');
+    }
+  });
+
+  // Vote Mutation
+  const voteMutation = useMutation({
+    mutationFn: ({ answerId, isUpvote }) => votesAPI.voteAnswer(answerId, isUpvote),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['question', id]);
+    },
+    onError: () => {
+      toast.error('Unable to cast vote');
+    },
+  });
+
+  // Accept Answer Mutation
+  const acceptAnswerMutation = useMutation({
+    mutationFn: (answerId) => answersAPI.accept(answerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['question', id]);
+      toast.success('You accepted this solution!');
+    },
+    onError: () => toast.error('Failed to accept answer')
+  });
+
+  // Delete Question Mutation
+  const deleteQuestionMutation = useMutation({
+    mutationFn: () => questionsAPI.delete(id),
+    onSuccess: () => {
+      toast.success('Inquiry permanently removed');
+      navigate('/questions');
+    },
+    onError: () => toast.error('Unauthorized deletion attempt')
+  });
+
+  const handleSubmitAnswer = (e) => {
     e.preventDefault();
     if (!answerBody.trim()) return;
+    submitAnswerMutation.mutate({ body: answerBody });
+  };
 
-    setSubmitting(true);
-    setError('');
-
-    try {
-      const response = await answersAPI.create(id, { body: answerBody });
-      setAnswers([response.data.data, ...answers]);
-      setAnswerBody('');
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to submit answer');
-    } finally {
-      setSubmitting(false);
+  const handleDelete = () => {
+    if (window.confirm('This action cannot be undone. Delete this question?')) {
+      deleteQuestionMutation.mutate();
     }
   };
 
-  const handleAcceptAnswer = async (answerId) => {
-    try {
-      await answersAPI.accept(answerId);
-      fetchQuestion();
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to accept answer');
-    }
-  };
-
-  const handleVote = async (answerId, isUpvote) => {
-    try {
-      const response = await votesAPI.voteAnswer(answerId, isUpvote);
-      setAnswers(answers.map(a => 
-        a._id === answerId 
-          ? { ...a, votesCount: response.data.data.answer.votesCount }
-          : a
-      ));
-    } catch (error) {
-      console.error('Error voting:', error);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this question?')) return;
-
-    try {
-      await questionsAPI.delete(id);
-      navigate('/questions');
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to delete question');
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+      <div className="min-h-[400px] flex items-center justify-center">
+        <Loader />
       </div>
     );
   }
 
   if (!question) {
     return (
-      <div className="text-center py-12">
-        <div className="text-red-600 text-xl font-semibold mb-4">Question not found</div>
-        <Link to="/questions" className="text-red-600 hover:text-red-700 underline">
-          Back to Questions
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-3xl font-black text-gray-900 mb-4 uppercase">Inquiry Closed</h2>
+        <p className="text-gray-500 mb-8 font-medium italic">"The question you seek has been resolved or archived."</p>
+        <Link to="/questions" className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-all">
+          Back to Knowledge Base
         </Link>
       </div>
     );
   }
 
-  const isOwner = user && (user.id === question.user?._id || user.id === question.user?.id || user._id === question.user?._id || user._id === question.user?.id);
-  const canAccept = isOwner;
+  const isOwner = user && (user.id === question.user?._id || user._id === question.user?._id);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      {error && (
-        <div className="mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-lg animate-fade-in">
-          <p className="font-medium">{error}</p>
-        </div>
-      )}
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      {/* Question Context */}
+      <div className="mb-10 animate-fade-in">
+        <Link to="/questions" className="inline-flex items-center gap-2 text-gray-400 hover:text-red-600 font-black uppercase tracking-widest text-[10px] mb-6 transition-colors font-mono">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Threads
+        </Link>
 
-      {/* Question */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 card-hover">
-        <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
-          <div className="flex-1 min-w-0 w-full">
-            <div className="flex items-center flex-wrap gap-2 mb-3">
-              {question.isAnonymous && !user?.isAdmin ? (
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">Anonymous</span>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden flex-shrink-0">
-                    <div className="w-full h-full bg-gradient-to-br from-red-400 to-rose-400 flex items-center justify-center text-white text-xs font-semibold">
-                      {question.user?.name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                  </div>
-                  <Link
-                    to={`/profile/${question.user?._id || question.user?.id}`}
-                    className="text-xs sm:text-sm text-gray-600 hover:text-red-600 font-semibold transition-colors"
-                  >
-                    {question.user?.name}
-                  </Link>
-                </div>
-              )}
-              <span className="text-gray-400 hidden sm:inline">•</span>
-              <span className="text-xs sm:text-sm text-gray-500">
-                {new Date(question.createdAt).toLocaleDateString()}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <span className="bg-red-50 text-red-700 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 italic">
+                {question.courseName || 'General'}
               </span>
-              {question.courseName && (
-                <span className="bg-red-100 text-red-700 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">
-                  {question.courseName}
-                </span>
-              )}
-              {question.semester?.number && (
-                <span className="bg-rose-100 text-rose-700 px-2 sm:px-3 py-1 rounded-full text-xs font-semibold">
-                  Semester {question.semester.number}
-                </span>
-              )}
+              <span className="text-gray-300 hidden sm:inline">•</span>
+              <span className="text-xs font-black text-gray-400 uppercase tracking-widest font-mono">
+                Thread #{id.slice(-6).toUpperCase()}
+              </span>
+              <span className="text-gray-300 hidden sm:inline">•</span>
+              <span className="text-xs font-black text-emerald-600 uppercase tracking-widest font-mono">
+                {answers.length} Responses
+              </span>
             </div>
-            
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 break-words">{question.title}</h1>
-            
-            <div className="prose max-w-none mb-4">
-              <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap leading-relaxed break-words">
-                {question.body}
-              </p>
-            </div>
-            
-            {question.attachment && (
-              <div className="mt-4 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{question.attachmentName || 'Attachment'}</p>
-                    <a
-                      href={`http://localhost:5000/${question.attachment}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-                    >
-                      Download
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
-              <span>{question.views || 0} views</span>
-              <span>{answers.length} {answers.length === 1 ? 'answer' : 'answers'}</span>
-            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight uppercase tracking-tight break-words">
+              {question.title}
+            </h1>
           </div>
-          
+
           {isOwner && (
             <button
               onClick={handleDelete}
-              className="text-red-600 hover:text-red-800 text-sm font-medium"
+              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95"
             >
-              Delete
+              Terminate Thread
             </button>
           )}
         </div>
       </div>
 
-      {/* Answer Form */}
-      {user && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Your Answer</h2>
-          <form onSubmit={handleSubmitAnswer}>
-            <textarea
-              value={answerBody}
-              onChange={(e) => setAnswerBody(e.target.value)}
-              rows="6"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
-              placeholder="Write your answer here..."
-            />
-            <button
-              type="submit"
-              disabled={submitting || !answerBody.trim()}
-              className="mt-4 bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3 rounded-lg hover:from-red-700 hover:to-rose-700 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold"
-            >
-              {submitting ? 'Submitting...' : 'Post Answer'}
-            </button>
-          </form>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 mb-16">
+        {/* Author Stats */}
+        <div className="lg:col-span-1 space-y-8 animate-slide-up">
+          <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
+            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Original Poster</h4>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-50 mb-4 transition-transform group-hover:scale-110">
+                {question.user?.profile_picture ? (
+                  <img src={question.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white text-2xl font-black uppercase">
+                    {question.isAnonymous && !user?.isAdmin ? '?' : (question.user?.name?.charAt(0) || 'U')}
+                  </div>
+                )}
+              </div>
+              <Link
+                to={question.isAnonymous && !user?.isAdmin ? '#' : `/profile/${question.user?._id || question.user?.id}`}
+                className={`text-lg font-black text-gray-900 truncate uppercase tracking-tight ${!question.isAnonymous || user?.isAdmin ? 'hover:text-red-600' : ''}`}
+              >
+                {question.isAnonymous && !user?.isAdmin ? 'ANONYMOUS' : (question.user?.name || 'STUDENT')}
+              </Link>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                Posted {new Date(question.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
 
-      {/* Answers */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">
-          {answers.length} {answers.length === 1 ? 'Answer' : 'Answers'}
-        </h2>
-        <div className="space-y-6">
-          {answers.map((answer) => (
-            <div
-              key={answer._id}
-              className={`bg-white rounded-xl shadow-sm border-2 p-6 ${
-                answer.isAccepted ? 'border-green-500 bg-green-50' : 'border-gray-200'
-              }`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex flex-col items-center">
-                  <button
-                    onClick={() => handleVote(answer._id, true)}
-                    className="text-gray-400 hover:text-green-600 transition-colors"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                  </button>
-                  <span className="font-semibold text-gray-900 my-1">{answer.votesCount || 0}</span>
-                  <button
-                    onClick={() => handleVote(answer._id, false)}
-                    className="text-gray-400 hover:text-red-600 transition-colors"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {answer.isAccepted && (
-                    <div className="mt-2 text-green-600 font-semibold">
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100 text-center">
+            <div className="text-3xl font-black text-gray-900 mb-1">{question.views || 0}</div>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Views</p>
+          </div>
+        </div>
+
+        {/* Question Content */}
+        <div className="lg:col-span-3 space-y-8 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+            <div className="p-8 sm:p-12">
+              <div className="prose prose-red max-w-none">
+                <p className="whitespace-pre-wrap text-gray-700 leading-relaxed text-lg font-medium italic">
+                  "{question.body}"
+                </p>
+              </div>
+
+              {question.attachment && (
+                <div className="mt-10 pt-10 border-t border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 border border-red-100">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                       </svg>
                     </div>
-                  )}
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <Link
-                      to={`/profile/${answer.user?._id || answer.user?.id}`}
-                      className="font-semibold text-red-600 hover:text-red-700 hover:underline"
-                    >
-                      {answer.user?.name}
-                    </Link>
-                    <span className="text-sm text-gray-500">
-                      {new Date(answer.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  
-                  <div className="prose max-w-none">
-                    <p className="whitespace-pre-wrap text-gray-700">{answer.body}</p>
-                  </div>
-                  
-                  {answer.attachment && (
-                    <div className="mt-3">
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-tight text-gray-900 overflow-hidden text-ellipsis max-w-[200px] sm:max-w-md">
+                        {question.attachmentName || 'Supplemental Material'}
+                      </h4>
                       <a
-                        href={`http://localhost:5000/${answer.attachment}`}
+                        href={`/api/${question.attachment}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                        className="text-[10px] font-black text-red-600 uppercase tracking-[.2em] hover:underline"
                       >
-                        📎 {answer.attachmentName || 'Attachment'}
+                        Secure Download
                       </a>
                     </div>
-                  )}
-                  
-                  {canAccept && !answer.isAccepted && (
-                    <button
-                      onClick={() => handleAcceptAnswer(answer._id)}
-                      className="mt-4 text-green-600 hover:text-green-800 text-sm font-medium"
-                    >
-                      ✓ Accept Answer
-                    </button>
-                  )}
+                  </div>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Answer Area */}
+          {user && (
+            <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+
+              <div className="relative z-10">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-8">Contribute Knowledge</h2>
+                <form onSubmit={handleSubmitAnswer} className="space-y-6">
+                  <textarea
+                    value={answerBody}
+                    onChange={(e) => setAnswerBody(e.target.value)}
+                    rows="5"
+                    className="w-full bg-white/5 border-white/10 rounded-2xl px-6 py-5 text-white placeholder-gray-500 font-medium focus:ring-2 focus:ring-red-500 focus:bg-white/10 transition-all italic"
+                    placeholder="Provide a detailed solution or hint..."
+                  />
+                  <button
+                    type="submit"
+                    disabled={submitAnswerMutation.isLoading || !answerBody.trim()}
+                    className="bg-white text-gray-900 px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl"
+                  >
+                    {submitAnswerMutation.isLoading ? 'Dispatching...' : 'Submit Response'}
+                  </button>
+                </form>
               </div>
             </div>
-          ))}
+          )}
         </div>
-        
-        {answers.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
-            <p className="text-gray-500">No answers yet. Be the first to answer!</p>
+      </div>
+
+      {/* Answers List */}
+      <div className="max-w-4xl mx-auto space-y-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+        <div className="flex items-center justify-between border-b-2 border-gray-100 pb-6 mb-10">
+          <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+            Peer <span className="text-red-600">Solutions</span>
+          </h2>
+          <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
+            {answers.length} Responses
+          </span>
+        </div>
+
+        {answers.length > 0 ? (
+          <div className="space-y-12">
+            {answers.sort((a, b) => b.isAccepted - a.isAccepted).map((answer) => (
+              <div
+                key={answer._id}
+                className={`relative group bg-white rounded-3xl p-8 sm:p-10 border-2 transition-all hover:shadow-2xl hover:shadow-gray-200/50 ${answer.isAccepted ? 'border-emerald-500 shadow-xl shadow-emerald-500/10' : 'border-gray-50'
+                  }`}
+              >
+                {answer.isAccepted && (
+                  <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20">
+                    Trusted Solution
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-8">
+                  {/* Voting */}
+                  <div className="flex flex-row sm:flex-col items-center justify-center gap-4 bg-gray-50 rounded-2xl p-3 sm:px-4 sm:py-6 self-start">
+                    <button
+                      onClick={() => handleVote(answer._id, true)}
+                      className="text-gray-400 hover:text-emerald-500 transition-colors transform hover:scale-125"
+                    >
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7" />
+                      </svg>
+                    </button>
+                    <span className="font-black text-xl text-gray-900 font-mono leading-none">{answer.votesCount || 0}</span>
+                    <button
+                      onClick={() => handleVote(answer._id, false)}
+                      className="text-gray-400 hover:text-red-500 transition-colors transform hover:scale-125"
+                    >
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-xs font-black uppercase text-gray-400">
+                          {answer.user?.name?.charAt(0) || 'U'}
+                        </div>
+                        <Link
+                          to={`/profile/${answer.user?._id || answer.user?.id}`}
+                          className="font-black text-gray-900 hover:text-red-600 transition-colors uppercase tracking-tight"
+                        >
+                          {answer.user?.name}
+                        </Link>
+                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest font-mono">
+                          {new Date(answer.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+
+                      {isOwner && !answer.isAccepted && (
+                        <button
+                          onClick={() => handleAcceptAnswer(answer._id)}
+                          className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700 transition-colors border-2 border-emerald-100 px-4 py-2 rounded-xl bg-emerald-50"
+                        >
+                          Verify Solution
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="prose prose-sm max-w-none text-gray-700 font-medium leading-relaxed italic">
+                      <p className="whitespace-pre-wrap">"{answer.body}"</p>
+                    </div>
+
+                    {answer.attachment && (
+                      <div className="mt-6">
+                        <a
+                          href={`/api/${answer.attachment}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline bg-blue-50 px-4 py-2 rounded-xl"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.414a6 6 0 108.486 8.486L20.5 13" />
+                          </svg>
+                          Linked Resource
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+              </svg>
+            </div>
+            <p className="text-gray-500 font-medium font-mono uppercase tracking-[0.2em] text-xs">No Responses Logged Yet</p>
           </div>
         )}
       </div>

@@ -55,8 +55,8 @@ const Layout = () => {
                 </Link>
               </div>
               <div className="hidden md:ml-8 md:flex md:space-x-6">
-                <Link 
-                  to="/dashboard" 
+                <Link
+                  to="/dashboard"
                   className={`${isRouteActive('/dashboard') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,8 +64,8 @@ const Layout = () => {
                   </svg>
                   <span>Home</span>
                 </Link>
-                <Link 
-                  to="/questions" 
+                <Link
+                  to="/questions"
                   className={`${isRouteActive('/questions') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors relative`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,8 +73,8 @@ const Layout = () => {
                   </svg>
                   <span>Questions</span>
                 </Link>
-                <Link 
-                  to="/notes" 
+                <Link
+                  to="/notes"
                   className={`${isRouteActive('/notes') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,17 +82,17 @@ const Layout = () => {
                   </svg>
                   <span>Notes</span>
                 </Link>
-                <Link 
-                  to="/pass-tests" 
+                <Link
+                  to="/pass-tests"
                   className={`${isRouteActive('/pass-tests') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                   </svg>
-                  <span>Pass Tests</span>
+                  <span>Past Papers</span>
                 </Link>
-                <Link 
-                  to="/communities" 
+                <Link
+                  to="/communities"
                   className={`${isRouteActive('/communities') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors relative`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,35 +100,46 @@ const Layout = () => {
                   </svg>
                   <span>Forums</span>
                 </Link>
-                {user && (
-                  <Link 
-                    to="/my-questions" 
-                    className={`${isRouteActive('/my-questions') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    <span>My Qs</span>
-                  </Link>
-                )}
               </div>
+            </div>
+
+            {/* Global Search Bar */}
+            <div className="hidden lg:flex items-center flex-1 max-w-md px-8">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const q = e.target.search.value;
+                  if (q) navigate(`/search?q=${encodeURIComponent(q)}`);
+                }}
+                className="w-full relative group"
+              >
+                <input
+                  type="text"
+                  name="search"
+                  placeholder="Search anything..."
+                  className="w-full bg-gray-50 border-none rounded-2xl py-2 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-400 group-hover:bg-gray-100"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </form>
             </div>
 
             {/* Desktop Menu */}
             <div className="hidden md:ml-6 md:flex md:items-center md:space-x-4">
               {user ? (
                 <div className="relative">
-                  <button 
-                    id="profile-menu-button" 
-                    type="button" 
+                  <button
+                    id="profile-menu-button"
+                    type="button"
                     className="flex items-center space-x-2 focus:outline-none"
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white">
                       {user.profile_picture ? (
-                        <img 
-                          src={user.profile_picture} 
-                          alt={user.name} 
+                        <img
+                          src={user.profile_picture}
+                          alt={user.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -142,8 +153,8 @@ const Layout = () => {
                     </svg>
                   </button>
 
-                  <div 
-                    id="profile-menu" 
+                  <div
+                    id="profile-menu"
                     className={`${profileMenuOpen ? '' : 'hidden'} absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50`}
                   >
                     <div className="py-1">
@@ -151,8 +162,8 @@ const Layout = () => {
                         <p className="text-sm font-semibold text-gray-900">{user.name}</p>
                         <p className="text-sm text-gray-500 truncate">{user.email}</p>
                       </div>
-                      <Link 
-                        to={`/profile/${user._id || user.id}`} 
+                      <Link
+                        to={`/profile/${user._id || user.id}`}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => setProfileMenuOpen(false)}
                       >
@@ -163,8 +174,8 @@ const Layout = () => {
                           <span>My Profile</span>
                         </div>
                       </Link>
-                      <Link 
-                        to="/my-questions" 
+                      <Link
+                        to="/my-questions"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => setProfileMenuOpen(false)}
                       >
@@ -172,11 +183,11 @@ const Layout = () => {
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                           </svg>
-                          <span>My Qs</span>
+                          <span>My Questions</span>
                         </div>
                       </Link>
-                      <Link 
-                        to="/dashboard" 
+                      <Link
+                        to="/dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         onClick={() => setProfileMenuOpen(false)}
                       >
@@ -188,8 +199,8 @@ const Layout = () => {
                         </div>
                       </Link>
                       {(user.isClassRep || user.role === 'class_rep') && (
-                        <Link 
-                          to="/class-rep/dashboard" 
+                        <Link
+                          to="/class-rep/dashboard"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                           onClick={() => setProfileMenuOpen(false)}
                         >
@@ -202,8 +213,8 @@ const Layout = () => {
                         </Link>
                       )}
                       {user.isAdmin && (
-                        <Link 
-                          to="/admin" 
+                        <Link
+                          to="/admin"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                           onClick={() => setProfileMenuOpen(false)}
                         >
@@ -217,7 +228,7 @@ const Layout = () => {
                         </Link>
                       )}
                       <div className="border-t border-gray-200"></div>
-                      <button 
+                      <button
                         onClick={() => {
                           handleLogout();
                           setProfileMenuOpen(false);
@@ -244,9 +255,9 @@ const Layout = () => {
 
             {/* Mobile menu button */}
             <div className="md:hidden flex items-center">
-              <button 
-                id="mobile-menu-button" 
-                type="button" 
+              <button
+                id="mobile-menu-button"
+                type="button"
                 className="inline-flex items-center justify-center p-2 rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50 focus:outline-none transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
@@ -262,8 +273,8 @@ const Layout = () => {
         </div>
 
         {/* Enhanced Mobile menu with animations - Matching Laravel */}
-        <div 
-          id="mobile-menu" 
+        <div
+          id="mobile-menu"
           className={`${mobileMenuOpen ? '' : 'hidden'} md:hidden bg-white border-t border-gray-200 shadow-lg`}
         >
           {user && (
@@ -272,9 +283,9 @@ const Layout = () => {
                 <Link to={`/profile/${user._id || user.id}`} className="flex-shrink-0">
                   <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white shadow-md">
                     {user.profile_picture ? (
-                      <img 
-                        src={user.profile_picture} 
-                        alt={user.name} 
+                      <img
+                        src={user.profile_picture}
+                        alt={user.name}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -293,10 +304,35 @@ const Layout = () => {
               </div>
             </div>
           )}
-          
+
           <div className="px-3 py-3 space-y-1">
-            <Link 
-              to="/dashboard" 
+            {/* Mobile Search */}
+            <div className="px-3 pb-3">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const q = e.target.mobileSearch.value;
+                  if (q) {
+                    navigate(`/search?q=${encodeURIComponent(q)}`);
+                    setMobileMenuOpen(false);
+                  }
+                }}
+                className="relative group"
+              >
+                <input
+                  type="text"
+                  name="mobileSearch"
+                  placeholder="Search everything..."
+                  className="w-full bg-gray-50 border-none rounded-xl py-3 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-400"
+                />
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </form>
+            </div>
+
+            <Link
+              to="/dashboard"
               className={`menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium ${isRouteActive('/dashboard') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -305,8 +341,8 @@ const Layout = () => {
               </svg>
               <span>Home</span>
             </Link>
-            <Link 
-              to="/questions" 
+            <Link
+              to="/questions"
               className={`menu-item flex items-center justify-between px-3 py-3 text-base font-medium ${isRouteActive('/questions') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -317,9 +353,9 @@ const Layout = () => {
                 <span>Questions</span>
               </div>
             </Link>
-            
-            <Link 
-              to="/notes" 
+
+            <Link
+              to="/notes"
               className={`menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium ${isRouteActive('/notes') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -328,9 +364,9 @@ const Layout = () => {
               </svg>
               <span>Notes</span>
             </Link>
-            
-            <Link 
-              to="/pass-tests" 
+
+            <Link
+              to="/pass-tests"
               className={`menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium ${isRouteActive('/pass-tests') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -339,9 +375,9 @@ const Layout = () => {
               </svg>
               <span>Pass Tests</span>
             </Link>
-            
-            <Link 
-              to="/communities" 
+
+            <Link
+              to="/communities"
               className={`menu-item flex items-center justify-between px-3 py-3 text-base font-medium ${isRouteActive('/communities') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -352,10 +388,10 @@ const Layout = () => {
                 <span>Forums</span>
               </div>
             </Link>
-            
+
             {user && (
-              <Link 
-                to="/my-questions" 
+              <Link
+                to="/my-questions"
                 className={`menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium ${isRouteActive('/my-questions') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -365,11 +401,11 @@ const Layout = () => {
                 <span>My Qs</span>
               </Link>
             )}
-            
+
             {user && (
               <>
-                <Link 
-                  to="/dashboard" 
+                <Link
+                  to="/dashboard"
                   className={`menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium ${isRouteActive('/dashboard') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -378,10 +414,10 @@ const Layout = () => {
                   </svg>
                   <span>Dashboard</span>
                 </Link>
-                
+
                 {(user.isClassRep || user.role === 'class_rep') && (
-                  <Link 
-                    to="/class-rep/dashboard" 
+                  <Link
+                    to="/class-rep/dashboard"
                     className="menu-item flex items-center justify-between px-3 py-3 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -393,10 +429,10 @@ const Layout = () => {
                     </div>
                   </Link>
                 )}
-                
+
                 {user.isAdmin && (
-                  <Link 
-                    to="/admin" 
+                  <Link
+                    to="/admin"
                     className="menu-item relative flex items-center justify-between px-3 py-3 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -409,10 +445,10 @@ const Layout = () => {
                     </div>
                   </Link>
                 )}
-                
+
                 <div className="border-t border-gray-200 my-2"></div>
-                
-                <button 
+
+                <button
                   onClick={() => {
                     handleLogout();
                     setMobileMenuOpen(false);
@@ -426,11 +462,11 @@ const Layout = () => {
                 </button>
               </>
             )}
-            
+
             {!user && (
               <>
-                <Link 
-                  to="/login" 
+                <Link
+                  to="/login"
                   className="menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -439,8 +475,8 @@ const Layout = () => {
                   </svg>
                   <span>Login</span>
                 </Link>
-                <Link 
-                  to="/register" 
+                <Link
+                  to="/register"
                   className="menu-item flex items-center justify-center space-x-2 px-3 py-3 text-base font-medium bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-lg hover:from-red-700 hover:to-rose-700 transition-all shadow-md"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -472,7 +508,7 @@ const Layout = () => {
               </div>
               <p className="text-gray-400">Empowering students through peer-to-peer learning.</p>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Platform</h4>
               <ul className="space-y-2">
@@ -481,7 +517,7 @@ const Layout = () => {
                 <li><Link to="/questions" className="hover:text-white transition-colors">Questions</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Account</h4>
               <ul className="space-y-2">
@@ -495,7 +531,7 @@ const Layout = () => {
                 )}
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Contact</h4>
               <ul className="space-y-2">
@@ -504,7 +540,7 @@ const Layout = () => {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
             <p>&copy; {new Date().getFullYear()} eDu Live. All rights reserved.</p>
           </div>

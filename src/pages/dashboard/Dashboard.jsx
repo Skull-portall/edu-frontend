@@ -1,68 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import api, { notificationsAPI } from '../../services/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [data, setData] = useState(null);
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [courseName, setCourseName] = useState(searchParams.get('course_name') || '');
   const [semesterId, setSemesterId] = useState(searchParams.get('semester_id') || '');
 
-  useEffect(() => {
-    fetchDashboard();
-    fetchNotifications();
-  }, []);
-
-  const fetchDashboard = async () => {
-    try {
+  // Dashboard Data Query
+  const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
+    queryKey: ['dashboard', {
+      search: searchParams.get('search') || '',
+      course_name: searchParams.get('course_name') || '',
+      semester_id: searchParams.get('semester_id') || ''
+    }],
+    queryFn: async () => {
       const params = {
         search: searchParams.get('search') || '',
         course_name: searchParams.get('course_name') || '',
         semester_id: searchParams.get('semester_id') || ''
       };
       const response = await api.get('/dashboard', { params });
-      setData(response.data.data);
-    } catch (error) {
-      console.error('Error fetching dashboard:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return response.data.data;
+    },
+    keepPreviousData: true,
+  });
 
-  const fetchNotifications = async () => {
-    try {
+  // Notifications Query
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
       const response = await notificationsAPI.getAll();
-      setNotifications(response.data.notifications || []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    }
-  };
+      return response.data.notifications || [];
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
 
-  const markAsRead = async (notificationId) => {
-    try {
-      await notificationsAPI.markAsRead(notificationId);
-      setNotifications(notifications.map(n =>
-        n._id === notificationId ? { ...n, read_at: new Date() } : n
-      ));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
+  // Mark as Read Mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: (id) => notificationsAPI.markAsRead(id),
+    onSuccess: () => queryClient.invalidateQueries(['notifications']),
+  });
 
-  const markAllAsRead = async () => {
-    try {
-      await notificationsAPI.markAllAsRead();
-      setNotifications(notifications.map(n => ({ ...n, read_at: new Date() })));
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-    }
-  };
+  // Mark All as Read Mutation
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => notificationsAPI.markAllAsRead(),
+    onSuccess: () => queryClient.invalidateQueries(['notifications']),
+  });
 
   const handleFilterSubmit = (e) => {
     e.preventDefault();
@@ -71,18 +63,16 @@ const Dashboard = () => {
     if (courseName) params.set('course_name', courseName);
     if (semesterId) params.set('semester_id', semesterId);
     navigate(`/dashboard?${params.toString()}`);
-    fetchDashboard();
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
-        </div>
-      </div>
-    );
+  const markAsRead = (id) => markAsReadMutation.mutate(id);
+  const markAllAsRead = () => markAllAsReadMutation.mutate();
+
+  if (dashboardLoading && !dashboardData) {
+    return <Loader />;
   }
+
+  const data = dashboardData || {};
 
   const unreadCount = notifications.filter(n => !n.read_at).length;
   const questions = data?.recentQuestions || [];
@@ -455,7 +445,7 @@ const Dashboard = () => {
                       <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                       </svg>
-                      <span className="font-medium">{question.answers_count || 0} {question.answers_count === 1 ? 'answer' : 'answers'}</span>
+                      <span className="font-medium">{question.answersCount || 0} {question.answersCount === 1 ? 'answer' : 'answers'}</span>
                     </div>
                     <div className="flex items-center space-x-2 text-gray-600">
                       <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

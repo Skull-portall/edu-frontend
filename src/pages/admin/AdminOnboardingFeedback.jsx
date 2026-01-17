@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import Loader from '../../components/common/Loader';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
+import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 const AdminOnboardingFeedback = () => {
-  const [feedback, setFeedback] = useState([]);
-  const [feedbackCounts, setFeedbackCounts] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const [page, setPage] = useState(1);
+  const limit = 20;
 
   const feedbackOptions = {
     classmate: 'Classmate',
@@ -18,29 +19,20 @@ const AdminOnboardingFeedback = () => {
     other: 'Other'
   };
 
-  useEffect(() => {
-    fetchFeedback();
-  }, [pagination.page]);
+  // Fetch Feedback
+  const { data: feedbackData, isLoading: loading } = useQuery({
+    queryKey: ['onboardingFeedback', page],
+    queryFn: async () => {
+      const response = await adminAPI.getOnboardingFeedback({ page, limit });
+      return response.data;
+    },
+    keepPreviousData: true,
+    onError: () => toast.error('Failed to load feedback')
+  });
 
-  const fetchFeedback = async () => {
-    setLoading(true);
-    try {
-      const response = await adminAPI.getOnboardingFeedback({ page: pagination.page, limit: pagination.limit });
-      if (response.data.success) {
-        setFeedback(response.data.data || []);
-        setFeedbackCounts(response.data.feedbackCounts || {});
-        setPagination(prev => ({
-          ...prev,
-          total: response.data.pagination?.total || 0,
-          pages: response.data.pagination?.pages || 0
-        }));
-      }
-    } catch (error) {
-      console.error('Error fetching onboarding feedback:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const feedback = feedbackData?.data || [];
+  const feedbackCounts = feedbackData?.feedbackCounts || {};
+  const pagination = feedbackData?.pagination || { page: 1, total: 0, pages: 0 };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
@@ -84,9 +76,8 @@ const AdminOnboardingFeedback = () => {
           <h2 className="text-xl font-bold text-gray-900">All Feedback ({pagination.total})</h2>
         </div>
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading feedback...</p>
+          <div className="py-12">
+            <Loader />
           </div>
         ) : feedback.length === 0 ? (
           <div className="p-12 text-center">
@@ -171,23 +162,23 @@ const AdminOnboardingFeedback = () => {
             ))}
           </div>
         )}
-        
+
         {/* Pagination */}
         {pagination.pages > 1 && (
           <div className="px-6 py-4 border-t border-gray-200 flex justify-center gap-2">
             <button
-              onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
-              disabled={pagination.page === 1}
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
               className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
               Previous
             </button>
             <span className="px-4 py-2 text-gray-700">
-              Page {pagination.page} of {pagination.pages}
+              Page {page} of {pagination.pages}
             </span>
             <button
-              onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
-              disabled={pagination.page === pagination.pages}
+              onClick={() => setPage(page + 1)}
+              disabled={page === pagination.pages}
               className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
               Next
