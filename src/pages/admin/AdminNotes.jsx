@@ -133,8 +133,8 @@ const AdminNotes = () => {
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 overflow-hidden">
-                            {note.user?.profile_picture ? (
-                              <img src={note.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                            {note.user?.profilePicture ? (
+                              <img src={note.user.profilePicture} alt="" className="w-full h-full object-cover" />
                             ) : note.user?.name?.charAt(0) || '?'}
                           </div>
                           <div>

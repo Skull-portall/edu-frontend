@@ -57,7 +57,7 @@ const NotesList = () => {
             {user ? (
               <Link
                 to="/notes/create"
-                className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all"
+                className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all text-sm"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path>
@@ -67,7 +67,7 @@ const NotesList = () => {
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center gap-3 bg-gray-100 text-gray-500 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                className="inline-flex items-center gap-3 bg-gray-100 text-gray-500 px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all text-sm"
               >
                 Login to Share
               </Link>
@@ -85,13 +85,13 @@ const NotesList = () => {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by course, title or keywords..."
-              className="w-full bg-transparent border-none py-6 pl-16 pr-8 text-lg font-bold text-gray-900 placeholder-gray-400 focus:ring-0"
+              placeholder="Search study notes, summaries, or lecture topics..."
+              className="w-full bg-transparent border-none py-4 pl-16 pr-8 text-lg font-bold text-gray-900 placeholder-gray-400 focus:ring-0"
             />
           </form>
           <button
             onClick={handleSearch}
-            className="px-10 py-6 bg-red-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95"
+            className="px-6 py-2.5 bg-red-600 text-white rounded-[1.2rem] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95 text-[10px]"
           >
             Search Notes
           </button>
@@ -110,7 +110,7 @@ const NotesList = () => {
             <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">No notes match your search. Try different keywords.</p>
             <button
               onClick={() => navigate('/notes')}
-              className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10"
+              className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 text-sm"
             >
               Clear Search
             </button>
@@ -121,7 +121,7 @@ const NotesList = () => {
               <article
                 key={note._id}
                 onClick={() => navigate(`/notes/${note._id}`)}
-                className="group bg-white rounded-3xl border border-gray-100 p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
+                className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
               >
                 <div className="flex items-start justify-between mb-8">
                   <span className="bg-red-50 text-red-700 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 italic shadow-sm transition-all group-hover:scale-105">
@@ -141,25 +141,27 @@ const NotesList = () => {
                   "{note.content?.replace(/<[^>]*>/g, '').substring(0, 150)}..."
                 </p>
 
-                <div className="flex items-center gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
-                    {note.user?.profile_picture ? (
-                      <img src={note.user.profile_picture} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
-                        {note.user?.name?.charAt(0) || 'U'}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Author</span>
-                    <span className="block text-xs font-black text-gray-900 uppercase truncate max-w-[120px]">{note.user?.name}</span>
+                <div className="flex items-center justify-between gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
+                      {note.user?.profilePicture ? (
+                        <img src={note.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
+                          {note.user?.name?.charAt(0) || 'U'}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Author</span>
+                      <span className="block text-xs font-black text-gray-900 uppercase truncate max-w-[120px]">{note.user?.name}</span>
+                    </div>
                   </div>
                   {note.courseName && (
-                    <div className="ml-auto">
-                      <span className="bg-gray-950 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl group-hover:bg-red-600 transition-colors italic">
+                    <div className=" ">
+                      <div className="bg-gray-950  text-white  px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl group-hover:bg-red-600 transition-colors italic">
                         {note.courseName}
-                      </span>
+                      </div>
                     </div>
                   )}
                 </div>

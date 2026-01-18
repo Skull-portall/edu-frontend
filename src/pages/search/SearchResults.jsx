@@ -3,8 +3,10 @@ import React from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { searchAPI } from '../../services/api';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SearchResults = () => {
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
 
@@ -55,14 +57,14 @@ const SearchResults = () => {
         {query ? (
           <div className="flex flex-wrap items-center gap-4">
             <div className="bg-gray-900 text-white px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">
-              {results.length} Matches
+              {results.length} Results
             </div>
             <p className="text-gray-400 font-bold uppercase tracking-widest text-xs italic">
               "{query}"
             </p>
           </div>
         ) : (
-          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs italic">Awaiting Search Input...</p>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs italic">Enter search keywords...</p>
         )}
       </div>
 
@@ -73,8 +75,8 @@ const SearchResults = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">Core Knowledge Search</h2>
-          <p className="text-gray-500 font-medium max-w-sm mx-auto">Use the global navigator to scan the repository for specific academic intel.</p>
+          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">Start Searching</h2>
+          <p className="text-gray-500 font-medium max-w-sm mx-auto">Search for questions, notes, and community posts across the platform.</p>
         </div>
       ) : results.length === 0 ? (
         <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 animate-slide-up">
@@ -83,8 +85,8 @@ const SearchResults = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">Zero Matches</h2>
-          <p className="text-gray-500 font-medium max-w-sm mx-auto">The requested query yielded no results. Refine your parameters and retry.</p>
+          <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">No Results Found</h2>
+          <p className="text-gray-500 font-medium max-w-sm mx-auto">We couldn't find anything matching your search. Try different keywords.</p>
         </div>
       ) : (
         <div className="space-y-8 animate-slide-up">
@@ -92,7 +94,7 @@ const SearchResults = () => {
             <article
               key={`${result.type}-${result.id}`}
               onClick={() => (window.location.href = getRoute(result))}
-              className="group bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer"
+              className="group bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer"
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="flex flex-wrap items-center gap-4 mb-6">
@@ -101,10 +103,23 @@ const SearchResults = () => {
                 </span>
                 <span className="text-gray-300 font-mono">•</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 font-black border border-gray-100">
-                    {result.author?.charAt(0) || 'U'}
-                  </div>
-                  <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{result.author || 'ANONYMOUS'}</span>
+                  {!(result.isAnonymous || result.is_anonymous) ? (
+                    <>
+                      <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 font-black border border-gray-100 uppercase">
+                        {result.author?.charAt(0) || 'U'}
+                      </div>
+                      <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{result.author || 'STUDENT'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-6 h-6 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">ANONYMOUS</span>
+                    </>
+                  )}
                 </div>
                 <span className="text-gray-300 font-mono">•</span>
                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest font-mono">

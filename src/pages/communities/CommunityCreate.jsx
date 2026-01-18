@@ -18,13 +18,13 @@ const CommunityCreate = () => {
     mutationFn: (data) => communitiesAPI.create(data),
     onSuccess: (res) => {
       queryClient.invalidateQueries(['communities']);
-      toast.success('Your academic circle has been established!', {
+      toast.success('Your community has been created!', {
         position: 'top-center'
       });
       navigate(`/communities/${res.data.data._id}`);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to establish hub.');
+      toast.error(error.response?.data?.message || 'Failed to create community.');
     }
   });
 
@@ -48,12 +48,12 @@ const CommunityCreate = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Networks
+          Back to Communities
         </Link>
         <h1 className="text-4xl lg:text-6xl font-black text-gray-900 leading-tight uppercase tracking-tight">
-          Establish <span className="text-red-600">Circle</span>
+          Create <span className="text-red-600">Community</span>
         </h1>
-        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-4 italic">"FOUND A SPACE FOR SHARED KNOWLEDGE."</p>
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-4 italic">"CREATE A SPACE FOR SHARED LEARNING."</p>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-slide-up">
@@ -61,7 +61,7 @@ const CommunityCreate = () => {
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl shadow-gray-200/50 border border-gray-100 space-y-8">
             <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Hub Designation</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Community Name</label>
               <input
                 type="text"
                 name="name"
@@ -74,13 +74,13 @@ const CommunityCreate = () => {
             </div>
 
             <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Intel Summary</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Description</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows="4"
-                placeholder="What is this hub about? Define the scope..."
+                placeholder="What is this community about? Define the scope..."
                 className="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-gray-700 font-medium focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300 italic"
               />
             </div>
@@ -103,16 +103,16 @@ const CommunityCreate = () => {
         <div className="lg:col-span-1 space-y-8">
           <div className="bg-gray-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/20 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-6">Founder Guidelines</h3>
+            <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-6">Community Guidelines</h3>
             <ul className="space-y-4">
               <li className="flex gap-3 text-xs font-medium text-gray-300 leading-relaxed">
-                <span className="text-red-500 font-black">01</span> Keep designations clear and academic.
+                <span className="text-red-500 font-black">01</span> Keep names clear and academic.
               </li>
               <li className="flex gap-3 text-xs font-medium text-gray-300 leading-relaxed">
-                <span className="text-red-500 font-black">02</span> Define a clear mission to attract the right peers.
+                <span className="text-red-500 font-black">02</span> Define a clear mission to attract the right contributors.
               </li>
               <li className="flex gap-3 text-xs font-medium text-gray-300 leading-relaxed">
-                <span className="text-red-500 font-black">03</span> Active moderation ensures high-quality intel.
+                <span className="text-red-500 font-black">03</span> Active participation keeps the community alive.
               </li>
             </ul>
           </div>
@@ -121,12 +121,12 @@ const CommunityCreate = () => {
             <button
               type="submit"
               disabled={createMutation.isLoading}
-              className="w-full bg-red-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl shadow-red-600/20 mb-4"
+              className="w-full bg-red-600 text-white py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl shadow-red-600/20 mb-4 text-sm"
             >
-              {createMutation.isLoading ? 'Establishing...' : 'Establish Hub'}
+              {createMutation.isLoading ? 'Creating...' : 'Create Community'}
             </button>
             <Link to="/communities" className="block w-full text-center py-4 text-gray-400 font-black uppercase tracking-widest text-[10px] hover:text-gray-900 transition-colors">
-              Cancel Operation
+              Cancel
             </Link>
           </div>
         </div>

@@ -52,12 +52,12 @@ const Landing = () => {
                 <span className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">eDu Live</span>
               </Link>
             </div>
-            
+
             {/* Mobile menu button */}
             <div className="md:hidden flex items-center">
-              <button 
-                id="mobile-menu-button" 
-                type="button" 
+              <button
+                id="mobile-menu-button"
+                type="button"
                 className="inline-flex items-center justify-center p-2 rounded-lg text-gray-700 hover:text-red-600 hover:bg-red-50 focus:outline-none transition-colors"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
@@ -69,7 +69,7 @@ const Landing = () => {
                 </svg>
               </button>
             </div>
-            
+
             <div className="hidden md:flex items-center space-x-4 lg:space-x-6 xl:space-x-8">
               <a href="#features" onClick={(e) => scrollToSection(e, 'features')} className="inline-flex items-center space-x-1.5 text-gray-700 hover:text-red-600 transition-colors font-medium whitespace-nowrap px-2 py-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,17 +97,17 @@ const Landing = () => {
               </a>
               {user ? (
                 <div className="relative overflow-visible">
-                  <button 
-                    id="profile-menu-button" 
-                    type="button" 
+                  <button
+                    id="profile-menu-button"
+                    type="button"
                     className="flex items-center space-x-2 focus:outline-none"
                     onClick={() => setProfileMenuOpen(!profileMenuOpen)}
                   >
                     <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white">
-                      {user.profile_picture ? (
-                        <img 
-                          src={user.profile_picture.startsWith('http') ? user.profile_picture : `/${user.profile_picture}`}
-                          alt={user.name} 
+                      {user.profilePicture ? (
+                        <img
+                          src={user.profilePicture}
+                          alt={user.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -152,8 +152,8 @@ const Landing = () => {
                         </div>
                       </Link>
                       <div className="border-t border-gray-200"></div>
-                      <button 
-                        onClick={handleLogout} 
+                      <button
+                        onClick={handleLogout}
                         className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <div className="flex items-center space-x-2">
@@ -196,10 +196,10 @@ const Landing = () => {
               <span className="px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-semibold">Academic Support Platform</span>
             </div>
             <h1 className="text-5xl lg:text-7xl font-extrabold text-gray-900 mb-6 animate-slide-up">
-              Connect. Learns. <span className="bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">Excel.</span>
+              Connect. Learn. <span className="bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">Excel.</span>
             </h1>
             <p className="text-xl lg:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto animate-slide-up-delay">
-              Join thousands of students connecting across semesters. Ask questions, share notes, access past tests, and join communities to enhance your learning.
+              Join thousands of students connecting across semesters. Ask questions, share notes, access past papers, and join communities to enhance your learning.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up-delay-2">
               {user ? (
@@ -219,7 +219,7 @@ const Landing = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Floating Elements */}
         <div className="absolute top-20 left-10 w-20 h-20 bg-indigo-200 rounded-full opacity-20 blur-xl animate-float"></div>
         <div className="absolute bottom-20 right-10 w-32 h-32 bg-purple-200 rounded-full opacity-20 blur-xl animate-float-delay"></div>
@@ -232,7 +232,7 @@ const Landing = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose eDu Live?</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Everything you need to excel in your academic journey</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Feature 1 - Questions */}
             <div className="bg-gradient-to-br from-red-50 to-white p-8 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col">
@@ -263,8 +263,8 @@ const Landing = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h11.25c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"></path>
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Pass Tests & Assignments</h3>
-              <p className="text-gray-600 leading-relaxed flex-grow">Access past test questions and assignment solutions. Learn from previous exams and improve your grades.</p>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Past Papers & Assignments</h3>
+              <p className="text-gray-600 leading-relaxed flex-grow">Access previous exam questions and assignment solutions. Learn from previous years and improve your grades.</p>
             </div>
 
             {/* Feature 4 - Communities */}
@@ -310,7 +310,7 @@ const Landing = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">Get started in three simple steps</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             {/* Step 1 */}
             <div className="text-center">
@@ -376,21 +376,21 @@ const Landing = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">About eDu Live</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              eDu Live is designed to bridge the gap between students across different academic levels. 
-              Our platform encourages peer-to-peer learning and creates a supportive academic community where 
+              eDu Live is designed to bridge the gap between students across different academic levels.
+              Our platform encourages peer-to-peer learning and creates a supportive academic community where
               knowledge flows freely between semesters.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h3 className="text-3xl font-bold text-gray-900 mb-6">Our Mission</h3>
               <p className="text-gray-600 leading-relaxed mb-4">
-                To create a collaborative learning environment where students can easily seek help, share knowledge, 
+                To create a collaborative learning environment where students can easily seek help, share knowledge,
                 and build meaningful academic connections across all levels.
               </p>
               <p className="text-gray-600 leading-relaxed">
-                We believe that learning is enhanced when students support each other, and eDu Live makes that 
+                We believe that learning is enhanced when students support each other, and eDu Live makes that
                 connection seamless and accessible.
               </p>
             </div>
@@ -447,7 +447,7 @@ const Landing = () => {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">Past Tests & Assignments</h4>
+                    <h4 className="font-semibold text-gray-900 mb-1">Past Papers & Assignments</h4>
                     <p className="text-gray-600">Access previous exam questions and solutions</p>
                   </div>
                 </div>
@@ -475,15 +475,15 @@ const Landing = () => {
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Meet the Developer</h2>
             <p className="text-xl text-gray-600">Building tools for better education</p>
           </div>
-          
+
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
             <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
               {/* Developer Image */}
               <div className="flex-shrink-0">
                 <div className="w-40 h-40 rounded-full bg-gradient-to-br from-red-600 to-rose-600 p-1 shadow-lg overflow-hidden">
-                  <img 
-                    src="/images/developer.jpeg" 
-                    alt="Abbas Modibbo" 
+                  <img
+                    src="/images/developer.jpeg"
+                    alt="Abbas Modibbo"
                     className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -495,16 +495,16 @@ const Landing = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Developer Info */}
               <div className="text-center md:text-left flex-1">
                 <h3 className="text-3xl font-bold text-gray-900 mb-2">Abbas Modibbo</h3>
                 <p className="text-red-600 text-lg mb-4">Full Stack Developer</p>
                 <p className="text-gray-600 leading-relaxed mb-6">
-                  Passionate about creating educational technology that empowers students to learn, collaborate, and succeed. 
+                  Passionate about creating educational technology that empowers students to learn, collaborate, and succeed.
                   eDu Live is built with the vision of making academic support accessible to all students.
                 </p>
-                
+
                 <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                   <a href="mailto:modibboakheem@gmail.com" className="inline-flex items-center space-x-2 text-red-600 hover:text-red-700 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-red-50">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -514,7 +514,7 @@ const Landing = () => {
                   </a>
                   <a href="https://wa.me/2349163161616" target="_blank" rel="noopener noreferrer" className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-green-50">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                     </svg>
                     <span>WhatsApp: +234 9163161616</span>
                   </a>
@@ -542,7 +542,7 @@ const Landing = () => {
               </div>
               <p className="text-gray-400">Empowering students through peer-to-peer learning.</p>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Platform</h4>
               <ul className="space-y-2">
@@ -551,7 +551,7 @@ const Landing = () => {
                 <li><a href="#about" onClick={(e) => scrollToSection(e, 'about')} className="hover:text-white transition-colors">About</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Account</h4>
               <ul className="space-y-2">
@@ -565,7 +565,7 @@ const Landing = () => {
                 )}
               </ul>
             </div>
-            
+
             <div>
               <h4 className="text-white font-semibold mb-4">Contact</h4>
               <ul className="space-y-2">
@@ -574,7 +574,7 @@ const Landing = () => {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
             <p>&copy; {new Date().getFullYear()} eDu Live. All rights reserved.</p>
           </div>
@@ -596,7 +596,7 @@ const Landing = () => {
                 </svg>
                 <span>Dashboard</span>
               </Link>
-              <button 
+              <button
                 onClick={handleLogout}
                 className="w-full text-left flex items-center space-x-3 px-4 py-3 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               >

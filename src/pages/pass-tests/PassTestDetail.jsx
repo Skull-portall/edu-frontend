@@ -51,7 +51,7 @@ const PassTestDetail = () => {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Archive
+          Back to Past Papers
         </Link>
       </div>
     );
@@ -65,15 +65,15 @@ const PassTestDetail = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Test Archive
+          Back to Past Papers
         </Link>
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
               <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 ${test.type === 'test'
-                  ? 'bg-blue-50 text-blue-700 border-blue-100'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                ? 'bg-blue-50 text-blue-700 border-blue-100'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-100'
                 }`}>
                 {test.type}
               </span>
@@ -124,8 +124,8 @@ const PassTestDetail = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight">Exam Component</h3>
-                    <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Contributed Material</p>
+                    <h3 className="text-xl font-black uppercase tracking-tight">File Attachment</h3>
+                    <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Study Material</p>
                   </div>
                 </div>
 
@@ -133,7 +133,7 @@ const PassTestDetail = () => {
                   href={`/api/${test.attachment}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full sm:w-auto px-10 py-4 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
+                  className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm"
                 >
                   View Attachment
                 </a>
@@ -149,8 +149,8 @@ const PassTestDetail = () => {
             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Shared By</h4>
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-50 flex-shrink-0">
-                {test.user?.profile_picture ? (
-                  <img src={test.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                {test.user?.profilePicture ? (
+                  <img src={test.user.profilePicture} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-xl font-black uppercase">
                     {test.user?.name?.charAt(0) || 'U'}
@@ -161,7 +161,7 @@ const PassTestDetail = () => {
                 <Link to={`/profile/${test.user?._id || test.user?.id}`} className="block text-xl font-black text-gray-900 hover:text-red-600 transition-colors truncate uppercase tracking-tight">
                   {test.user?.name}
                 </Link>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Peer Contributor</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Student</p>
               </div>
             </div>
 
@@ -174,7 +174,7 @@ const PassTestDetail = () => {
                 to={`/profile/${test.user?._id || test.user?.id}`}
                 className="block w-full text-center py-3 bg-gray-50 text-gray-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-50 hover:text-red-600 transition-all border border-gray-100"
               >
-                Profile Page
+                View Profile
               </Link>
             </div>
           </div>

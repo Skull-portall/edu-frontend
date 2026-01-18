@@ -37,7 +37,7 @@ const PassTestsList = () => {
       action === 'approve' ? passTestsAPI.approve(id) : passTestsAPI.reject(id),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(['passTests']);
-      toast.success(`Intel ${variables.action === 'approve' ? 'validated' : 'discarded'} successfully!`, {
+      toast.success(`Paper ${variables.action === 'approve' ? 'approved' : 'rejected'} successfully!`, {
         position: 'top-center'
       });
     },
@@ -49,7 +49,7 @@ const PassTestsList = () => {
   const handleAction = (e, id, action) => {
     e.preventDefault();
     e.stopPropagation();
-    if (window.confirm(`Initiate ${action} sequence for this record?`)) {
+    if (window.confirm(`Are you sure you want to ${action} this paper?`)) {
       mutation.mutate({ id, action });
     }
   };
@@ -93,7 +93,7 @@ const PassTestsList = () => {
             {user && (
               <Link
                 to="/pass-tests/create"
-                className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all"
+                className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all text-sm"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path>
@@ -115,13 +115,13 @@ const PassTestsList = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search past papers..."
-                className="w-full bg-transparent border-none py-6 pl-16 pr-8 text-lg font-bold text-gray-900 placeholder-gray-400 focus:ring-0"
+                placeholder="Search by course name, year, or exam type..."
+                className="w-full bg-transparent border-none py-4 pl-16 pr-8 text-lg font-bold text-gray-900 placeholder-gray-400 focus:ring-0"
               />
             </form>
             <button
               onClick={handleSearch}
-              className="px-10 py-6 bg-red-600 text-white rounded-[1.5rem] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95"
+              className="px-6 py-2.5 bg-red-600 text-white rounded-[1.2rem] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95 text-[10px]"
             >
               Search Papers
             </button>
@@ -161,7 +161,7 @@ const PassTestsList = () => {
             <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">No past papers match your search. Try different keywords.</p>
             <button
               onClick={() => navigate('/pass-tests')}
-              className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10"
+              className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 text-sm"
             >
               Clear Filters
             </button>
@@ -172,7 +172,7 @@ const PassTestsList = () => {
               <article
                 key={test._id}
                 onClick={() => navigate(`/pass-tests/${test._id}`)}
-                className="group bg-white rounded-3xl border border-gray-100 p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
+                className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
               >
                 <div className="flex items-start justify-between mb-8">
                   <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${test.type === 'test'
@@ -213,8 +213,8 @@ const PassTestsList = () => {
 
                 <div className="flex items-center gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
                   <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
-                    {test.user?.profile_picture ? (
-                      <img src={test.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                    {test.user?.profilePicture ? (
+                      <img src={test.user.profilePicture} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
                         {test.user?.name?.charAt(0) || 'U'}
@@ -227,9 +227,9 @@ const PassTestsList = () => {
                   </div>
                   {test.courseName && (
                     <div className="ml-auto">
-                      <span className="bg-gray-950 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl group-hover:bg-red-600 transition-colors italic">
+                      <div className="bg-gray-950 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl group-hover:bg-red-600 transition-colors italic">
                         {test.courseName}
-                      </span>
+                      </div>
                     </div>
                   )}
                 </div>

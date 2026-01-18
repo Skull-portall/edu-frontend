@@ -112,7 +112,7 @@ const Dashboard = () => {
             </svg>
           </div>
           <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{data?.stats?.myQuestions || 0}</div>
-          <div className="text-sm lg:text-base text-gray-500 mt-2">Questions asked</div>
+          <div className="text-sm lg:text-base text-gray-500 mt-2">Questions Asked</div>
         </div>
 
         <div className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in" style={{ animationDelay: '0.1s' }}>
@@ -123,7 +123,7 @@ const Dashboard = () => {
             </svg>
           </div>
           <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{data?.stats?.myAnswers || 0}</div>
-          <div className="text-sm lg:text-base text-gray-500 mt-2">Answers provided</div>
+          <div className="text-sm lg:text-base text-gray-500 mt-2">Answers Provided</div>
         </div>
       </div>
 
@@ -259,8 +259,8 @@ const Dashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
               </svg>
             </div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">Pass Tests</h3>
-            <p className="text-sm text-gray-600 mb-3">Access past tests and assignments</p>
+            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">Past Papers</h3>
+            <p className="text-sm text-gray-600 mb-3">Access previous exams and assignments</p>
             <div className="text-xs text-gray-500 font-medium">View All →</div>
           </Link>
 
@@ -295,7 +295,7 @@ const Dashboard = () => {
                   name="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by title or content..."
+                  placeholder="Search questions, topics, or academic concepts..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 transform focus:scale-[1.01] text-base"
                 />
               </div>
@@ -359,7 +359,7 @@ const Dashboard = () => {
       </div>
 
       {/* Questions List */}
-      <div className="space-y-4 lg:space-y-6 max-w-5xl">
+      <div className="space-y-4 lg:space-y-6 max-w-6xl">
         {questions.length > 0 ? (
           questions.map((question) => (
             <div
@@ -370,34 +370,43 @@ const Dashboard = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-3">
-                    {question.is_anonymous && !user?.isAdmin ? (
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Anonymous</span>
+                    {(question.isAnonymous || question.is_anonymous) ? (
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shadow-sm flex-shrink-0">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 leading-none">Asked by</span>
+                          <span className="block text-xs font-black text-gray-400 uppercase tracking-widest">ANONYMOUS</span>
+                        </div>
+                      </div>
                     ) : (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-full overflow-hidden">
-                          {question.user?.profile_picture ? (
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100 flex-shrink-0">
+                          {question.user?.profilePicture ? (
                             <img
-                              src={question.user.profile_picture}
-                              alt={question.user.name}
+                              src={question.user.profilePicture}
+                              alt=""
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-red-400 to-rose-400 flex items-center justify-center">
-                              <span className="text-white text-xs font-semibold">{question.user?.name?.charAt(0) || 'U'}</span>
+                            <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center">
+                              <span className="text-white text-[10px] font-black uppercase">{question.user?.name?.charAt(0) || 'U'}</span>
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div>
+                          <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1 leading-none">Asked by</span>
                           <Link
                             to={`/profile/${question.user?._id || question.user?.id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-sm text-gray-600 font-medium hover:text-red-600 hover:underline transition-colors"
+                            className="text-xs font-black text-gray-900 hover:text-red-600 uppercase tracking-tight truncate max-w-[120px]"
                           >
-                            {question.user?.name || 'Unknown'}
+                            {question.user?.name || 'STUDENT'}
                           </Link>
-                          {question.is_anonymous && user?.isAdmin && (
-                            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">(Anonymous)</span>
-                          )}
+
                         </div>
                       </div>
                     )}

@@ -31,13 +31,13 @@ const QuestionCreate = () => {
     mutationFn: (data) => questionsAPI.create(data),
     onSuccess: (res) => {
       queryClient.invalidateQueries(['questions']);
-      toast.success('Your inquiry has been broadcasted!', {
+      toast.success('Your question has been posted!', {
         position: 'top-center'
       });
       navigate(`/questions/${res.data.data._id}`);
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Transmission failed. Try again.');
+      toast.error(error.response?.data?.message || 'Failed to post question. Try again.');
     }
   });
 
@@ -65,94 +65,75 @@ const QuestionCreate = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
       {/* Navigation */}
       <div className="mb-12 animate-fade-in">
         <Link to="/questions" className="inline-flex items-center gap-2 text-gray-400 hover:text-red-600 font-black uppercase tracking-widest text-[10px] mb-6 transition-colors">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Archives
+          Back to Questions
         </Link>
         <h1 className="text-4xl lg:text-6xl font-black text-gray-900 leading-tight uppercase tracking-tight">
-          Initiate <span className="text-red-600">Inquiry</span>
+          Ask a <span className="text-red-600">Question</span>
         </h1>
-        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-4 italic">"KNOWLEDGE BEGINS WITH A SINGLE QUESTION."</p>
+        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-4 italic">"ASK ANYTHING AND GET HELP FROM THE COMMUNITY."</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-4 gap-10 animate-slide-up">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-10 animate-slide-up">
         {/* Main Form Fields */}
-        <div className="lg:col-span-3 space-y-8">
+        <div className="lg:col-span-8 space-y-8">
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl shadow-gray-200/50 border border-gray-100 space-y-8">
             <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Inquiry Title</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Question Title</label>
               <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 required
-                placeholder="Core theme of your question..."
+                placeholder="What exactly are you trying to solve or understand?"
                 className="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-lg font-bold text-gray-900 focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300"
               />
             </div>
 
             <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Deep Dive Details</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Question Details</label>
               <textarea
                 name="body"
                 value={formData.body}
                 onChange={handleChange}
                 required
                 rows="10"
-                placeholder="Describe your struggle, provide context, or share what you've tried..."
+                placeholder="Structure your question with clear details. Share your approach, any steps you've taken, and define exactly where you're stuck..."
                 className="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-gray-700 font-medium focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300 italic"
               />
             </div>
           </div>
 
-          <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-8">
-              <div>
-                <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Finalize Dispatch</h3>
-                <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Double check your details before broadcasting</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <Link to="/questions" className="px-8 py-4 text-white font-black uppercase tracking-widest text-xs hover:text-red-400 transition-colors">Discard</Link>
-                <button
-                  type="submit"
-                  disabled={createMutation.isLoading}
-                  className="bg-white text-gray-900 px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl"
-                >
-                  {createMutation.isLoading ? 'Dispatching...' : 'Broadcast'}
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Sidebar Context */}
-        <div className="lg:col-span-1 space-y-8">
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Categorization</h3>
+        <div className="lg:col-span-4 space-y-8">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-xl">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Course & Semester</h3>
 
             <div className="space-y-6">
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest ml-1">Course Code</label>
+                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest ml-1">Refer Q Course</label>
                 <input
                   type="text"
                   name="courseName"
                   value={formData.courseName}
                   onChange={handleChange}
                   required
-                  placeholder="e.g. CS50"
+                  placeholder="e.g. Advanced Calculus"
                   className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300"
                 />
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest ml-1">Academic Stage</label>
+                <label className="text-[10px] font-black text-gray-900 uppercase tracking-widest ml-1">Semester</label>
                 <select
                   name="semesterId"
                   value={formData.semesterId}
@@ -161,7 +142,7 @@ const QuestionCreate = () => {
                   disabled={loadingSemesters}
                   className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-red-500 transition-all appearance-none cursor-pointer"
                 >
-                  <option value="">Select Level</option>
+                  <option value="">Select Semester</option>
                   {semesters.map(sem => (
                     <option key={sem._id} value={sem._id}>Semester {sem.number}</option>
                   ))}
@@ -170,7 +151,7 @@ const QuestionCreate = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-xl">
             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Attachments</h3>
             <div className="relative group overflow-hidden bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 hover:border-red-100 transition-colors">
               <input
@@ -183,15 +164,15 @@ const QuestionCreate = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
                 </svg>
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  {file ? file.name : 'Upload Data'}
+                  {file ? file.name : 'Upload Image/File'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
-            <label className="flex items-center gap-4 cursor-pointer group">
-              <div className="relative">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gray-100 shadow-xl">
+            <label className="flex items-start gap-4 cursor-pointer group">
+              <div className="relative shrink-0 mt-1">
                 <input
                   type="checkbox"
                   name="isAnonymous"
@@ -199,12 +180,36 @@ const QuestionCreate = () => {
                   onChange={handleChange}
                   className="sr-only peer"
                 />
-                <div className="w-12 h-6 bg-gray-200 rounded-full peer-checked:bg-red-600 transition-colors"></div>
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-6"></div>
+                <div className="w-10 h-6 bg-gray-200 rounded-full peer-checked:bg-red-600 transition-colors"></div>
+                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
               </div>
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-red-600 transition-colors">Ghost Mode</span>
+              <div>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-red-600 transition-colors block">Post Anonymously</span>
+                <p className="text-[10px] text-gray-400 font-medium mt-2 leading-tight">Your identity will be hidden.</p>
+              </div>
             </label>
-            <p className="text-[10px] text-gray-400 font-medium mt-3 leading-relaxed">Identity concealment for sensitive inquiries.</p>
+          </div>
+        </div>
+
+        <div className="lg:col-span-12 mt-8">
+          <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-8">
+              <div>
+                <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Post Question</h3>
+                <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Double check your details before posting</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <Link to="/questions" className="px-8 py-4 text-white font-black uppercase tracking-widest text-xs hover:text-red-400 transition-colors">Cancel</Link>
+                <button
+                  type="submit"
+                  disabled={createMutation.isLoading}
+                  className="bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm"
+                >
+                  {createMutation.isLoading ? 'Posting...' : 'Post Question'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </form>

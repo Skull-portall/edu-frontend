@@ -30,8 +30,7 @@ const NoteCreate = () => {
     mutationFn: (data) => notesAPI.create(data),
     onSuccess: (res) => {
       queryClient.invalidateQueries(['notes']);
-      toast.success('Note posted! It will be reviewed by admin before publishing.', {
-        duration: 5000,
+      toast.success('Note posted successfully!', {
         position: 'top-center',
       });
       navigate(`/notes/${res.data.data._id}`);
@@ -94,7 +93,7 @@ const NoteCreate = () => {
             {/* Course Name */}
             <div>
               <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
-                Course Code/Name <span className="text-red-600">*</span>
+                Refer Q Course <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
@@ -102,7 +101,7 @@ const NoteCreate = () => {
                 value={formData.courseName}
                 onChange={handleChange}
                 required
-                placeholder="e.g. PHY101"
+                placeholder="e.g. Thermodynamics or Quantum Mechanics"
                 className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-black text-gray-900 placeholder-gray-400"
               />
             </div>
@@ -110,7 +109,7 @@ const NoteCreate = () => {
             {/* Semester */}
             <div>
               <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
-                Target Semester <span className="text-red-600">*</span>
+                Semester <span className="text-red-600">*</span>
               </label>
               <select
                 name="semesterId"
@@ -139,7 +138,7 @@ const NoteCreate = () => {
               onChange={handleChange}
               required
               rows="8"
-              placeholder="Summarize the main points of your note here..."
+              placeholder="Highlight the key concepts, formulas, and critical takeaways from this study material..."
               className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-medium text-gray-900 placeholder-gray-400 leading-relaxed italic"
             />
           </div>
@@ -147,7 +146,7 @@ const NoteCreate = () => {
           {/* File Upload */}
           <div className="relative group">
             <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
-              Document Attachment <span className="text-gray-400 font-medium lowercase">(PDF, Doc, Image)</span>
+              File Attachment <span className="text-gray-400 font-medium lowercase">(PDF, Doc, Image)</span>
             </label>
             <div className="relative">
               <input
@@ -171,13 +170,13 @@ const NoteCreate = () => {
             <button
               type="submit"
               disabled={createMutation.isLoading}
-              className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50"
+              className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50 text-sm"
             >
-              {createMutation.isLoading ? 'Processing Material...' : 'Share with Community'}
+              {createMutation.isLoading ? 'Posting...' : 'Post Note'}
             </button>
             <Link
               to="/notes"
-              className="px-8 py-5 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 hover:text-gray-900 transition-all text-center"
+              className="px-6 py-3.5 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 hover:text-gray-900 transition-all text-center text-sm"
             >
               Cancel
             </Link>

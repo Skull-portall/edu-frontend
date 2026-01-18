@@ -44,10 +44,10 @@ const CommunitiesList = () => {
       <div className="mb-16 animate-fade-in text-center lg:text-left flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
         <div>
           <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 tracking-tight uppercase">
-            Community <span className="text-red-600">Hubs</span>
+            Communities
           </h1>
           <p className="text-gray-500 font-medium max-w-xl">
-            Unite with peers in specialized study circles. Collaborative learning defines the modern academic experience.
+            Join groups with fellow students. Collaborative learning makes studying easier and more fun.
           </p>
         </div>
 
@@ -56,12 +56,12 @@ const CommunitiesList = () => {
           {user && (
             <Link
               to="/communities/create"
-              className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all"
+              className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all text-sm"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"></path>
               </svg>
-              Establish Hub
+              Create Community
             </Link>
           )}
         </div>
@@ -78,7 +78,7 @@ const CommunitiesList = () => {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Find a hub..."
+                  placeholder="Find a community..."
                   className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-400"
                 />
                 <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,11 +104,11 @@ const CommunitiesList = () => {
           </div>
 
           <div className="bg-gradient-to-br from-red-600 to-rose-600 rounded-3xl p-8 text-white shadow-2xl shadow-red-600/20 text-center">
-            <h3 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70">Active Networks</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70">Communities</h3>
             <div className="text-4xl font-black mb-1">{communities.length}</div>
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-6">Total Hubs</p>
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-6">Total Communities</p>
             <p className="text-xs font-medium opacity-80 leading-relaxed italic border-t border-white/10 pt-6">
-              "Communities are the backbone of shared intelligence."
+              "Communities help us learn better together."
             </p>
           </div>
         </div>
@@ -122,11 +122,11 @@ const CommunitiesList = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">No Circles Found</h3>
-              <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">Either the search parameter turned up empty or no hubs exist yet.</p>
+              <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">No Communities Found</h3>
+              <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">Try searching for something else or create the first community.</p>
               {user && (
-                <Link to="/communities/create" className="inline-flex items-center gap-3 bg-gray-900 text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transition-all">
-                  Start First Hub
+                <Link to="/communities/create" className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transition-all text-sm">
+                  Create First Community
                 </Link>
               )}
             </div>
@@ -136,7 +136,7 @@ const CommunitiesList = () => {
                 <article
                   key={community._id}
                   onClick={() => navigate(`/communities/${community._id}`)}
-                  className="group bg-white rounded-3xl border border-gray-100 p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col items-start"
+                  className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col items-start"
                 >
                   <div className="flex items-center justify-between w-full mb-8">
                     <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all transform group-hover:rotate-6">
@@ -146,7 +146,7 @@ const CommunitiesList = () => {
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
                       <span className="text-[10px] font-black text-gray-900 font-mono tracking-tighter">{community.members_count || 0}</span>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Peers</span>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Members</span>
                     </div>
                   </div>
 
@@ -159,8 +159,8 @@ const CommunitiesList = () => {
 
                   <div className="flex items-center gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
                     <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
-                      {community.user?.profile_picture ? (
-                        <img src={community.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                      {community.user?.profilePicture ? (
+                        <img src={community.user.profilePicture} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
                           {community.user?.name?.charAt(0) || 'U'}

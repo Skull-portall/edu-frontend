@@ -71,7 +71,7 @@ const PassTestCreate = () => {
           Share <span className="text-red-600">Material</span>
         </h1>
         <p className="text-gray-500 font-medium max-w-xl mx-auto">
-          Help others by contributing past exams or current assignments. Your contribution saves lives!
+          Help others by contributing past exams or current assignments. Your contribution makes a difference!
         </p>
       </div>
 
@@ -117,7 +117,7 @@ const PassTestCreate = () => {
             {/* Course Name */}
             <div>
               <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
-                Course Code/Name <span className="text-red-600">*</span>
+                Refer Q Course <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
@@ -125,7 +125,7 @@ const PassTestCreate = () => {
                 value={formData.courseName}
                 onChange={handleChange}
                 required
-                placeholder="e.g. PHY101"
+                placeholder="e.g. Digital Logic Design or Business Finance"
                 className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-black text-gray-900 placeholder-gray-400"
               />
             </div>
@@ -133,7 +133,7 @@ const PassTestCreate = () => {
             {/* Semester */}
             <div>
               <label className="block text-sm font-black text-gray-900 uppercase tracking-widest mb-3">
-                Semester Part <span className="text-gray-400 font-medium lowercase">(Optional)</span>
+                Semester <span className="text-gray-400 font-medium lowercase">(Optional)</span>
               </label>
               <select
                 name="semesterId"
@@ -142,7 +142,7 @@ const PassTestCreate = () => {
                 disabled={loadingSemesters}
                 className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-bold text-gray-700 appearance-none cursor-pointer disabled:opacity-50"
               >
-                <option value="">Default (Active Semester)</option>
+                <option value="">Current Semester</option>
                 {semesters.map(sem => (
                   <option key={sem._id} value={sem._id}>Semester {sem.number}</option>
                 ))}
@@ -161,7 +161,7 @@ const PassTestCreate = () => {
               onChange={handleChange}
               required
               rows="6"
-              placeholder="Provide a quick summary of what this document contains..."
+              placeholder="Briefly describe the topics covered, the year of the exam, or any specific instructions for this material..."
               className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-red-500 transition-all font-medium text-gray-900 placeholder-gray-400 leading-relaxed italic"
             />
           </div>
@@ -193,13 +193,13 @@ const PassTestCreate = () => {
             <button
               type="submit"
               disabled={createMutation.isLoading}
-              className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white px-8 py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50"
+              className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50 text-sm"
             >
-              {createMutation.isLoading ? 'Processing Material...' : 'Publish Material'}
+              {createMutation.isLoading ? 'Processing...' : 'Post Paper'}
             </button>
             <Link
               to="/pass-tests"
-              className="px-8 py-5 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 hover:text-gray-900 transition-all text-center"
+              className="px-6 py-3.5 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 hover:text-gray-900 transition-all text-center text-sm"
             >
               Cancel
             </Link>

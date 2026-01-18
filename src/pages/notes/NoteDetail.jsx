@@ -65,7 +65,7 @@ const NoteDetail = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Notes Archive
+          Back to Notes
         </Link>
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -121,8 +121,8 @@ const NoteDetail = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-black uppercase tracking-tight">Attached Document</h3>
-                    <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Digital Resource</p>
+                    <h3 className="text-xl font-black uppercase tracking-tight">Attached File</h3>
+                    <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Study Material</p>
                   </div>
                 </div>
 
@@ -130,9 +130,9 @@ const NoteDetail = () => {
                   href={`/api/${note.attachment}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full sm:w-auto px-10 py-4 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl"
+                  className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm"
                 >
-                  Download {note.attachmentName || 'Material'}
+                  Download {note.attachmentName || 'File'}
                 </a>
               </div>
             </div>
@@ -143,11 +143,11 @@ const NoteDetail = () => {
         <div className="space-y-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
           {/* Author Card */}
           <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Contributed By</h4>
+            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Posted By</h4>
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-50 flex-shrink-0">
-                {note.user?.profile_picture ? (
-                  <img src={note.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                {note.user?.profilePicture ? (
+                  <img src={note.user.profilePicture} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-xl font-black uppercase">
                     {note.user?.name?.charAt(0) || 'U'}
@@ -178,7 +178,7 @@ const NoteDetail = () => {
 
           {/* Quick Info */}
           <div className="bg-gradient-to-br from-red-600 to-rose-600 rounded-3xl p-8 text-white shadow-xl shadow-red-600/20">
-            <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 text-white/60 text-center">Material Integrity</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 text-white/60 text-center">Quality Check</h4>
             <p className="text-sm font-medium leading-relaxed text-center italic">
               "This resource has been reviewed for quality. Join the discussion to provide feedback."
             </p>

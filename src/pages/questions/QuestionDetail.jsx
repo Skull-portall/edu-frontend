@@ -34,7 +34,7 @@ const QuestionDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['question', id]);
       setAnswerBody('');
-      toast.success('Your contribution was posted!', {
+      toast.success('Your answer was posted!', {
         position: 'top-center'
       });
     },
@@ -68,10 +68,10 @@ const QuestionDetail = () => {
   const deleteQuestionMutation = useMutation({
     mutationFn: () => questionsAPI.delete(id),
     onSuccess: () => {
-      toast.success('Inquiry permanently removed');
+      toast.success('Question deleted successfully');
       navigate('/questions');
     },
-    onError: () => toast.error('Unauthorized deletion attempt')
+    onError: () => toast.error('You are not authorized to delete this question')
   });
 
   const handleSubmitAnswer = (e) => {
@@ -97,10 +97,10 @@ const QuestionDetail = () => {
   if (!question) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl font-black text-gray-900 mb-4 uppercase">Inquiry Closed</h2>
-        <p className="text-gray-500 mb-8 font-medium italic">"The question you seek has been resolved or archived."</p>
+        <h2 className="text-3xl font-black text-gray-900 mb-4 uppercase">Question Not Found</h2>
+        <p className="text-gray-500 mb-8 font-medium italic">"The question you are looking for may have been deleted or moved."</p>
         <Link to="/questions" className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-all">
-          Back to Knowledge Base
+          Back to Questions
         </Link>
       </div>
     );
@@ -116,7 +116,7 @@ const QuestionDetail = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Threads
+          Back to Questions
         </Link>
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -144,7 +144,7 @@ const QuestionDetail = () => {
               onClick={handleDelete}
               className="px-6 py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95"
             >
-              Terminate Thread
+              Delete Question
             </button>
           )}
         </div>
@@ -154,26 +154,39 @@ const QuestionDetail = () => {
         {/* Author Stats */}
         <div className="lg:col-span-1 space-y-8 animate-slide-up">
           <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Original Poster</h4>
+            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Asked By</h4>
             <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-50 mb-4 transition-transform group-hover:scale-110">
-                {question.user?.profile_picture ? (
-                  <img src={question.user.profile_picture} alt="" className="w-full h-full object-cover" />
+              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-100 mb-4 transition-transform group-hover:scale-110">
+                {!(question.isAnonymous || question.is_anonymous) ? (
+                  question.user?.profilePicture ? (
+                    <img src={question.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-2xl font-black uppercase">
+                      {question.user?.name?.charAt(0) || 'U'}
+                    </div>
+                  )
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center text-white text-2xl font-black uppercase">
-                    {question.isAnonymous && !user?.isAdmin ? '?' : (question.user?.name?.charAt(0) || 'U')}
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </div>
                 )}
               </div>
-              <Link
-                to={question.isAnonymous && !user?.isAdmin ? '#' : `/profile/${question.user?._id || question.user?.id}`}
-                className={`text-lg font-black text-gray-900 truncate uppercase tracking-tight ${!question.isAnonymous || user?.isAdmin ? 'hover:text-red-600' : ''}`}
-              >
-                {question.isAnonymous && !user?.isAdmin ? 'ANONYMOUS' : (question.user?.name || 'STUDENT')}
-              </Link>
+              {!(question.isAnonymous || question.is_anonymous) ? (
+                <Link
+                  to={`/profile/${question.user?._id || question.user?.id}`}
+                  className="text-lg font-black text-gray-900 truncate uppercase tracking-tight hover:text-red-600"
+                >
+                  {question.user?.name || 'STUDENT'}
+                </Link>
+              ) : (
+                <span className="text-lg font-black text-gray-400 uppercase tracking-tight">ANONYMOUS</span>
+              )}
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
                 Posted {new Date(question.createdAt).toLocaleDateString()}
               </p>
+
             </div>
           </div>
 
@@ -211,7 +224,7 @@ const QuestionDetail = () => {
                         rel="noopener noreferrer"
                         className="text-[10px] font-black text-red-600 uppercase tracking-[.2em] hover:underline"
                       >
-                        Secure Download
+                        Download File
                       </a>
                     </div>
                   </div>
@@ -226,21 +239,21 @@ const QuestionDetail = () => {
               <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
 
               <div className="relative z-10">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-8">Contribute Knowledge</h2>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-8">Your Answer</h2>
                 <form onSubmit={handleSubmitAnswer} className="space-y-6">
                   <textarea
                     value={answerBody}
                     onChange={(e) => setAnswerBody(e.target.value)}
                     rows="5"
                     className="w-full bg-white/5 border-white/10 rounded-2xl px-6 py-5 text-white placeholder-gray-500 font-medium focus:ring-2 focus:ring-red-500 focus:bg-white/10 transition-all italic"
-                    placeholder="Provide a detailed solution or hint..."
+                    placeholder="Write your answer here..."
                   />
                   <button
                     type="submit"
                     disabled={submitAnswerMutation.isLoading || !answerBody.trim()}
-                    className="bg-white text-gray-900 px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl"
+                    className="bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm"
                   >
-                    {submitAnswerMutation.isLoading ? 'Dispatching...' : 'Submit Response'}
+                    {submitAnswerMutation.isLoading ? 'Posting...' : 'Post Answer'}
                   </button>
                 </form>
               </div>
@@ -253,10 +266,10 @@ const QuestionDetail = () => {
       <div className="max-w-4xl mx-auto space-y-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
         <div className="flex items-center justify-between border-b-2 border-gray-100 pb-6 mb-10">
           <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
-            Peer <span className="text-red-600">Solutions</span>
+            Community <span className="text-red-600">Answers</span>
           </h2>
           <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
-            {answers.length} Responses
+            {answers.length} Answers
           </span>
         </div>
 
@@ -270,7 +283,7 @@ const QuestionDetail = () => {
               >
                 {answer.isAccepted && (
                   <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20">
-                    Trusted Solution
+                    Accepted Answer
                   </div>
                 )}
 
@@ -298,19 +311,45 @@ const QuestionDetail = () => {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-xs font-black uppercase text-gray-400">
-                          {answer.user?.name?.charAt(0) || 'U'}
-                        </div>
-                        <Link
-                          to={`/profile/${answer.user?._id || answer.user?.id}`}
-                          className="font-black text-gray-900 hover:text-red-600 transition-colors uppercase tracking-tight"
-                        >
-                          {answer.user?.name}
-                        </Link>
-                        <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest font-mono">
-                          {new Date(answer.createdAt).toLocaleDateString()}
-                        </span>
+                      <div className="flex items-center gap-4">
+                        {((question.isAnonymous || question.is_anonymous) &&
+                          (question.user?._id === (answer.user?._id || answer.user?.id) ||
+                            question.user?.id === (answer.user?._id || answer.user?.id))) ? (
+                          <>
+                            <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 border border-gray-100 shadow-sm">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <span className="block text-xs font-black text-gray-400 uppercase tracking-tight">ANONYMOUS (AUTHOR)</span>
+                              <span className="block text-[8px] font-black text-gray-300 uppercase tracking-widest font-mono mt-1">
+                                {new Date(answer.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-xs font-black uppercase text-gray-400 overflow-hidden shadow-sm">
+                              {answer.user?.profilePicture ? (
+                                <img src={answer.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{answer.user?.name?.charAt(0) || 'U'}</span>
+                              )}
+                            </div>
+                            <div>
+                              <Link
+                                to={`/profile/${answer.user?._id || answer.user?.id}`}
+                                className="block text-sm font-black text-gray-900 hover:text-red-600 transition-colors uppercase tracking-tight"
+                              >
+                                {answer.user?.name}
+                              </Link>
+                              <span className="block text-[8px] font-black text-gray-300 uppercase tracking-widest font-mono mt-1">
+                                {new Date(answer.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       {isOwner && !answer.isAccepted && (
@@ -318,7 +357,7 @@ const QuestionDetail = () => {
                           onClick={() => handleAcceptAnswer(answer._id)}
                           className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700 transition-colors border-2 border-emerald-100 px-4 py-2 rounded-xl bg-emerald-50"
                         >
-                          Verify Solution
+                          Accept Answer
                         </button>
                       )}
                     </div>
@@ -338,7 +377,7 @@ const QuestionDetail = () => {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.414a6 6 0 108.486 8.486L20.5 13" />
                           </svg>
-                          Linked Resource
+                          Attachment
                         </a>
                       </div>
                     )}
@@ -354,7 +393,7 @@ const QuestionDetail = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
               </svg>
             </div>
-            <p className="text-gray-500 font-medium font-mono uppercase tracking-[0.2em] text-xs">No Responses Logged Yet</p>
+            <p className="text-gray-500 font-medium font-mono uppercase tracking-[0.2em] text-xs">No answers yet</p>
           </div>
         )}
       </div>

@@ -18,7 +18,7 @@ const CommunityDetail = () => {
       const response = await communitiesAPI.getById(id);
       return response.data;
     },
-    onError: () => toast.error('Connection to hub failed')
+    onError: () => toast.error('Failed to load community')
   });
 
   const community = communityData?.data;
@@ -29,11 +29,11 @@ const CommunityDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['community', id]);
       setPostContent('');
-      toast.success('Your message has been broadcasted!', {
+      toast.success('Your message has been posted!', {
         position: 'top-center'
       });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Transmission failed')
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to post message')
   });
 
   const handleSubmitPost = (e) => {
@@ -53,10 +53,10 @@ const CommunityDetail = () => {
   if (!community) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl font-black text-gray-900 mb-4 uppercase tracking-tight">Hub Dissolved</h2>
-        <p className="text-gray-500 mb-8 font-medium italic">"This study circle no longer exists in our database."</p>
+        <h2 className="text-3xl font-black text-gray-900 mb-4 uppercase tracking-tight">Community Not Found</h2>
+        <p className="text-gray-500 mb-8 font-medium italic">"This community no longer exists or has been removed."</p>
         <Link to="/communities" className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-all">
-          Back to Networks
+          Back to Communities
         </Link>
       </div>
     );
@@ -70,18 +70,18 @@ const CommunityDetail = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Hub Navigator
+          Back to Communities
         </Link>
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4 flex-wrap">
               <span className="bg-red-50 text-red-700 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 italic">
-                Active Study Hub
+                Active Community
               </span>
               <span className="text-gray-300">•</span>
               <span className="text-xs font-black text-emerald-600 uppercase tracking-widest font-mono">
-                {posts.length} Direct Transmissions
+                {posts.length} Posts
               </span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight uppercase tracking-tight break-words">
@@ -95,11 +95,11 @@ const CommunityDetail = () => {
         {/* Moderator & Metadata */}
         <div className="lg:col-span-1 space-y-8 animate-slide-up">
           <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Hub Founder</h3>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Founder</h3>
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-50 mb-4">
-                {community.user?.profile_picture ? (
-                  <img src={community.user.profile_picture} alt="" className="w-full h-full object-cover" />
+                {community.user?.profilePicture ? (
+                  <img src={community.user.profilePicture} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-2xl font-black uppercase">
                     {community.user?.name?.charAt(0) || 'U'}
@@ -115,14 +115,14 @@ const CommunityDetail = () => {
 
           <div className="bg-gray-900 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center text-white">
             <div className="text-3xl font-black mb-1">{community.members_count || 0}</div>
-            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Global Members</p>
+            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Members</p>
           </div>
         </div>
 
         {/* Hub Feed */}
         <div className="lg:col-span-3 space-y-10 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-gray-100">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Circle Intel</h3>
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">About</h3>
             <p className="text-xl font-medium text-gray-700 leading-relaxed italic border-l-4 border-red-600 pl-6 py-2">
               "{community.description || 'Dedicated space for focused academic collaboration and peer-to-peer knowledge transfer.'}"
             </p>
@@ -132,21 +132,21 @@ const CommunityDetail = () => {
           {user && (
             <div className="bg-gray-50 rounded-3xl p-8 sm:p-10 border border-gray-100 relative group overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 blur-3xl rounded-full"></div>
-              <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-6">New Transmission</h3>
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest mb-6">New Post</h3>
               <form onSubmit={handleSubmitPost} className="space-y-4">
                 <textarea
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
                   rows="4"
                   className="w-full bg-white border-2 border-gray-100 rounded-2xl px-6 py-5 text-gray-900 placeholder-gray-400 font-medium focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all italic leading-relaxed"
-                  placeholder="Share resources, questions, or updates with the circle..."
+                  placeholder="Share resources, questions, or updates with the community..."
                 />
                 <button
                   type="submit"
                   disabled={createPostMutation.isLoading || !postContent.trim()}
-                  className="w-full sm:w-auto bg-gray-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl"
+                  className="w-full sm:w-auto bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm"
                 >
-                  {createPostMutation.isLoading ? 'Dispatching...' : 'Broadcast Communication'}
+                  {createPostMutation.isLoading ? 'Posting...' : 'Post Message'}
                 </button>
               </form>
             </div>
@@ -160,7 +160,7 @@ const CommunityDetail = () => {
 
             {posts.length === 0 ? (
               <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100">
-                <p className="text-gray-400 font-mono uppercase tracking-widest text-xs italic">Awaiting first transmission...</p>
+                <p className="text-gray-400 font-mono uppercase tracking-widest text-xs italic">Be the first to post!</p>
               </div>
             ) : (
               posts.map((post) => (
