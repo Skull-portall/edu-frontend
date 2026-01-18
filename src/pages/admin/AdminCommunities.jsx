@@ -149,18 +149,18 @@ const AdminCommunities = () => {
                             onClick={() => handleToggle(community._id)}
                             disabled={toggleMutation.isLoading}
                             className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${community.isActive
-                                ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                                : 'bg-green-100 text-green-800 hover:bg-green-200'
+                              ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                              : 'bg-green-100 text-green-800 hover:bg-green-200'
                               } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
-                            {community.isActive ? 'Deactivate' : 'Activate'}
+                            {toggleMutation.isLoading ? 'Loading...' : (community.isActive ? 'Deactivate' : 'Activate')}
                           </button>
                           <button
                             onClick={() => handleDelete(community._id)}
                             disabled={deleteMutation.isLoading}
                             className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Delete
+                            {deleteMutation.isLoading ? 'Loading...' : 'Delete'}
                           </button>
                         </div>
                       </td>

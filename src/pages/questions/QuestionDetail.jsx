@@ -12,6 +12,7 @@ const QuestionDetail = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [answerBody, setAnswerBody] = useState('');
+  const [acceptingId, setAcceptingId] = useState(null);
 
   // Fetch Question and Answers
   const { data: questionData, isLoading } = useQuery({
@@ -57,6 +58,7 @@ const QuestionDetail = () => {
   // Accept Answer Mutation
   const acceptAnswerMutation = useMutation({
     mutationFn: (answerId) => answersAPI.accept(answerId),
+    onSettled: () => setAcceptingId(null),
     onSuccess: () => {
       queryClient.invalidateQueries(['question', id]);
       toast.success('You accepted this solution!');
@@ -83,6 +85,17 @@ const QuestionDetail = () => {
   const handleDelete = () => {
     if (window.confirm('This action cannot be undone. Delete this question?')) {
       deleteQuestionMutation.mutate();
+    }
+  };
+
+  const handleVote = (answerId, isUpvote) => {
+    voteMutation.mutate({ answerId, isUpvote });
+  };
+
+  const handleAcceptAnswer = (answerId) => {
+    if (window.confirm('Accept this answer as the correct solution?')) {
+      setAcceptingId(answerId);
+      acceptAnswerMutation.mutate(answerId);
     }
   };
 
@@ -142,9 +155,20 @@ const QuestionDetail = () => {
           {isOwner && (
             <button
               onClick={handleDelete}
-              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95"
+              disabled={deleteQuestionMutation.isLoading}
+              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Delete Question
+              {deleteQuestionMutation.isLoading ? (
+                <>
+                  <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading...
+                </>
+              ) : (
+                'Delete Question'
+              )}
             </button>
           )}
         </div>
@@ -176,7 +200,7 @@ const QuestionDetail = () => {
               {!(question.isAnonymous || question.is_anonymous) ? (
                 <Link
                   to={`/profile/${question.user?._id || question.user?.id}`}
-                  className="text-lg font-black text-gray-900 truncate uppercase tracking-tight hover:text-red-600"
+                  className="text-lg font-black text-gray-900 truncate max-w-[200px] uppercase tracking-tight hover:text-red-600"
                 >
                   {question.user?.name || 'STUDENT'}
                 </Link>
@@ -251,9 +275,19 @@ const QuestionDetail = () => {
                   <button
                     type="submit"
                     disabled={submitAnswerMutation.isLoading || !answerBody.trim()}
-                    className="bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm"
+                    className="bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm cursor-pointer flex items-center gap-2"
                   >
-                    {submitAnswerMutation.isLoading ? 'Posting...' : 'Post Answer'}
+                    {submitAnswerMutation.isLoading ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                      </>
+                    ) : (
+                      'Post Answer'
+                    )}
                   </button>
                 </form>
               </div>
@@ -355,9 +389,20 @@ const QuestionDetail = () => {
                       {isOwner && !answer.isAccepted && (
                         <button
                           onClick={() => handleAcceptAnswer(answer._id)}
-                          className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:text-emerald-700 transition-colors border-2 border-emerald-100 px-4 py-2 rounded-xl bg-emerald-50"
+                          disabled={acceptingId === answer._id}
+                          className={`text-[10px] font-black uppercase tracking-widest transition-colors border-2 border-emerald-100 px-4 py-2 rounded-xl bg-emerald-50 flex items-center gap-2 ${acceptingId === answer._id ? 'opacity-50 cursor-not-allowed text-emerald-400' : 'text-emerald-600 hover:text-emerald-700'}`}
                         >
-                          Accept Answer
+                          {acceptingId === answer._id ? (
+                            <>
+                              <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Loading...
+                            </>
+                          ) : (
+                            'Accept Answer'
+                          )}
                         </button>
                       )}
                     </div>

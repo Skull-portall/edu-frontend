@@ -129,14 +129,48 @@ const PassTestDetail = () => {
                   </div>
                 </div>
 
-                <a
-                  href={`/api/${test.attachment}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm"
+                <button
+                  onClick={() => {
+                    const download = async () => {
+                      try {
+                        let fileUrl = test.attachment;
+                        if (!fileUrl.startsWith('http')) {
+                          const cleanPath = fileUrl.replace(/\\/g, '/');
+                          const { default: api } = await import('../../services/api');
+                          const baseURL = api.defaults.baseURL || 'http://localhost:5000/api/v1';
+                          // Strip /api/v1 from the end to get root URL
+                          const rootURL = baseURL.replace(/\/api\/v1\/?$/, '');
+                          // Ensure we don't double slash if cleanPath starts with /
+                          fileUrl = `${rootURL}/${cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath}`;
+                        }
+
+                        if (test.attachment.startsWith('http')) {
+                          window.open(test.attachment, '_blank');
+                          return;
+                        }
+
+                        const { default: api } = await import('../../services/api');
+                        // Use the full URL (fileUrl) which points to root, effectively bypassing the baseURL of the instance for this request
+                        const response = await api.get(fileUrl, { responseType: 'blob' });
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', test.attachment.split(/[\\/]/).pop() || 'download');
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        window.URL.revokeObjectURL(url);
+                      } catch (error) {
+                        console.error('Download failed:', error);
+                        toast.error('Failed to download file');
+                      }
+                    };
+                    download();
+                  }}
+                  className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm cursor-pointer"
                 >
                   View Attachment
-                </a>
+                </button>
               </div>
             </div>
           )}

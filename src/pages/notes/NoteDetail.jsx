@@ -126,14 +126,45 @@ const NoteDetail = () => {
                   </div>
                 </div>
 
-                <a
-                  href={`/api/${note.attachment}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm"
+                <button
+                  onClick={() => {
+                    const download = async () => {
+                      try {
+                        let fileUrl = note.attachment;
+                        if (!fileUrl.startsWith('http')) {
+                          const cleanPath = fileUrl.replace(/\\/g, '/');
+                          const { default: api } = await import('../../services/api');
+                          const baseURL = api.defaults.baseURL || 'http://localhost:5000/api/v1';
+                          const rootURL = baseURL.replace(/\/api\/v1\/?$/, '');
+                          fileUrl = `${rootURL}/${cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath}`;
+                        }
+
+                        if (note.attachment.startsWith('http')) {
+                          window.open(note.attachment, '_blank');
+                          return;
+                        }
+
+                        const { default: api } = await import('../../services/api');
+                        const response = await api.get(fileUrl, { responseType: 'blob' });
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', note.attachment.split(/[\\/]/).pop() || note.attachmentName || 'download');
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        window.URL.revokeObjectURL(url);
+                      } catch (error) {
+                        console.error('Download failed:', error);
+                        toast.error('Failed to download file');
+                      }
+                    };
+                    download();
+                  }}
+                  className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm cursor-pointer"
                 >
                   Download {note.attachmentName || 'File'}
-                </a>
+                </button>
               </div>
             </div>
           )}

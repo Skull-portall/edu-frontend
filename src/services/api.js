@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-//https://edu-live-99hc.onrender.com
+//https://edu-live-99hc.onrender.com/api/v1
 //http://localhost:5000/api/v1
 // Create axios instance
 const api = axios.create({
@@ -11,9 +11,56 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - Add token to requests
+// Map to store pending requests
+const pendingRequests = new Map();
+
+// Helper to generate a unique key for each request
+const getRequestKey = (config) => {
+  return `${config.method}:${config.url}`;
+};
+
+// Helper to add a request to the pending map
+const addPendingRequest = (config) => {
+  // Only deduplicate state-modifying requests (POST, PUT, DELETE, PATCH)
+  // Allow GET requests to run in parallel (e.g. strict mode double invoke)
+  if (config.method.toLowerCase() === 'get') {
+    return;
+
+  }
+
+  const key = getRequestKey(config);
+  // If a request with the same key is already pending, cancel it
+  if (pendingRequests.has(key)) {
+    const controller = pendingRequests.get(key);
+    controller.abort('Duplicated request cancelled');
+    pendingRequests.delete(key);
+  }
+
+  // Create a new AbortController for the current request
+  const controller = new AbortController();
+  config.signal = controller.signal;
+  pendingRequests.set(key, controller);
+};
+
+// Helper to remove a request from the pending map
+const removePendingRequest = (config) => {
+  if (!config) return;
+  const key = getRequestKey(config);
+  if (pendingRequests.has(key)) {
+    const controller = pendingRequests.get(key);
+    // Only remove if it's the same controller (don't remove a newer request's controller)
+    if (controller.signal === config.signal) {
+      pendingRequests.delete(key);
+    }
+  }
+};
+
+// Request interceptor - Add token to requests and handle deduplication
 api.interceptors.request.use(
   (config) => {
+    // Add deduplication logic
+    addPendingRequest(config);
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -25,14 +72,25 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    removePendingRequest(error.config);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor - Handle errors globally
+// Response interceptor - Handle errors globally and clean up pending requests
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    removePendingRequest(response.config);
+    return response;
+  },
   (error) => {
+    removePendingRequest(error.config);
+
+    // Ignore cancellations to prevent UI errors for debounced requests
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('token');
@@ -49,6 +107,9 @@ export const authAPI = {
   login: (data) => api.post('/auth/login', data),
   logout: () => api.post('/auth/logout'),
   getCurrentUser: () => api.get('/auth/user'),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data),
+  verifyOTP: (data) => api.post('/auth/verify-otp', data),
+  resetPassword: (data) => api.post('/auth/reset-password', data),
 };
 
 // Questions API

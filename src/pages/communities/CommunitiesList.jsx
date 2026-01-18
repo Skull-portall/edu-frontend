@@ -145,7 +145,7 @@ const CommunitiesList = () => {
                       </svg>
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-                      <span className="text-[10px] font-black text-gray-900 font-mono tracking-tighter">{community.members_count || 0}</span>
+                      <span className="text-[10px] font-black text-gray-900 font-mono tracking-tighter">{community.members_count || community.members?.length || 0}</span>
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Members</span>
                     </div>
                   </div>

@@ -58,12 +58,25 @@ const ClassRepDashboard = () => {
   const getAttachmentUrl = (attachmentPath) => {
     if (!attachmentPath) return null;
     if (attachmentPath.startsWith('http')) return attachmentPath;
+
+    // Normalize backslashes to forward slashes for URL compatibility
+    const normalizedPath = attachmentPath.replace(/\\/g, '/');
+
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-    const baseUrl = apiUrl.replace('/api/v1', '');
-    if (attachmentPath.startsWith('uploads/')) {
-      return `${baseUrl}/${attachmentPath}`;
+    // Get base URL by removing /api/v1 suffix if present
+    const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
+
+    // Remove leading slash from path to prevent double slash
+    const cleanPath = normalizedPath.startsWith('/') ? normalizedPath.substring(1) : normalizedPath;
+
+    // If path doesn't start with uploads/ and isn't just a filename (contains /), 
+    // we might need to be careful, but usually it's in uploads directory.
+    // The previous logic checked for 'uploads/'. Let's keep that safely.
+
+    if (cleanPath.startsWith('uploads/')) {
+      return `${baseUrl}/${cleanPath}`;
     }
-    return `${baseUrl}/uploads/${attachmentPath}`;
+    return `${baseUrl}/uploads/${cleanPath}`;
   };
 
   if (loading && !data) {

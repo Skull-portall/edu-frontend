@@ -39,6 +39,11 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data.user);
       setIsAuthenticated(true);
     } catch (error) {
+      // Don't log out if the request was cancelled (e.g. due to strict mode double-invocation)
+      if (error.code === 'ERR_CANCELED') {
+        return;
+      }
+
       // Silently fail - user might not be logged in or backend might not be running
       console.warn('Auth check failed:', error.message);
       localStorage.removeItem('token');
@@ -54,12 +59,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login({ email, password });
       const { token, user } = response.data;
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       setIsAuthenticated(true);
-      
+
       return { success: true };
     } catch (error) {
       return {
@@ -73,12 +78,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData);
       const { token, user } = response.data;
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       setIsAuthenticated(true);
-      
+
       return { success: true };
     } catch (error) {
       return {

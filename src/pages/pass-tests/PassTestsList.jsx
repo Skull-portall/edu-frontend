@@ -17,6 +17,7 @@ const PassTestsList = () => {
   const currentStatus = searchParams.get('status') || 'approved';
 
   const [search, setSearch] = useState(currentSearch);
+  const [actionId, setActionId] = useState(null);
 
   // Fetch Tests
   const { data: tests = [], isLoading: loading } = useQuery({
@@ -35,6 +36,7 @@ const PassTestsList = () => {
   const mutation = useMutation({
     mutationFn: ({ id, action }) =>
       action === 'approve' ? passTestsAPI.approve(id) : passTestsAPI.reject(id),
+    onSettled: () => setActionId(null),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries(['passTests']);
       toast.success(`Paper ${variables.action === 'approve' ? 'approved' : 'rejected'} successfully!`, {
@@ -50,6 +52,7 @@ const PassTestsList = () => {
     e.preventDefault();
     e.stopPropagation();
     if (window.confirm(`Are you sure you want to ${action} this paper?`)) {
+      setActionId(id);
       mutation.mutate({ id, action });
     }
   };
@@ -186,19 +189,35 @@ const PassTestsList = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={(e) => handleAction(e, test._id, 'approve')}
-                        className="p-3 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                        disabled={mutation.isLoading && actionId === test._id}
+                        className={`p-3 bg-emerald-50 text-emerald-600 rounded-xl transition-all shadow-sm ${mutation.isLoading && actionId === test._id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-600 hover:text-white'}`}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
+                        {mutation.isLoading && actionId === test._id && mutation.variables?.action === 'approve' ? (
+                          <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                       </button>
                       <button
                         onClick={(e) => handleAction(e, test._id, 'reject')}
-                        className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                        disabled={mutation.isLoading && actionId === test._id}
+                        className={`p-3 bg-red-50 text-red-600 rounded-xl transition-all shadow-sm ${mutation.isLoading && actionId === test._id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600 hover:text-white'}`}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        {mutation.isLoading && actionId === test._id && mutation.variables?.action === 'reject' ? (
+                          <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        )}
                       </button>
                     </div>
                   )}
