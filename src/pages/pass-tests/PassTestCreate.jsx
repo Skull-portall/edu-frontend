@@ -192,10 +192,10 @@ const PassTestCreate = () => {
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button
               type="submit"
-              disabled={createMutation.isLoading}
+              disabled={createMutation.isPending}
               className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-red-600/20 hover:shadow-red-600/40 transform hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50 text-sm cursor-pointer flex items-center justify-center gap-2"
             >
-              {createMutation.isLoading ? (
+              {createMutation.isPending ? (
                 <>
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

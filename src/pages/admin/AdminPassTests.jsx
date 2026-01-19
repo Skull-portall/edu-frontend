@@ -242,10 +242,10 @@ const AdminPassTests = () => {
                             <>
                               <button
                                 onClick={() => handleApprove(test._id)}
-                                disabled={approveMutation.isLoading}
+                                disabled={approveMutation.isPending}
                                 className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-800 hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                {approveMutation.isLoading ? (
+                                {approveMutation.isPending ? (
                                   <>
                                     <svg className="animate-spin h-3 w-3 mr-1.5 text-green-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -259,10 +259,10 @@ const AdminPassTests = () => {
                               </button>
                               <button
                                 onClick={() => handleReject(test._id)}
-                                disabled={rejectMutation.isLoading}
+                                disabled={rejectMutation.isPending}
                                 className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               >
-                                {rejectMutation.isLoading ? (
+                                {rejectMutation.isPending ? (
                                   <>
                                     <svg className="animate-spin h-3 w-3 mr-1.5 text-red-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -278,10 +278,10 @@ const AdminPassTests = () => {
                           )}
                           <button
                             onClick={() => handleDelete(test._id)}
-                            disabled={deleteMutation.isLoading}
+                            disabled={deleteMutation.isPending}
                             className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {deleteMutation.isLoading ? (
+                            {deleteMutation.isPending ? (
                               <>
                                 <svg className="animate-spin h-3 w-3 mr-1.5 text-red-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

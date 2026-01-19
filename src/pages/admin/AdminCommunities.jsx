@@ -147,20 +147,20 @@ const AdminCommunities = () => {
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
                             onClick={() => handleToggle(community._id)}
-                            disabled={toggleMutation.isLoading}
+                            disabled={toggleMutation.isPending}
                             className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${community.isActive
                               ? 'bg-red-100 text-red-800 hover:bg-red-200'
                               : 'bg-green-100 text-green-800 hover:bg-green-200'
                               } disabled:opacity-50 disabled:cursor-not-allowed`}
                           >
-                            {toggleMutation.isLoading ? 'Loading...' : (community.isActive ? 'Deactivate' : 'Activate')}
+                            {toggleMutation.isPending ? 'Loading...' : (community.isActive ? 'Deactivate' : 'Activate')}
                           </button>
                           <button
                             onClick={() => handleDelete(community._id)}
-                            disabled={deleteMutation.isLoading}
+                            disabled={deleteMutation.isPending}
                             className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {deleteMutation.isLoading ? 'Loading...' : 'Delete'}
+                            {deleteMutation.isPending ? 'Loading...' : 'Delete'}
                           </button>
                         </div>
                       </td>

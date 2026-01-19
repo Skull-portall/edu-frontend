@@ -143,10 +143,10 @@ const CommunityDetail = () => {
                 />
                 <button
                   type="submit"
-                  disabled={createPostMutation.isLoading || !postContent.trim()}
+                  disabled={createPostMutation.isPending || !postContent.trim()}
                   className="w-full sm:w-auto bg-gray-900 text-white px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm cursor-pointer flex items-center justify-center gap-2"
                 >
-                  {createPostMutation.isLoading ? (
+                  {createPostMutation.isPending ? (
                     <>
                       <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

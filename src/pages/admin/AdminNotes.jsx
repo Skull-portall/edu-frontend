@@ -251,10 +251,10 @@ const AdminNotes = () => {
                           {!note.isApproved && (
                             <button
                               onClick={() => handleApprove(note._id)}
-                              disabled={approveMutation.isLoading}
+                              disabled={approveMutation.isPending}
                               className="px-4 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg shadow-gray-900/10 active:scale-95"
                             >
-                              {approveMutation.isLoading ? (
+                              {approveMutation.isPending ? (
                                 <>
                                   <svg className="animate-spin h-3 w-3 mr-1.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -267,10 +267,10 @@ const AdminNotes = () => {
                           )}
                           <button
                             onClick={() => note.isApproved ? handleDelete(note._id) : handleReject(note._id)}
-                            disabled={rejectMutation.isLoading || deleteMutation.isLoading}
+                            disabled={rejectMutation.isPending || deleteMutation.isPending}
                             className="px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-600/10 active:scale-95"
                           >
-                            {rejectMutation.isLoading || deleteMutation.isLoading ? (
+                            {rejectMutation.isPending || deleteMutation.isPending ? (
                               <>
                                 <svg className="animate-spin h-3 w-3 mr-1.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

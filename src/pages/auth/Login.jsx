@@ -24,30 +24,42 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('Form submitted, preventing default');
     setError('');
     setLoading(true);
 
-    const result = await login(formData.email, formData.password);
+    try {
+      console.log('Attempting login with:', formData.email);
+      const result = await login(formData.email, formData.password);
+      console.log('Login result:', result);
 
-    if (result.success) {
-      // Check if user needs onboarding feedback
-      try {
-        const { onboardingAPI } = require('../../services/api');
-        const statusRes = await onboardingAPI.getStatus();
-        if (statusRes.data.needsOnboarding) {
-          navigate('/onboarding-feedback');
-        } else {
+      if (result.success) {
+        console.log('Login successful, checking onboarding status');
+        // Check if user needs onboarding feedback
+        try {
+          const { onboardingAPI } = require('../../services/api');
+          const statusRes = await onboardingAPI.getStatus();
+          if (statusRes.data.needsOnboarding) {
+            navigate('/onboarding-feedback');
+          } else {
+            navigate('/dashboard');
+          }
+        } catch (error) {
           navigate('/dashboard');
         }
-      } catch (error) {
-        // If check fails, just go to dashboard
-        navigate('/dashboard');
+        // Don't set loading to false when navigating away
+        return;
+      } else {
+        console.log('Login failed with message:', result.message);
+        setError(result.message === 'getaddrinfo ENOTFOUND ac-oun3l5e-shard-00-00.o3ycw9b.mongodb.net' ? 'Login failed' : result.message || 'Login failed');
       }
-    } else {
-      setError(result.message || 'Login failed');
+    } catch (error) {
+      console.error('Unexpected login error:', error);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      console.log('Setting loading to false');
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const scrollToSection = (e, id) => {

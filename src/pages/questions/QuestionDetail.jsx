@@ -13,6 +13,7 @@ const QuestionDetail = () => {
   const queryClient = useQueryClient();
   const [answerBody, setAnswerBody] = useState('');
   const [acceptingId, setAcceptingId] = useState(null);
+  const [votingId, setVotingId] = useState(null);
 
   // Fetch Question and Answers
   const { data: questionData, isLoading } = useQuery({
@@ -49,9 +50,11 @@ const QuestionDetail = () => {
     mutationFn: ({ answerId, isUpvote }) => votesAPI.voteAnswer(answerId, isUpvote),
     onSuccess: () => {
       queryClient.invalidateQueries(['question', id]);
+      setVotingId(null);
     },
     onError: () => {
       toast.error('Unable to cast vote');
+      setVotingId(null);
     },
   });
 
@@ -89,6 +92,7 @@ const QuestionDetail = () => {
   };
 
   const handleVote = (answerId, isUpvote) => {
+    setVotingId(answerId);
     voteMutation.mutate({ answerId, isUpvote });
   };
 
@@ -155,10 +159,10 @@ const QuestionDetail = () => {
           {isOwner && (
             <button
               onClick={handleDelete}
-              disabled={deleteQuestionMutation.isLoading}
+              disabled={deleteQuestionMutation.isPending}
               className="px-6 py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {deleteQuestionMutation.isLoading ? (
+              {deleteQuestionMutation.isPending ? (
                 <>
                   <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -274,10 +278,13 @@ const QuestionDetail = () => {
                   />
                   <button
                     type="submit"
-                    disabled={submitAnswerMutation.isLoading || !answerBody.trim()}
-                    className="bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm cursor-pointer flex items-center gap-2"
+                    disabled={submitAnswerMutation.isPending || !answerBody.trim()}
+                    className={`bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 ${submitAnswerMutation.isPending || !answerBody.trim()
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl cursor-pointer'
+                      }`}
                   >
-                    {submitAnswerMutation.isLoading ? (
+                    {submitAnswerMutation.isPending ? (
                       <>
                         <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -326,20 +333,36 @@ const QuestionDetail = () => {
                   <div className="flex flex-row sm:flex-col items-center justify-center gap-4 bg-gray-50 rounded-2xl p-3 sm:px-4 sm:py-6 self-start">
                     <button
                       onClick={() => handleVote(answer._id, true)}
-                      className="text-gray-400 hover:text-emerald-500 transition-colors transform hover:scale-125"
+                      disabled={votingId === answer._id}
+                      className={`transition-colors transform ${votingId === answer._id ? 'opacity-50 cursor-not-allowed text-gray-300' : 'text-gray-400 hover:text-emerald-500 hover:scale-125'}`}
                     >
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7" />
-                      </svg>
+                      {votingId === answer._id ? (
+                        <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 15l7-7 7 7" />
+                        </svg>
+                      )}
                     </button>
                     <span className="font-black text-xl text-gray-900 font-mono leading-none">{answer.votesCount || 0}</span>
                     <button
                       onClick={() => handleVote(answer._id, false)}
-                      className="text-gray-400 hover:text-red-500 transition-colors transform hover:scale-125"
+                      disabled={votingId === answer._id}
+                      className={`transition-colors transform ${votingId === answer._id ? 'opacity-50 cursor-not-allowed text-gray-300' : 'text-gray-400 hover:text-red-500 hover:scale-125'}`}
                     >
-                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      {votingId === answer._id ? (
+                        <svg className="animate-spin h-8 w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
                     </button>
                   </div>
 

@@ -28,8 +28,32 @@ const Profile = () => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: '', text: '' });
   const [imageError, setImageError] = useState(false);
+  const [originalData, setOriginalData] = useState({
+    name: '',
+    email: '',
+    phoneNumber: '',
+    bio: '',
+    status: 'available'
+  });
 
   const isOwnProfile = currentUser && (currentUser.id === id || currentUser._id === id);
+
+  // Check if form has any changes
+  const hasChanges = () => {
+    // Check if profile picture changed
+    if (profilePicture instanceof File) return true;
+
+    // Check if password fields have values
+    if (formData.password || formData.currentPassword) return true;
+
+    // Check if basic fields changed
+    const fieldsToCheck = ['name', 'email', 'phoneNumber', 'bio', 'status'];
+    return fieldsToCheck.some(field => {
+      const currentValue = formData[field] || '';
+      const originalValue = originalData[field] || '';
+      return currentValue !== originalValue;
+    });
+  };
 
   const getProfilePictureUrl = (picturePath) => {
     if (!picturePath) return null;
@@ -62,7 +86,7 @@ const Profile = () => {
       if (response.data.success) {
         const userData = response.data.data;
         setUser(userData);
-        setFormData({
+        const initialData = {
           name: userData.name || '',
           email: userData.email || '',
           phoneNumber: userData.phoneNumber || '',
@@ -71,6 +95,14 @@ const Profile = () => {
           password: '',
           currentPassword: '',
           passwordConfirmation: ''
+        };
+        setFormData(initialData);
+        setOriginalData({
+          name: userData.name || '',
+          email: userData.email || '',
+          phoneNumber: userData.phoneNumber || '',
+          bio: userData.bio || '',
+          status: userData.status || 'available'
         });
         if (userData.profilePicture) {
           const picUrl = getProfilePictureUrl(userData.profilePicture);
@@ -182,11 +214,23 @@ const Profile = () => {
         setMessage({ type: 'success', text: 'Profile updated successfully!' });
         setProfilePicture(null);
         setImageError(false);
-        setFormData({
-          ...formData,
+        const updatedFormData = {
+          name: updatedUser.name || '',
+          email: updatedUser.email || '',
+          phoneNumber: updatedUser.phoneNumber || '',
+          bio: updatedUser.bio || '',
+          status: updatedUser.status || 'available',
           password: '',
           currentPassword: '',
           passwordConfirmation: ''
+        };
+        setFormData(updatedFormData);
+        setOriginalData({
+          name: updatedUser.name || '',
+          email: updatedUser.email || '',
+          phoneNumber: updatedUser.phoneNumber || '',
+          bio: updatedUser.bio || '',
+          status: updatedUser.status || 'available'
         });
         setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       }
@@ -634,11 +678,16 @@ const Profile = () => {
 
               {/* Password Update Section */}
               < div className="border-t border-gray-200 pt-6 sm:pt-8" >
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Change Password</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">Change Password</h3>
+                <p className="text-sm text-gray-600 mb-4 sm:mb-6">
+                  {user.password ?
+                    'Enter your current password to set a new one.' :
+                    'You can set a password for your account. Current password is not required for initial setup.'}
+                </p>
                 <div className="space-y-4 sm:space-y-5">
                   <div>
                     <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                      Current Password <span className="text-gray-500 text-xs">(Required)</span>
+                      Current Password <span className="text-gray-500 text-xs">{user.password ? '(Required)' : '(Not required for initial setup)'}</span>
                     </label>
                     <div className="relative">
                       <input
@@ -780,7 +829,7 @@ const Profile = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !hasChanges()}
                   className="bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold text-sm sm:text-base flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (

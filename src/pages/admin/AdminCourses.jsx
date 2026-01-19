@@ -150,10 +150,10 @@ const AdminCourses = () => {
 
               <button
                 type="submit"
-                disabled={createMutation.isLoading}
+                disabled={createMutation.isPending}
                 className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-xl shadow-gray-900/20 disabled:opacity-50"
               >
-                {createMutation.isLoading ? (
+                {createMutation.isPending ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -215,10 +215,10 @@ const AdminCourses = () => {
                       <div className="flex gap-2">
                         <button
                           type="submit"
-                          disabled={updateMutation.isLoading}
+                          disabled={updateMutation.isPending}
                           className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-black transition-all"
                         >
-                          {updateMutation.isLoading ? (
+                          {updateMutation.isPending ? (
                             <span className="flex items-center justify-center gap-2">
                               <svg className="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -257,7 +257,7 @@ const AdminCourses = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(course._id)}
-                            disabled={deleteMutation.isLoading}
+                            disabled={deleteMutation.isPending}
                             className="p-2 text-gray-400 hover:text-red-600 transition-colors"
                             title="Delete Course"
                           >

@@ -170,10 +170,10 @@ const AdminUsers = () => {
           </div>
           <button
             onClick={handlePromoteSemester}
-            disabled={promoteMutation.isLoading}
+            disabled={promoteMutation.isPending}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 font-semibold inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {promoteMutation.isLoading ? 'Loading...' : (
+            {promoteMutation.isPending ? 'Loading...' : (
               <>
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -374,10 +374,10 @@ const AdminUsers = () => {
                           {user.suspendedAt ? (
                             <button
                               onClick={() => handleReactivate(user._id)}
-                              disabled={reactivateMutation.isLoading}
+                              disabled={reactivateMutation.isPending}
                               className="btn-activate inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 hover:text-green-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-green-200"
                             >
-                              {reactivateMutation.isLoading ? (
+                              {reactivateMutation.isPending ? (
                                 <>
                                   <svg className="animate-spin h-3 w-3 text-green-700 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -397,10 +397,10 @@ const AdminUsers = () => {
                           ) : (
                             <button
                               onClick={() => handleSuspend(user._id)}
-                              disabled={suspendMutation.isLoading}
+                              disabled={suspendMutation.isPending}
                               className="btn-suspend inline-flex items-center px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-md hover:bg-yellow-100 hover:text-yellow-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-yellow-200"
                             >
-                              {suspendMutation.isLoading ? (
+                              {suspendMutation.isPending ? (
                                 <>
                                   <svg className="animate-spin h-3 w-3 text-yellow-700 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -421,10 +421,10 @@ const AdminUsers = () => {
                           {user._id !== currentUser?._id && (
                             <button
                               onClick={() => handleDelete(user._id)}
-                              disabled={deleteMutation.isLoading}
+                              disabled={deleteMutation.isPending}
                               className="btn-delete inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200"
                             >
-                              {deleteMutation.isLoading ? (
+                              {deleteMutation.isPending ? (
                                 <>
                                   <svg className="animate-spin h-3 w-3 text-red-700 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

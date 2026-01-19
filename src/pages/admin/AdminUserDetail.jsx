@@ -236,10 +236,10 @@ const AdminUserDetail = () => {
                     <div className="flex gap-2">
                       <button
                         type="submit"
-                        disabled={updateRoleMutation.isLoading}
+                        disabled={updateRoleMutation.isPending}
                         className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm disabled:opacity-50"
                       >
-                        {updateRoleMutation.isLoading ? 'Saving...' : 'Save'}
+                        {updateRoleMutation.isPending ? 'Saving...' : 'Save'}
                       </button>
                       <button type="button" onClick={() => setShowRoleForm(false)} className="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
                         Cancel
@@ -277,10 +277,10 @@ const AdminUserDetail = () => {
                     <div className="flex gap-2">
                       <button
                         type="submit"
-                        disabled={updateSemesterMutation.isLoading}
+                        disabled={updateSemesterMutation.isPending}
                         className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm disabled:opacity-50"
                       >
-                        {updateSemesterMutation.isLoading ? 'Saving...' : 'Save'}
+                        {updateSemesterMutation.isPending ? 'Saving...' : 'Save'}
                       </button>
                       <button type="button" onClick={() => setShowSemesterForm(false)} className="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
                         Cancel
@@ -339,27 +339,27 @@ const AdminUserDetail = () => {
               {user.suspendedAt ? (
                 <button
                   onClick={handleReactivate}
-                  disabled={reactivateMutation.isLoading}
+                  disabled={reactivateMutation.isPending}
                   className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-semibold disabled:opacity-50"
                 >
-                  {reactivateMutation.isLoading ? 'Activating...' : 'Activate User'}
+                  {reactivateMutation.isPending ? 'Activating...' : 'Activate User'}
                 </button>
               ) : (
                 <button
                   onClick={handleSuspend}
-                  disabled={suspendMutation.isLoading}
+                  disabled={suspendMutation.isPending}
                   className="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors font-semibold disabled:opacity-50"
                 >
-                  {suspendMutation.isLoading ? 'Suspending...' : 'Suspend User'}
+                  {suspendMutation.isPending ? 'Suspending...' : 'Suspend User'}
                 </button>
               )}
               {user._id !== currentUser?._id && (
                 <button
                   onClick={handleDelete}
-                  disabled={deleteMutation.isLoading}
+                  disabled={deleteMutation.isPending}
                   className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-semibold disabled:opacity-50"
                 >
-                  {deleteMutation.isLoading ? 'Deleting...' : 'Delete User'}
+                  {deleteMutation.isPending ? 'Deleting...' : 'Delete User'}
                 </button>
               )}
             </div>

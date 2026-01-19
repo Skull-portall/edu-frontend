@@ -208,7 +208,7 @@ const ClassRepDashboard = () => {
                       <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-40">
                         <button
                           onClick={() => handleApproveNote(note._id)}
-                          disabled={handleMutation.isLoading}
+                          disabled={handleMutation.isPending}
                           className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold shadow-lg hover:shadow-green-200 transition-all disabled:opacity-50"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +218,7 @@ const ClassRepDashboard = () => {
                         </button>
                         <button
                           onClick={() => handleRejectNote(note._id)}
-                          disabled={handleMutation.isLoading}
+                          disabled={handleMutation.isPending}
                           className="flex items-center justify-center gap-2 px-6 py-3 bg-white text-red-600 border-2 border-red-50 text-red-700 rounded-xl hover:bg-red-50 font-bold transition-all disabled:opacity-50"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +329,7 @@ const ClassRepDashboard = () => {
                       <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-40">
                         <button
                           onClick={() => handleApprovePassTest(passTest._id)}
-                          disabled={handleMutation.isLoading}
+                          disabled={handleMutation.isPending}
                           className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold shadow-lg hover:shadow-green-200 transition-all disabled:opacity-50"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -339,7 +339,7 @@ const ClassRepDashboard = () => {
                         </button>
                         <button
                           onClick={() => handleRejectPassTest(passTest._id, passTest.type)}
-                          disabled={handleMutation.isLoading}
+                          disabled={handleMutation.isPending}
                           className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-red-50 text-red-700 rounded-xl hover:bg-red-50 font-bold transition-all disabled:opacity-50"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

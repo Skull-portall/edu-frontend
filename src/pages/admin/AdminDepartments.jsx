@@ -148,10 +148,10 @@ const AdminDepartments = () => {
             </div>
             <button
               type="submit"
-              disabled={createMutation.isLoading}
+              disabled={createMutation.isPending}
               className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {createMutation.isLoading ? (
+              {createMutation.isPending ? (
                 <>
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -212,10 +212,10 @@ const AdminDepartments = () => {
                         <div className="flex gap-2">
                           <button
                             type="submit"
-                            disabled={updateMutation.isLoading}
+                            disabled={updateMutation.isPending}
                             className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
                           >
-                            {updateMutation.isLoading ? (
+                            {updateMutation.isPending ? (
                               <span className="flex items-center justify-center gap-2">
                                 <svg className="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -260,10 +260,10 @@ const AdminDepartments = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(department._id)}
-                            disabled={deleteMutation.isLoading}
+                            disabled={deleteMutation.isPending}
                             className="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {deleteMutation.isLoading ? (
+                            {deleteMutation.isPending ? (
                               <>
                                 <svg className="animate-spin h-4 w-4 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

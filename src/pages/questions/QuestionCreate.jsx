@@ -203,10 +203,10 @@ const QuestionCreate = () => {
                 <Link to="/questions" className="px-8 py-4 text-white font-black uppercase tracking-widest text-xs hover:text-red-400 transition-colors">Cancel</Link>
                 <button
                   type="submit"
-                  disabled={createMutation.isLoading}
+                  disabled={createMutation.isPending}
                   className="bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl text-sm cursor-pointer flex items-center gap-2"
                 >
-                  {createMutation.isLoading ? (
+                  {createMutation.isPending ? (
                     <>
                       <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

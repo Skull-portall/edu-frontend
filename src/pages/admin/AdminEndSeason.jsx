@@ -239,13 +239,13 @@ const AdminEndSeason = () => {
               </Link>
               <button
                 type="submit"
-                disabled={promoteMutation.isLoading || !formData.campus_id || !formData.department_id}
+                disabled={promoteMutation.isPending || !formData.campus_id || !formData.department_id}
                 className="inline-flex items-center justify-center px-12 py-4 sm:px-16 sm:py-5 text-base sm:text-lg font-bold text-white bg-gradient-to-r from-red-600 via-red-600 to-rose-600 rounded-xl hover:from-red-700 hover:via-red-700 hover:to-rose-700 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-[1.03] active:translate-y-0 active:scale-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none w-full sm:w-auto gap-3"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                 </svg>
-                <span>{promoteMutation.isLoading ? 'Promoting...' : 'Promote All Students'}</span>
+                <span>{promoteMutation.isPending ? 'Promoting...' : 'Promote All Students'}</span>
               </button>
             </div>
           </form>

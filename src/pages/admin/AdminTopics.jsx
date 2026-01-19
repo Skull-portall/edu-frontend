@@ -151,10 +151,10 @@ const AdminTopics = () => {
             </div>
             <button
               type="submit"
-              disabled={createMutation.isLoading}
+              disabled={createMutation.isPending}
               className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {createMutation.isLoading ? 'Adding...' : 'Add Topic'}
+              {createMutation.isPending ? 'Adding...' : 'Add Topic'}
             </button>
           </form>
         </div>
@@ -200,10 +200,10 @@ const AdminTopics = () => {
                         <div className="flex gap-2">
                           <button
                             type="submit"
-                            disabled={updateMutation.isLoading}
+                            disabled={updateMutation.isPending}
                             className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 text-sm font-medium"
                           >
-                            {updateMutation.isLoading ? 'Saving...' : 'Save'}
+                            {updateMutation.isPending ? 'Saving...' : 'Save'}
                           </button>
                           <button
                             type="button"
@@ -234,7 +234,7 @@ const AdminTopics = () => {
                           </button>
                           <button
                             onClick={() => handleDelete(topic._id)}
-                            disabled={deleteMutation.isLoading}
+                            disabled={deleteMutation.isPending}
                             className="inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

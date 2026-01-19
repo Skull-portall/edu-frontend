@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import Loader from '../components/common/Loader';
 
 const AuthContext = createContext();
 
@@ -15,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+  // const [loading,]
   // Check if user is logged in on mount
   useEffect(() => {
     // Immediately set loading to false if no token exists
@@ -116,6 +117,12 @@ export const AuthProvider = ({ children }) => {
     logout,
     checkAuth
   };
+
+  if (loading) {
+    return <div className='w-full h-screen bg-white flex items-center justify-center'>
+      <Loader />
+    </div>;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
