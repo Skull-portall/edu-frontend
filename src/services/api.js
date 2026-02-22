@@ -3,7 +3,7 @@ import axios from 'axios';
 //http://localhost:5000/api/v1
 // Create axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api/v1',
+  baseURL: 'https://edu-live-99hc.onrender.com/api/v1',
   withCredentials: true, // For cookies
   headers: {
     'Content-Type': 'application/json',
