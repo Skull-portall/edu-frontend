@@ -1,10 +1,9 @@
 import axios from 'axios';
-
 //https://edu-live-99hc.onrender.com/api/v1
 //http://localhost:5000/api/v1
 // Create axios instance
 const api = axios.create({
-  baseURL: 'https://edu-live-99hc.onrender.com/api/v1',
+  baseURL: 'http://localhost:5000/api/v1',
   withCredentials: true, // For cookies
   headers: {
     'Content-Type': 'application/json',
@@ -292,6 +291,38 @@ export const onboardingAPI = {
   getOptions: () => api.get('/onboarding/options'),
   getStatus: () => api.get('/onboarding/status'),
   submitFeedback: (feedback) => api.post('/onboarding/feedback', { onboardingFeedback: feedback }),
+};
+
+// Campus Hub API
+export const campusHubAPI = {
+  // Provider application (data can be FormData for apply with image)
+  applyAsProvider: (data) => api.post('/campus-hub/providers/apply', data),
+  getMyApplication: () => api.get('/campus-hub/providers/my-application'),
+  getProviderApplications: (params) => api.get('/campus-hub/providers/applications', { params }),
+  approveOrRejectApplication: (data) => api.post('/campus-hub/providers/approve', data),
+  revokeProvider: (data) => api.post('/campus-hub/providers/revoke', data),
+  deleteApplication: (id) => api.delete(`/campus-hub/providers/applications/${id}`),
+  // Services
+  getServices: (params) => api.get('/campus-hub/services', { params }),
+  getServiceById: (id) => api.get(`/campus-hub/services/${id}`),
+  getMyServices: () => api.get('/campus-hub/services/my/list'),
+  createService: (data) => api.post('/campus-hub/services', data),
+  updateService: (id, data) => api.put(`/campus-hub/services/${id}`, data),
+  deleteService: (id) => api.delete(`/campus-hub/services/${id}`),
+  // Orders
+  createOrder: (serviceId) => api.post('/campus-hub/orders', { serviceId }),
+  getMyOrders: () => api.get('/campus-hub/orders'),
+  getOrderById: (id) => api.get(`/campus-hub/orders/${id}`),
+  updateOrderStatus: (id, status) => api.patch(`/campus-hub/orders/${id}/status`, { status }),
+  // Chat
+  getChatMessages: (orderId) => api.get(`/campus-hub/chat/${orderId}`),
+  sendChatMessage: (orderId, content) => api.post(`/campus-hub/chat/${orderId}`, { content }),
+  // Admin
+  adminGetServices: () => api.get('/campus-hub/admin/services'),
+  adminUpdateService: (id, data) => api.patch(`/campus-hub/admin/services/${id}`, data),
+  adminDeleteService: (id) => api.delete(`/campus-hub/admin/services/${id}`),
+  adminGetOrders: () => api.get('/campus-hub/admin/orders'),
+  adminGetChats: () => api.get('/campus-hub/admin/chats'),
 };
 
 export default api;

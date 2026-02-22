@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCampusHubNotifications } from '../../hooks/useCampusHubNotifications';
+import toast from 'react-hot-toast';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const Layout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, checkAuth } = useAuth();
+  useCampusHubNotifications(user);
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +23,31 @@ const Layout = () => {
     setMobileMenuOpen(false);
     setProfileMenuOpen(false);
   }, [location.pathname]);
+
+  const prevRoleRef = useRef(null);
+
+  // Auto-refresh auth so when admin approves, user sees provider role quickly (Dashboard, My Services, etc.)
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !checkAuth) return;
+    const interval = setInterval(checkAuth, 20000); // every 20s
+    const onVisible = () => { if (document.visibilityState === 'visible') checkAuth(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [checkAuth]);
+
+  // Toast when user becomes provider (approved by admin) without visiting apply page
+  useEffect(() => {
+    if (!user) return;
+    const prevRole = prevRoleRef.current;
+    if (prevRole !== null && prevRole !== 'provider' && user.role === 'provider') {
+      toast.success("You're now a service provider! Start offering your services from Campus Hub.", { duration: 6000 });
+    }
+    prevRoleRef.current = user.role;
+  }, [user?.role]);
 
   // Close profile menu when clicking outside
   useEffect(() => {
@@ -100,6 +129,15 @@ const Layout = () => {
                   </svg>
                   <span>Communities</span>
                 </Link>
+                <Link
+                  to="/campus-hub"
+                  className={`${isRouteActive('/campus-hub') ? 'text-red-600 border-red-600' : 'text-gray-700 hover:text-red-600 border-transparent hover:border-red-600'} inline-flex items-center space-x-1.5 px-1 pt-1 border-b-2 text-sm font-semibold transition-colors`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                  </svg>
+                  <span>Campus Hub</span>
+                </Link>
               </div>
             </div>
 
@@ -138,7 +176,7 @@ const Layout = () => {
                     <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white">
                       {user.profilePicture ? (
                         <img
-                          src={user.profilePicture}
+                          src={getImageUrl(user.profilePicture)}
                           alt={user.name}
                           className="w-full h-full object-cover"
                         />
@@ -284,7 +322,7 @@ const Layout = () => {
                   <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white shadow-md">
                     {user.profilePicture ? (
                       <img
-                        src={user.profilePicture}
+                        src={getImageUrl(user.profilePicture)}
                         alt={user.name}
                         className="w-full h-full object-cover"
                       />
@@ -387,6 +425,17 @@ const Layout = () => {
                 </svg>
                 <span>Communities</span>
               </div>
+            </Link>
+
+            <Link
+              to="/campus-hub"
+              className={`menu-item flex items-center space-x-3 px-3 py-3 text-base font-medium ${isRouteActive('/campus-hub') ? 'text-red-600 bg-red-50' : 'text-gray-700 hover:text-red-600 hover:bg-red-50'} rounded-lg transition-colors`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+              <span>Campus Hub</span>
             </Link>
 
             {user && (
@@ -514,6 +563,7 @@ const Layout = () => {
               <ul className="space-y-2">
                 <li><Link to="/#features" className="hover:text-white transition-colors">Features</Link></li>
                 <li><Link to="/#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+                <li><Link to="/campus-hub" className="hover:text-white transition-colors">Campus Hub</Link></li>
                 <li><Link to="/questions" className="hover:text-white transition-colors">Questions</Link></li>
               </ul>
             </div>

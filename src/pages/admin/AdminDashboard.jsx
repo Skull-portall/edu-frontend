@@ -135,6 +135,10 @@ const AdminDashboard = () => {
           { to: '/admin/semesters', title: 'Semesters', desc: 'Manage academic semesters and timeframes.' },
           { to: '/admin/topics', title: 'Topics', desc: 'Manage forum categories and discussion topics.' },
           { to: '/admin/onboarding-feedback', title: 'Feedback', desc: 'View and analyze feedback from students.' },
+          { to: '/admin/campus-hub/applications', title: 'Campus Hub · Applications', desc: 'Approve or reject provider applications.', countKey: 'pendingProviderApplications', countLabel: 'Pending' },
+          { to: '/admin/campus-hub/services', title: 'Campus Hub · Services', desc: 'Monitor all Campus Hub services.' },
+          { to: '/admin/campus-hub/orders', title: 'Campus Hub · Orders', desc: 'Monitor all service orders.' },
+          { to: '/admin/campus-hub/chats', title: 'Campus Hub · Chats', desc: 'Monitor order chats between students and providers.' },
         ].map((item, idx) => (
           <Link
             key={item.to}

@@ -40,7 +40,18 @@ import AdminTopics from './pages/admin/AdminTopics';
 import AdminCommunities from './pages/admin/AdminCommunities';
 import AdminOnboardingFeedback from './pages/admin/AdminOnboardingFeedback';
 import AdminEndSeason from './pages/admin/AdminEndSeason';
+import AdminCampusHubApplications from './pages/admin/AdminCampusHubApplications';
+import AdminCampusHubServices from './pages/admin/AdminCampusHubServices';
+import AdminCampusHubOrders from './pages/admin/AdminCampusHubOrders';
+import AdminCampusHubChats from './pages/admin/AdminCampusHubChats';
 import ClassRepDashboard from './pages/classRep/ClassRepDashboard';
+import CampusHub from './pages/campusHub/CampusHub';
+import CampusHubServiceDetail from './pages/campusHub/CampusHubServiceDetail';
+import ApplyAsProvider from './pages/campusHub/ApplyAsProvider';
+import CampusHubOrders from './pages/campusHub/CampusHubOrders';
+import CampusHubOrderChat from './pages/campusHub/CampusHubOrderChat';
+import CampusHubMyServices from './pages/campusHub/CampusHubMyServices';
+import ProviderDashboard from './pages/campusHub/ProviderDashboard';
 
 function App() {
   return (
@@ -77,6 +88,15 @@ function App() {
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/my-questions" element={<MyQuestions />} />
 
+            {/* Campus Hub */}
+            <Route path="/campus-hub" element={<CampusHub />} />
+            <Route path="/campus-hub/apply" element={<ApplyAsProvider />} />
+            <Route path="/campus-hub/services/:id" element={<CampusHubServiceDetail />} />
+            <Route path="/campus-hub/orders" element={<CampusHubOrders />} />
+            <Route path="/campus-hub/orders/:orderId/chat" element={<CampusHubOrderChat />} />
+            <Route path="/campus-hub/my-services" element={<CampusHubMyServices />} />
+            <Route path="/campus-hub/provider-dashboard" element={<ProviderDashboard />} />
+
             {/* Class Rep routes */}
             <Route path="/class-rep/dashboard" element={<ClassRepDashboard />} />
 
@@ -94,6 +114,10 @@ function App() {
             <Route path="/admin/communities" element={<AdminCommunities />} />
             <Route path="/admin/onboarding-feedback" element={<AdminOnboardingFeedback />} />
             <Route path="/admin/end-season" element={<AdminEndSeason />} />
+            <Route path="/admin/campus-hub/applications" element={<AdminCampusHubApplications />} />
+            <Route path="/admin/campus-hub/services" element={<AdminCampusHubServices />} />
+            <Route path="/admin/campus-hub/orders" element={<AdminCampusHubOrders />} />
+            <Route path="/admin/campus-hub/chats" element={<AdminCampusHubChats />} />
           </Route>
 
           {/* Redirect unknown routes */}
