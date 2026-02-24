@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { usersAPI, questionsAPI } from '../../services/api';
+import { usersAPI, questionsAPI, API_BASE_URL } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Profile = () => {
@@ -59,8 +59,8 @@ const Profile = () => {
     if (!picturePath) return null;
     if (picturePath.startsWith('http')) return picturePath;
     if (picturePath.startsWith('/uploads')) return picturePath;
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-    const baseUrl = apiUrl.replace('/api/v1', '');
+    const apiUrl = API_BASE_URL;
+    const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
     // Backend stores path like 'uploads/profile_pictures/xxx.jpg'
     // Backend serves it at '/uploads/...'
     if (picturePath.startsWith('uploads/')) {

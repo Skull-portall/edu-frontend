@@ -1,7 +1,7 @@
 import Loader from '../../components/common/Loader';
 import React, { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { adminAPI, metaAPI } from '../../services/api';
+import { adminAPI, metaAPI, API_BASE_URL } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -21,8 +21,8 @@ const AdminUserDetail = () => {
     if (!picturePath) return null;
     if (picturePath.startsWith('http')) return picturePath;
     if (picturePath.startsWith('/uploads')) return picturePath;
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-    const baseUrl = apiUrl.replace('/api/v1', '');
+    const apiUrl = API_BASE_URL;
+    const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
     if (picturePath.startsWith('uploads/')) {
       return `${baseUrl}/${picturePath}`;
     }

@@ -136,10 +136,9 @@ const PassTestDetail = () => {
                         let fileUrl = test.attachment;
                         if (!fileUrl.startsWith('http')) {
                           const cleanPath = fileUrl.replace(/\\/g, '/');
-                          const { default: api } = await import('../../services/api');
-                          const baseURL = api.defaults.baseURL || 'http://localhost:5000/api/v1';
+                          const { API_BASE_URL } = await import('../../services/api');
                           // Strip /api/v1 from the end to get root URL
-                          const rootURL = baseURL.replace(/\/api\/v1\/?$/, '');
+                          const rootURL = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
                           // Ensure we don't double slash if cleanPath starts with /
                           fileUrl = `${rootURL}/${cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath}`;
                         }

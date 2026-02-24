@@ -1,7 +1,7 @@
 import Loader from '../../components/common/Loader';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { classRepAPI } from '../../services/api';
+import { classRepAPI, API_BASE_URL } from '../../services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
@@ -62,7 +62,7 @@ const ClassRepDashboard = () => {
     // Normalize backslashes to forward slashes for URL compatibility
     const normalizedPath = attachmentPath.replace(/\\/g, '/');
 
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+    const apiUrl = API_BASE_URL;
     // Get base URL by removing /api/v1 suffix if present
     const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
 
