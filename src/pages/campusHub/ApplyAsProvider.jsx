@@ -7,6 +7,7 @@ import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
 
 import { getImageUrl } from '../../utils/imageUrl';
+import { uploadToCloudinary } from '../../utils/cloudinary';
 
 const ApplyAsProvider = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const ApplyAsProvider = () => {
   const fileInputRef = useRef(null);
   const [showCongratsModal, setShowCongratsModal] = useState(false);
   const [showResubmitForm, setShowResubmitForm] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [fullName, setFullName] = useState(user?.name || '');
   const [address, setAddress] = useState('');
@@ -93,7 +95,7 @@ const ApplyAsProvider = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!fullName.trim()) {
       toast.error('Full name is required.');
@@ -119,22 +121,38 @@ const ApplyAsProvider = () => {
       toast.error('Description is required.');
       return;
     }
-    if (!providerImage) {
+    if (!providerImage && !application?.providerImage) {
       toast.error('Please upload your photo or ID image.');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('fullName', fullName.trim());
-    formData.append('address', address.trim());
-    formData.append('serviceName', serviceName.trim());
-    formData.append('studentId', studentId.trim());
-    formData.append('skills', skills.trim());
-    formData.append('description', description.trim());
-    formData.append('providerImage', providerImage);
-    if (serviceSampleImage) formData.append('serviceSampleImage', serviceSampleImage);
+    try {
+      setIsUploading(true);
+      let providerImageUrl = application?.providerImage;
+      if (providerImage) {
+        providerImageUrl = await uploadToCloudinary(providerImage);
+      }
 
-    applyMutation.mutate(formData);
+      let serviceSampleImageUrl = application?.serviceSampleImage;
+      if (serviceSampleImage) {
+        serviceSampleImageUrl = await uploadToCloudinary(serviceSampleImage);
+      }
+
+      applyMutation.mutate({
+        fullName: fullName.trim(),
+        address: address.trim(),
+        serviceName: serviceName.trim(),
+        studentId: studentId.trim(),
+        skills: skills.trim(),
+        description: description.trim(),
+        providerImage: providerImageUrl,
+        serviceSampleImage: serviceSampleImageUrl,
+      });
+    } catch (error) {
+      toast.error(error.message || 'Image upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   if (user?.role === 'provider') {
@@ -276,10 +294,12 @@ const ApplyAsProvider = () => {
         Provide your details so we can verify your identity and reduce scams. Admin will review and approve your application.
       </p>
 
-      {applyMutation.isLoading && (
+      {(applyMutation.isLoading || isUploading) && (
         <div className="fixed inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
           <Loader />
-          <p className="mt-4 text-gray-600 font-medium">Submitting your application...</p>
+          <p className="mt-4 text-gray-600 font-medium">
+            {isUploading ? 'Uploading images to Cloudinary...' : 'Submitting your application...'}
+          </p>
         </div>
       )}
 
@@ -388,7 +408,7 @@ const ApplyAsProvider = () => {
         <div className="flex flex-wrap gap-4 pt-2">
           <button
             type="submit"
-            disabled={applyMutation.isLoading}
+            disabled={applyMutation.isLoading || isUploading}
             className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Submit Application

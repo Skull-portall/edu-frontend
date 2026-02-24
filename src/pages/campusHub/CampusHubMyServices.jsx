@@ -6,6 +6,7 @@ import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
 import CampusHubHeader from '../../components/campusHub/CampusHubHeader';
 import { getImageUrl } from '../../utils/imageUrl';
+import { uploadToCloudinary } from '../../utils/cloudinary';
 
 const CampusHubMyServices = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const CampusHubMyServices = () => {
   const [form, setForm] = useState({ title: '', description: '', category: '', price: '', status: 'active' });
   const [createImages, setCreateImages] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: services = [], isLoading } = useQuery({
     queryKey: ['campusHubMyServices'],
@@ -54,7 +56,7 @@ const CampusHubMyServices = () => {
     onError: (err) => toast.error(err.response?.data?.message || 'Failed to delete'),
   });
 
-  const handleCreate = (e) => {
+  const handleCreate = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.description.trim()) {
       toast.error('Title and description required.');
@@ -64,13 +66,24 @@ const CampusHubMyServices = () => {
       toast.error('Please add between 1 and 5 images for the service.');
       return;
     }
-    const fd = new FormData();
-    fd.append('title', form.title.trim());
-    fd.append('description', form.description.trim());
-    fd.append('category', (form.category || 'General').trim());
-    fd.append('price', form.price || '0');
-    createImages.forEach((file) => fd.append('images', file));
-    createMutation.mutate(fd);
+    try {
+      setIsUploading(true);
+      const imageUrls = await Promise.all(
+        Array.from(createImages).map((file) => uploadToCloudinary(file))
+      );
+
+      createMutation.mutate({
+        title: form.title.trim(),
+        description: form.description.trim(),
+        category: (form.category || 'General').trim(),
+        price: form.price || '0',
+        images: imageUrls,
+      });
+    } catch (error) {
+      toast.error(error.message || 'Image upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleUpdate = (e) => {
@@ -172,8 +185,12 @@ const CampusHubMyServices = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <button type="submit" disabled={createMutation.isLoading || createImages.length < 1} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
-                Create
+              <button
+                type="submit"
+                disabled={createMutation.isLoading || isUploading || createImages.length < 1}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {isUploading ? 'Uploading Images...' : createMutation.isLoading ? 'Creating...' : 'Create'}
               </button>
               <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                 Cancel

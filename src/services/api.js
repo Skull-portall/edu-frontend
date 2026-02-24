@@ -1,14 +1,16 @@
 import axios from 'axios';
 //https://edu-live-99hc.onrender.com/api/v1
 //http://localhost:5000/api/v1
+
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+
 // Create axios instance
 const api = axios.create({
-  baseURL: 'https://edu-live-99hc.onrender.com/api/v1',
+  baseURL: API_BASE_URL,
   withCredentials: true, // For cookies
   headers: {
     'Content-Type': 'application/json',
   },
-
 });
 
 // Map to store pending requests
