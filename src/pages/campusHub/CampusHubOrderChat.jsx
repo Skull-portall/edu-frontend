@@ -55,14 +55,16 @@ const CampusHubOrderChat = () => {
     },
   });
 
-  const acceptMutation = useMutation({
+  const updateStatusMutation = useMutation({
     mutationFn: (statusText) => campusHubAPI.updateOrderStatus(orderId, statusText),
-    onSuccess: () => {
+    onSuccess: (data, statusText) => {
       queryClient.invalidateQueries(['campusHubOrder', orderId]);
-      toast.success('Order accepted successfully!');
+      if (statusText === 'cancelled') toast.success('Order has been cancelled.');
+      else if (statusText === 'completed') toast.success('Order marked as completed.');
+      else toast.success('Order accepted successfully!');
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to accept order');
+      toast.error(err.response?.data?.message || 'Failed to update order status');
     },
   });
 
@@ -93,8 +95,8 @@ const CampusHubOrderChat = () => {
   const meUser = isProvider ? order.provider : order.student;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
+    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-4rem)] md:h-[calc(100vh-8rem)] w-full sm:px-6 lg:px-8 py-0 md:py-6 bg-white md:bg-transparent relative">
+      <div className="flex items-center gap-2 md:gap-4 p-3 md:p-0 md:mb-4 md:pb-4 border-b border-gray-200 sticky top-0 bg-white z-10 shadow-sm md:shadow-none">
         <button
           onClick={() => navigate('/campus-hub/orders')}
           className="text-gray-600 hover:text-gray-900 p-1"
@@ -127,30 +129,60 @@ const CampusHubOrderChat = () => {
         </div>
         <div className="ml-auto flex items-center gap-2">
           {order.status === 'pending' && isProvider && (
-            <div className="flex gap-2 mr-2">
+            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 mr-1 sm:mr-2 sm:border-r border-gray-200 sm:pr-3">
               <button
-                onClick={() => acceptMutation.mutate('in_progress')}
-                disabled={acceptMutation.isPending}
-                className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 disabled:opacity-50"
+                onClick={() => updateStatusMutation.mutate('in_progress')}
+                disabled={updateStatusMutation.isPending}
+                className="px-2 sm:px-3 py-1 bg-green-600 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-green-700 disabled:opacity-50"
               >
-                {acceptMutation.isPending ? '...' : 'ACCEPT'}
+                {updateStatusMutation.isPending ? '...' : 'ACCEPT'}
               </button>
               <button
-                onClick={() => acceptMutation.mutate('cancelled')}
-                disabled={acceptMutation.isPending}
-                className="px-3 py-1 bg-gray-500 text-white text-xs font-bold rounded hover:bg-gray-600 disabled:opacity-50"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to decline this request?')) {
+                    updateStatusMutation.mutate('cancelled');
+                  }
+                }}
+                disabled={updateStatusMutation.isPending}
+                className="px-2 sm:px-3 py-1 bg-gray-500 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-gray-600 disabled:opacity-50"
               >
                 DECLINE
               </button>
             </div>
           )}
-          <span className={`px-3 py-1 text-xs font-bold rounded-full border shadow-sm ${statusColors[order.status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+          {order.status === 'in_progress' && isProvider && (
+            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 mr-1 sm:mr-2 sm:border-r border-gray-200 sm:pr-3">
+              <button
+                onClick={() => {
+                  if (window.confirm('Mark this service as completed?')) {
+                    updateStatusMutation.mutate('completed');
+                  }
+                }}
+                disabled={updateStatusMutation.isPending}
+                className="px-2 sm:px-3 py-1 bg-blue-600 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-blue-700 disabled:opacity-50 shadow-sm"
+              >
+                COMPLETE
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to cancel this active order?')) {
+                    updateStatusMutation.mutate('cancelled');
+                  }
+                }}
+                disabled={updateStatusMutation.isPending}
+                className="px-2 sm:px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 text-[10px] sm:text-xs font-bold rounded disabled:opacity-50 border border-red-200"
+              >
+                CANCEL
+              </button>
+            </div>
+          )}
+          <span className={`px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold rounded-full border shadow-sm flex-shrink-0 ${statusColors[order.status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
             {order.status === 'in_progress' ? 'ACTIVE' : order.status?.toUpperCase()}
           </span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-gray-50 rounded-xl p-4 space-y-3 min-h-0">
+      <div className="flex-1 overflow-y-auto bg-gray-50 md:rounded-xl p-3 sm:p-4 space-y-3 min-h-0 bg-[url('/images/chat-bg.png')] bg-opacity-50 bg-repeat">
         {messagesLoading && messages.length === 0 ? (
           <div className="flex justify-center py-8"><Loader /></div>
         ) : (
@@ -187,35 +219,39 @@ const CampusHubOrderChat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {order.status === 'pending' && !isProvider && (
-        <div className="mt-2 flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <p>Order is waiting for provider's approval, but you can still chat to discuss details.</p>
-        </div>
-      )}
-      {order.status === 'pending' && isProvider && (
-        <div className="mt-2 flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <p>Please review chat or accept the request at the top right to start the service.</p>
-        </div>
-      )}
+      {/* Warning Banners */}
+      <div className="shrink-0 px-3 md:px-0 bg-white md:bg-transparent">
+        {order.status === 'pending' && !isProvider && (
+          <div className="mt-2 flex items-center gap-2 text-xs md:text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-100">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p>Order is waiting for provider's approval, but you can still chat to discuss details.</p>
+          </div>
+        )}
+        {order.status === 'pending' && isProvider && (
+          <div className="mt-2 flex items-center gap-2 text-xs md:text-sm text-yellow-600 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-100">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <p>Review chat or Accept the request at the top right to start the service.</p>
+          </div>
+        )}
+      </div>
 
-      <form onSubmit={handleSend} className="mt-4 flex gap-2">
+      <form onSubmit={handleSend} className="shrink-0 flex gap-2 w-full p-3 md:p-0 md:mt-4 bg-white md:bg-transparent border-t border-gray-200 md:border-none">
         <input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          className="flex-1 px-4 py-2.5 md:py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none shadow-sm"
           maxLength={2000}
           disabled={order.status === 'cancelled'}
         />
         <button
           type="submit"
           disabled={!message.trim() || sendMutation.isPending || order.status === 'cancelled'}
-          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 transition-colors"
+          className="px-5 py-2.5 md:py-3 bg-red-600 text-white rounded-full hover:bg-red-700 font-medium disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center shrink-0"
         >
-          Send
+          <svg className="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+          <span className="hidden md:inline">Send</span>
         </button>
       </form>
 

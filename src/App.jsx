@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import OnboardingRoute from './components/common/OnboardingRoute';
+import ScrollToTop from './components/common/ScrollToTop';
 import Layout from './components/layout/Layout';
 // Pages
 import Landing from './pages/Landing';
@@ -57,6 +58,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Landing />} />
