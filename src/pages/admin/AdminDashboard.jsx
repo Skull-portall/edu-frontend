@@ -125,10 +125,12 @@ const AdminDashboard = () => {
       {/* Control Nodes */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[
+          { to: '/admin/management', title: 'System Administrators', desc: 'Manage platform architecture roles (Super, Campus, Department).', countKey: null },
           { to: '/admin/users', title: 'User Management', desc: 'Review student accounts, roles, and permissions.', countKey: 'newUsers', countLabel: 'New' },
           { to: '/admin/notes', title: 'Study Notes', desc: 'Review, approve, or delete study notes shared by students.', countKey: 'pendingNotes', countLabel: 'Pending' },
           { to: '/admin/pass-tests', title: 'Past Papers', desc: 'Manage previous exam papers, tests, and assignments.', countKey: 'pendingPassTests', countLabel: 'Pending' },
           { to: '/admin/communities', title: 'Communities', desc: 'Manage student discussion groups and communities.', countKey: 'inactiveCommunities', countLabel: 'New' },
+          { to: '/admin/class-reps', title: 'Reps Management', desc: 'Assign class representatives for specific semesters and sections.' },
           { to: '/admin/courses', title: 'Courses', desc: 'Add or modify courses and academic programs.' },
           { to: '/admin/departments', title: 'Departments', desc: 'Manage academic departments and faculty divisions.' },
           { to: '/admin/campuses', title: 'Campuses', desc: 'Manage physical and virtual campus locations.' },

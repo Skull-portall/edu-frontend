@@ -237,6 +237,15 @@ export const adminAPI = {
     api.post(`/admin/users/${id}/semester`, { semester_id: semesterId }),
   promoteSemester: () => api.post('/admin/users/promote-semester'),
 
+  // Class Reps
+  previewUserByEmail: (email) => api.get(`/admin/users/preview/${email}`),
+  assignClassRep: (data) => api.post('/admin/class-reps/assign', data),
+
+  // Admins
+  getAdmins: () => api.get('/admin/management/admins'),
+  assignAdminRole: (data) => api.post('/admin/management/assign', data),
+  revokeAdminRole: (userId) => api.post('/admin/management/revoke', { userId }),
+
   // Notes
   getNotes: (params) => api.get('/admin/notes', { params }),
   approveNote: (id) => api.post(`/admin/notes/${id}/approve`),

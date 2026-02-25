@@ -37,6 +37,8 @@ import AdminSemesters from './pages/admin/AdminSemesters';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminCampuses from './pages/admin/AdminCampuses';
 import AdminCourses from './pages/admin/AdminCourses';
+import AdminClassReps from './pages/admin/AdminClassReps';
+import AdminAdmins from './pages/admin/AdminAdmins';
 import AdminTopics from './pages/admin/AdminTopics';
 import AdminCommunities from './pages/admin/AdminCommunities';
 import AdminOnboardingFeedback from './pages/admin/AdminOnboardingFeedback';
@@ -112,6 +114,8 @@ function App() {
             <Route path="/admin/departments" element={<AdminDepartments />} />
             <Route path="/admin/campuses" element={<AdminCampuses />} />
             <Route path="/admin/courses" element={<AdminCourses />} />
+            <Route path="/admin/class-reps" element={<AdminClassReps />} />
+            <Route path="/admin/management" element={<AdminAdmins />} />
             <Route path="/admin/topics" element={<AdminTopics />} />
             <Route path="/admin/communities" element={<AdminCommunities />} />
             <Route path="/admin/onboarding-feedback" element={<AdminOnboardingFeedback />} />
