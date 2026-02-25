@@ -9,12 +9,19 @@ import { getImageUrl } from '../../utils/imageUrl';
 
 const CampusHub = () => {
   const { user } = useAuth();
-  const [category, setCategory] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
+
+  const campusIdValue = user?.campus?._id || user?.campus;
 
   const { data: services = [], isLoading } = useQuery({
-    queryKey: ['campusHubServices', category],
+    queryKey: ['campusHubServices', activeSearch, campusIdValue],
     queryFn: async () => {
-      const res = await campusHubAPI.getServices({ category: category || undefined, status: 'active' });
+      const res = await campusHubAPI.getServices({
+        search: activeSearch || undefined,
+        status: 'active',
+        campusId: campusIdValue || undefined
+      });
       return res.data.data || [];
     },
   });
@@ -45,14 +52,28 @@ const CampusHub = () => {
       )}
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Filter by category</label>
-        <input
-          type="text"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          placeholder="e.g. Tutoring, Notes, Printing"
-          className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-        />
+        <label className="block text-sm font-medium text-gray-700 mb-2">Search Services</label>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setActiveSearch(searchQuery);
+          }}
+          className="flex max-w-lg gap-3"
+        >
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by keyword, category, or title..."
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          />
+          <button
+            type="submit"
+            className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors shadow-sm flex-shrink-0"
+          >
+            Search
+          </button>
+        </form>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,7 +130,7 @@ const CampusHub = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
           </svg>
           <p className="text-gray-500 text-lg">No services found</p>
-          <p className="text-gray-400">Try a different category or check back later.</p>
+          <p className="text-gray-400">Try a different search term or check back later.</p>
         </div>
       )}
     </div>

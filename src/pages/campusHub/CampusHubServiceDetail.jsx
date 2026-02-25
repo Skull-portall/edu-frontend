@@ -28,7 +28,11 @@ const CampusHubServiceDetail = () => {
     mutationFn: () => campusHubAPI.createOrder(id),
     onSuccess: (res) => {
       queryClient.invalidateQueries(['campusHubOrders']);
-      toast.success('Order created. You can chat with the provider now.');
+      if (res.data.reused) {
+        toast.success('Found your existing chat. Request sent.');
+      } else {
+        toast.success('Order created. You can chat with the provider now.');
+      }
       navigate(`/campus-hub/orders/${res.data.data._id}/chat`);
     },
     onError: (err) => {
@@ -102,10 +106,10 @@ const CampusHubServiceDetail = () => {
             ) : (
               <button
                 onClick={handleRequestService}
-                disabled={requesting || createOrderMutation.isLoading}
+                disabled={requesting || createOrderMutation.isPending}
                 className="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold disabled:opacity-50"
               >
-                {requesting || createOrderMutation.isLoading ? 'Creating order…' : 'Request Service'}
+                {requesting || createOrderMutation.isPending ? 'Creating order…' : 'Request Service'}
               </button>
             )
           ) : (

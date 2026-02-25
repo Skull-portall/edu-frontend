@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { campusHubAPI } from '../../services/api';
 
 /**
  * Shared Campus Hub header: title, subtitle, and nav (My Orders, Dashboard, My Services).
@@ -9,6 +11,15 @@ import { useAuth } from '../../contexts/AuthContext';
 const CampusHubHeader = ({ activePage }) => {
   const { user } = useAuth();
   const isProvider = user?.role === 'provider';
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['campusHubUnreadCount'],
+    queryFn: async () => {
+      const res = await campusHubAPI.getUnreadCount();
+      return res.data.count || 0;
+    },
+    enabled: !!user,
+  });
 
   const linkClass = (page) => {
     const base = 'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all';
@@ -30,10 +41,17 @@ const CampusHubHeader = ({ activePage }) => {
       {user && (
         <div className="flex flex-wrap gap-4">
           <Link to="/campus-hub/orders" className={linkClass('orders')}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-            </svg>
-            My Orders
+            <span className="relative flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+              </svg>
+              My Orders
+              {unreadCount > 0 && (
+                <span className="absolute -top-3 -right-6 flex items-center justify-center min-w-[20px] h-5 bg-red-600 text-white text-xs font-bold rounded-full px-1.5 shadow-sm transform scale-90 sm:scale-100 animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </span>
           </Link>
           {isProvider && (
             <>

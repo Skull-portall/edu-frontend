@@ -9,10 +9,10 @@ import toast from 'react-hot-toast';
 import { getImageUrl } from '../../utils/imageUrl';
 
 const statusColors = {
-  open: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-amber-100 text-amber-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-gray-100 text-gray-800',
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  in_progress: 'bg-amber-100 text-amber-800 border-amber-200',
+  completed: 'bg-green-100 text-green-800 border-green-200',
+  cancelled: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
 const CampusHubOrderChat = () => {
@@ -52,6 +52,17 @@ const CampusHubOrderChat = () => {
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to send message');
+    },
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: (statusText) => campusHubAPI.updateOrderStatus(orderId, statusText),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['campusHubOrder', orderId]);
+      toast.success('Order accepted successfully!');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.message || 'Failed to accept order');
     },
   });
 
@@ -114,6 +125,29 @@ const CampusHubOrderChat = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
           </svg>
         </div>
+        <div className="ml-auto flex items-center gap-2">
+          {order.status === 'pending' && isProvider && (
+            <div className="flex gap-2 mr-2">
+              <button
+                onClick={() => acceptMutation.mutate('in_progress')}
+                disabled={acceptMutation.isPending}
+                className="px-3 py-1 bg-green-600 text-white text-xs font-bold rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                {acceptMutation.isPending ? '...' : 'ACCEPT'}
+              </button>
+              <button
+                onClick={() => acceptMutation.mutate('cancelled')}
+                disabled={acceptMutation.isPending}
+                className="px-3 py-1 bg-gray-500 text-white text-xs font-bold rounded hover:bg-gray-600 disabled:opacity-50"
+              >
+                DECLINE
+              </button>
+            </div>
+          )}
+          <span className={`px-3 py-1 text-xs font-bold rounded-full border shadow-sm ${statusColors[order.status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+            {order.status === 'in_progress' ? 'ACTIVE' : order.status?.toUpperCase()}
+          </span>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto bg-gray-50 rounded-xl p-4 space-y-3 min-h-0">
@@ -153,6 +187,19 @@ const CampusHubOrderChat = () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {order.status === 'pending' && !isProvider && (
+        <div className="mt-2 flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <p>Order is waiting for provider's approval, but you can still chat to discuss details.</p>
+        </div>
+      )}
+      {order.status === 'pending' && isProvider && (
+        <div className="mt-2 flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 px-4 py-2 rounded-lg border border-yellow-100">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <p>Please review chat or accept the request at the top right to start the service.</p>
+        </div>
+      )}
+
       <form onSubmit={handleSend} className="mt-4 flex gap-2">
         <input
           type="text"
@@ -161,11 +208,12 @@ const CampusHubOrderChat = () => {
           placeholder="Type a message..."
           className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
           maxLength={2000}
+          disabled={order.status === 'cancelled'}
         />
         <button
           type="submit"
-          disabled={!message.trim() || sendMutation.isLoading}
-          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50"
+          disabled={!message.trim() || sendMutation.isPending || order.status === 'cancelled'}
+          className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 transition-colors"
         >
           Send
         </button>
@@ -191,8 +239,8 @@ const CampusHubOrderChat = () => {
                 <p className="text-red-600 font-bold mt-2">₦{Number(order.service?.price || 0).toLocaleString('en-NG')}</p>
               </div>
               <div>
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || statusColors.open}`}>
-                  {order.status?.replace('_', ' ')}
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
+                  {order.status === 'in_progress' ? 'ACTIVE' : order.status?.toUpperCase()}
                 </span>
               </div>
               <div className="border-t border-gray-200 pt-4">

@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import Loader from '../../components/common/Loader';
 
 const statusColors = {
-  open: 'bg-blue-100 text-blue-800',
+  pending: 'bg-yellow-100 text-yellow-800',
   in_progress: 'bg-amber-100 text-amber-800',
   completed: 'bg-green-100 text-green-800',
   cancelled: 'bg-gray-100 text-gray-800',
@@ -31,6 +31,16 @@ const CampusHubOrders = () => {
 
   const isProvider = user?.role === 'provider';
 
+  // Separate orders if the user is a provider
+  const ordersReceived = orders.filter(o => o.provider?._id === user?._id || o.provider?.id === user?.id);
+  const ordersPlaced = orders.filter(o => o.student?._id === user?._id || o.student?.id === user?.id);
+
+  const [activeTab, React_useState] = React.useState('received');
+
+  const displayOrders = isProvider
+    ? (activeTab === 'received' ? ordersReceived : ordersPlaced)
+    : ordersPlaced;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <CampusHubHeader activePage="orders" />
@@ -45,15 +55,39 @@ const CampusHubOrders = () => {
           Back
         </button>
       </div>
-      <p className="text-gray-600 mb-6">
-        {isProvider ? 'Orders from students requesting your services.' : 'Your requested services. Click to open chat.'}
-      </p>
+      {isProvider ? (
+        <div className="mb-6 border-b border-gray-200">
+          <nav className="-mb-px flex gap-6">
+            <button
+              onClick={() => React_useState('received')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'received'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+            >
+              Orders Received <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">{ordersReceived.length}</span>
+            </button>
+            <button
+              onClick={() => React_useState('placed')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'placed'
+                ? 'border-red-500 text-red-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+            >
+              My Purchases <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">{ordersPlaced.length}</span>
+            </button>
+          </nav>
+        </div>
+      ) : (
+        <p className="text-gray-600 mb-6">Your requested services. Click to open chat.</p>
+      )}
 
       <div className="space-y-4">
-        {orders.map((order) => {
-          const counterparty = isProvider ? order.student : order.provider;
+        {displayOrders.map((order) => {
+          const isMyService = order.provider?._id === user?._id || order.provider?.id === user?.id;
+          const counterparty = isMyService ? order.student : order.provider;
           const serviceTitle = order.service?.title || 'Service';
-          const status = order.status || 'open';
+          const status = order.status || 'pending';
           return (
             <div
               key={order._id}
@@ -70,7 +104,7 @@ const CampusHubOrders = () => {
                   <div>
                     <h2 className="text-lg font-bold text-gray-900 mb-1">{serviceTitle}</h2>
                     <p className="text-sm text-gray-500">
-                      {isProvider ? 'Student' : 'Provider'}: {counterparty?.name || '—'}
+                      {isMyService ? 'Client' : 'Provider'}: {counterparty?.name || '—'}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(order.createdAt).toLocaleString()}
@@ -78,9 +112,14 @@ const CampusHubOrders = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[status] || statusColors.open}`}>
-                    {status.replace('_', ' ')}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                    {status === 'in_progress' ? 'ACTIVE' : status.toUpperCase()}
                   </span>
+                  {order.unreadCount > 0 && (
+                    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">
+                      {order.unreadCount > 99 ? '99+' : order.unreadCount} Unread
+                    </span>
+                  )}
                   <Link
                     to={`/campus-hub/orders/${order._id}/chat`}
                     onClick={(e) => e.stopPropagation()}
@@ -98,7 +137,7 @@ const CampusHubOrders = () => {
         })}
       </div>
 
-      {orders.length === 0 && (
+      {displayOrders.length === 0 && (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
           <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>

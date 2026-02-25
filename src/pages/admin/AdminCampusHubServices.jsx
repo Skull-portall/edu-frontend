@@ -86,7 +86,7 @@ const AdminCampusHubServices = () => {
                     {s.status === 'active' ? (
                       <button
                         onClick={() => updateStatusMutation.mutate({ id: s._id, status: 'suspended' })}
-                        disabled={updateStatusMutation.isLoading}
+                        disabled={updateStatusMutation.isPending}
                         className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded hover:bg-amber-200 disabled:opacity-70"
                       >
                         Suspend
@@ -94,7 +94,7 @@ const AdminCampusHubServices = () => {
                     ) : (
                       <button
                         onClick={() => updateStatusMutation.mutate({ id: s._id, status: 'active' })}
-                        disabled={updateStatusMutation.isLoading}
+                        disabled={updateStatusMutation.isPending}
                         className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded hover:bg-green-200 disabled:opacity-70"
                       >
                         Activate

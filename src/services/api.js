@@ -320,6 +320,7 @@ export const campusHubAPI = {
   // Chat
   getChatMessages: (orderId) => api.get(`/campus-hub/chat/${orderId}`),
   sendChatMessage: (orderId, content) => api.post(`/campus-hub/chat/${orderId}`, { content }),
+  getUnreadCount: () => api.get('/campus-hub/chat/unread'),
   // Admin
   adminGetServices: () => api.get('/campus-hub/admin/services'),
   adminUpdateService: (id, data) => api.patch(`/campus-hub/admin/services/${id}`, data),

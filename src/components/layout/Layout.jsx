@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCampusHubNotifications } from '../../hooks/useCampusHubNotifications';
 import toast from 'react-hot-toast';
 import { getImageUrl } from '../../utils/imageUrl';
+import { useQuery } from '@tanstack/react-query';
+import { campusHubAPI } from '../../services/api';
 
 const Layout = () => {
   const { user, logout, checkAuth } = useAuth();
@@ -12,6 +14,17 @@ const Layout = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // Fetch Unread Messages Count
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['campusHubUnreadCount'],
+    queryFn: async () => {
+      const res = await campusHubAPI.getUnreadCount();
+      return res.data.count || 0;
+    },
+    enabled: !!user,
+    refetchInterval: 15000 // Poll every 15s to keep it updated
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -136,7 +149,14 @@ const Layout = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                   </svg>
-                  <span>Campus Hub</span>
+                  <div className="relative flex items-center">
+                    <span>Campus Hub</span>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-2 -right-3 min-w-[16px] h-4 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               </div>
             </div>
@@ -435,7 +455,14 @@ const Layout = () => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
               </svg>
-              <span>Campus Hub</span>
+              <div className="flex items-center gap-2">
+                <span>Campus Hub</span>
+                {unreadCount > 0 && (
+                  <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    {unreadCount > 99 ? '99+' : unreadCount} New
+                  </span>
+                )}
+              </div>
             </Link>
 
             {user && (

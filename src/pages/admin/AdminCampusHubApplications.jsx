@@ -49,7 +49,7 @@ const AdminCampusHubApplications = () => {
 
   const pending = applications.filter((a) => a.status === 'pending');
   const reviewed = applications.filter((a) => a.status !== 'pending');
-  const processingId = approveMutation.isLoading ? approveMutation.variables?.applicationId : null;
+  const processingId = approveMutation.isPending ? approveMutation.variables?.applicationId : null;
 
   if (isLoading) return <Loader />;
 
@@ -167,7 +167,7 @@ const AdminCampusHubApplications = () => {
           <div className="space-y-4">
             {reviewed.map((app) => {
               const imageUrl = app.providerImage ? getImageUrl(app.providerImage) : null;
-              const isSuspending = suspendMutation.isLoading && suspendMutation.variables === app._id;
+              const isSuspending = suspendMutation.isPending && suspendMutation.variables === app._id;
               return (
                 <div key={app._id} className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center gap-4">
                   {imageUrl ? (
@@ -197,7 +197,7 @@ const AdminCampusHubApplications = () => {
                     )}
                     <button
                       onClick={() => window.confirm(app.status === 'approved' ? 'Delete this application? User will be removed from provider role.' : 'Delete this application from the list?') && deleteAppMutation.mutate(app._id)}
-                      disabled={deleteAppMutation.isLoading}
+                      disabled={deleteAppMutation.isPending}
                       className="px-3 py-1.5 text-xs font-medium bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-70"
                     >
                       Delete

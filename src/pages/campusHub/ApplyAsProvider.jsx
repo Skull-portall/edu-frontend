@@ -294,7 +294,7 @@ const ApplyAsProvider = () => {
         Provide your details so we can verify your identity and reduce scams. Admin will review and approve your application.
       </p>
 
-      {(applyMutation.isLoading || isUploading) && (
+      {(applyMutation.isPending || isUploading) && (
         <div className="fixed inset-0 bg-white/80 flex flex-col items-center justify-center z-50">
           <Loader />
           <p className="mt-4 text-gray-600 font-medium">
@@ -408,7 +408,7 @@ const ApplyAsProvider = () => {
         <div className="flex flex-wrap gap-4 pt-2">
           <button
             type="submit"
-            disabled={applyMutation.isLoading || isUploading}
+            disabled={applyMutation.isPending || isUploading}
             className="px-6 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Submit Application

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 import Loader from '../components/common/Loader';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AuthContext = createContext();
 
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const queryClient = useQueryClient();
   // const [loading,]
   // Check if user is logged in on mount
   useEffect(() => {
@@ -51,6 +53,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('user');
       setUser(null);
       setIsAuthenticated(false);
+      queryClient.clear();
     } finally {
       setLoading(false);
     }
@@ -65,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       setIsAuthenticated(true);
+      queryClient.clear();
 
       return { success: true };
     } catch (error) {
@@ -84,6 +88,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(user));
       setUser(user);
       setIsAuthenticated(true);
+      queryClient.clear();
 
       return { success: true };
     } catch (error) {
@@ -105,6 +110,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('user');
       setUser(null);
       setIsAuthenticated(false);
+      queryClient.clear();
     }
   };
 

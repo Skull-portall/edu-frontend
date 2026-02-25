@@ -187,10 +187,10 @@ const CampusHubMyServices = () => {
             <div className="flex gap-2">
               <button
                 type="submit"
-                disabled={createMutation.isLoading || isUploading || createImages.length < 1}
+                disabled={createMutation.isPending || isUploading || createImages.length < 1}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
               >
-                {isUploading ? 'Uploading Images...' : createMutation.isLoading ? 'Creating...' : 'Create'}
+                {isUploading ? 'Uploading Images...' : createMutation.isPending ? 'Creating...' : 'Create'}
               </button>
               <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
                 Cancel
@@ -257,7 +257,7 @@ const CampusHubMyServices = () => {
               </select>
             </div>
             <div className="flex gap-2">
-              <button type="submit" disabled={updateMutation.isLoading} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
+              <button type="submit" disabled={updateMutation.isPending} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">
                 Save
               </button>
               <button type="button" onClick={() => setEditing(null)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
