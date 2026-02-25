@@ -96,15 +96,28 @@ const CampusHubOrders = () => {
             >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  {counterparty?.profilePicture ? (
-                    <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold flex-shrink-0">{counterparty?.name?.charAt(0) || '?'}</div>
-                  )}
+                  <div
+                    onClick={(e) => { e.stopPropagation(); navigate(`/profile/${counterparty?._id || counterparty?.id}`); }}
+                    className="cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
+                    title={`View ${counterparty?.name}'s profile`}
+                  >
+                    {counterparty?.profilePicture ? (
+                      <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">{counterparty?.name?.charAt(0) || '?'}</div>
+                    )}
+                  </div>
                   <div>
                     <h2 className="text-lg font-bold text-gray-900 mb-1">{serviceTitle}</h2>
                     <p className="text-sm text-gray-500">
-                      {isMyService ? 'Client' : 'Provider'}: {counterparty?.name || '—'}
+                      {isMyService ? 'Client' : 'Provider'}:{' '}
+                      <span
+                        onClick={(e) => { e.stopPropagation(); navigate(`/profile/${counterparty?._id || counterparty?.id}`); }}
+                        className="font-medium hover:text-red-600 hover:underline cursor-pointer"
+                        title={`View ${counterparty?.name}'s profile`}
+                      >
+                        {counterparty?.name || '—'}
+                      </span>
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(order.createdAt).toLocaleString()}

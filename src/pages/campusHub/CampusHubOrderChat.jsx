@@ -7,6 +7,7 @@ import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
 
 import { getImageUrl } from '../../utils/imageUrl';
+import { uploadToCloudinary } from '../../utils/cloudinary';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -21,8 +22,12 @@ const CampusHubOrderChat = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [message, setMessage] = useState('');
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const { data: order, isLoading: orderLoading } = useQuery({
     queryKey: ['campusHubOrder', orderId],
@@ -44,14 +49,40 @@ const CampusHubOrderChat = () => {
   });
 
   const sendMutation = useMutation({
-    mutationFn: () => campusHubAPI.sendChatMessage(orderId, message),
+    mutationFn: async () => {
+      let attachmentUrl = null;
+      let attachmentType = null;
+
+      if (file) {
+        setUploading(true);
+        attachmentUrl = await uploadToCloudinary(file);
+
+        // Simple type detection
+        if (file.type.startsWith('image/')) {
+          attachmentType = 'image';
+        } else if (file.type.startsWith('video/')) {
+          attachmentType = 'video';
+        } else {
+          attachmentType = 'raw';
+        }
+        setUploading(false);
+      }
+
+      return campusHubAPI.sendChatMessage(orderId, {
+        content: message,
+        attachment: attachmentUrl,
+        attachmentType
+      });
+    },
     onSuccess: () => {
       setMessage('');
+      setFile(null);
       queryClient.invalidateQueries(['campusHubChat', orderId]);
       refetchMessages();
     },
     onError: (err) => {
-      toast.error(err.response?.data?.message || 'Failed to send message');
+      setUploading(false);
+      toast.error(err.message || err.response?.data?.message || 'Failed to send message');
     },
   });
 
@@ -73,10 +104,28 @@ const CampusHubOrderChat = () => {
   }, [messages]);
 
   const handleSend = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const trimmed = message.trim();
-    if (!trimmed) return;
+    if (!trimmed && !file) return;
     sendMutation.mutate();
+  };
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      if (selected.size > 10 * 1024 * 1024) { // 10MB limit
+        toast.error('File size must be less than 10MB');
+        return;
+      }
+      setFile(selected);
+    }
+  };
+
+  const removeFile = () => {
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   if (orderLoading && !order) return <Loader />;
@@ -105,20 +154,34 @@ const CampusHubOrderChat = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
           </svg>
         </button>
-        <div className="flex flex-1 items-center gap-3 min-w-0 cursor-pointer" onClick={() => setShowOrderDetails(true)}>
+        <div className="flex flex-1 items-center gap-3 min-w-0">
           <div className="flex -space-x-2">
-            {meUser?.profilePicture ? (
-              <img src={getImageUrl(meUser.profilePicture)} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold ring-2 ring-white">{meUser?.name?.charAt(0) || '?'}</div>
-            )}
-            {counterparty?.profilePicture ? (
-              <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold ring-2 ring-white">{counterparty?.name?.charAt(0) || '?'}</div>
-            )}
+            {/* My Avatar */}
+            <div
+              onClick={(e) => { e.stopPropagation(); navigate(`/profile/${meUser?._id || meUser?.id}`); }}
+              className="cursor-pointer hover:opacity-80 transition-opacity z-10"
+              title="View my profile"
+            >
+              {meUser?.profilePicture ? (
+                <img src={getImageUrl(meUser.profilePicture)} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold ring-2 ring-white">{meUser?.name?.charAt(0) || '?'}</div>
+              )}
+            </div>
+            {/* Counterparty Avatar */}
+            <div
+              onClick={(e) => { e.stopPropagation(); navigate(`/profile/${counterparty?._id || counterparty?.id}`); }}
+              className="cursor-pointer hover:opacity-80 transition-opacity z-20"
+              title={`View ${counterparty?.name}'s profile`}
+            >
+              {counterparty?.profilePicture ? (
+                <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-10 h-10 rounded-full object-cover ring-2 ring-white" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold ring-2 ring-white">{counterparty?.name?.charAt(0) || '?'}</div>
+              )}
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setShowOrderDetails(true)}>
             <h1 className="text-lg font-bold text-gray-900 truncate hover:text-red-600">{serviceTitle}</h1>
             <p className="text-sm text-gray-500 truncate">Chat with {counterparty?.name || '—'} · Click to view order details</p>
           </div>
@@ -192,15 +255,47 @@ const CampusHubOrderChat = () => {
             return (
               <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} gap-2`}>
                 {!isMe && (
-                  avatarUrl ? (
-                    <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 flex-shrink-0 mt-1">{msg.sender?.name?.charAt(0) || '?'}</div>
-                  )
+                  <div
+                    onClick={() => navigate(`/profile/${msg.sender?._id || msg.sender?.id}`)}
+                    className="cursor-pointer hover:opacity-80 transition-opacity shrink-0 mt-1"
+                    title={`View ${msg.sender?.name}'s profile`}
+                  >
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover block" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">{msg.sender?.name?.charAt(0) || '?'}</div>
+                    )}
+                  </div>
                 )}
                 <div className={`max-w-[75%] rounded-lg px-4 py-2 ${isMe ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-900'}`}>
-                  <p className="text-sm font-medium opacity-90">{!isMe && (msg.sender?.name || 'User')}</p>
-                  <p className="break-words">{msg.content}</p>
+                  <p
+                    className="text-sm font-medium opacity-90 cursor-pointer hover:underline mb-1"
+                    onClick={() => !isMe && navigate(`/profile/${msg.sender?._id || msg.sender?.id}`)}
+                  >
+                    {!isMe && (msg.sender?.name || 'User')}
+                  </p>
+
+                  {msg.attachment && (
+                    <div className="mt-1 mb-2">
+                      {msg.attachmentType === 'image' ? (
+                        <div onClick={() => setPreviewImage(msg.attachment)}>
+                          <img src={msg.attachment} alt="attachment" className="max-w-full rounded-lg max-h-60 object-contain cursor-pointer hover:opacity-90 transition-opacity bg-black/5" />
+                        </div>
+                      ) : (
+                        <a
+                          href={msg.attachment}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`flex items-center gap-2 p-3 rounded-lg border ${isMe ? 'border-red-400 bg-red-700/30 text-white hover:bg-red-700/50' : 'border-gray-200 bg-gray-50 text-gray-800 hover:bg-gray-100'} transition-colors inline-flex max-w-full`}
+                        >
+                          <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                          <span className="text-sm font-medium underline break-all line-clamp-1">View Attached File</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {msg.content && <p className="break-words whitespace-pre-wrap">{msg.content}</p>}
                   <p className={`text-xs mt-1 ${isMe ? 'text-red-100' : 'text-gray-400'}`}>
                     {new Date(msg.createdAt).toLocaleTimeString()}
                   </p>
@@ -235,24 +330,73 @@ const CampusHubOrderChat = () => {
         )}
       </div>
 
-      <form onSubmit={handleSend} className="shrink-0 flex gap-2 w-full p-3 md:p-0 md:mt-4 bg-white md:bg-transparent border-t border-gray-200 md:border-none">
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 px-4 py-2.5 md:py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none shadow-sm"
-          maxLength={2000}
-          disabled={order.status === 'cancelled'}
-        />
-        <button
-          type="submit"
-          disabled={!message.trim() || sendMutation.isPending || order.status === 'cancelled'}
-          className="px-5 py-2.5 md:py-3 bg-red-600 text-white rounded-full hover:bg-red-700 font-medium disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center shrink-0"
-        >
-          <svg className="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-          <span className="hidden md:inline">Send</span>
-        </button>
+      <form onSubmit={handleSend} className="shrink-0 flex flex-col gap-2 w-full p-3 md:p-0 md:mt-4 bg-white md:bg-transparent border-t border-gray-200 md:border-none relative">
+        {file && (
+          <div className="relative inline-block border border-gray-200 rounded-xl p-2 bg-gray-50 max-w-[200px] sm:max-w-xs shadow-sm self-start">
+            <button
+              type="button"
+              onClick={removeFile}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 z-10"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            {file.type.startsWith('image/') ? (
+              <img src={URL.createObjectURL(file)} alt="preview" className="max-h-24 w-full rounded object-contain" />
+            ) : (
+              <div className="flex items-center gap-2 p-2 px-3 overflow-hidden">
+                <svg className="w-8 h-8 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span className="text-sm font-medium text-gray-700 truncate">{file.name}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-row gap-2 relative items-end w-full">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*,application/pdf,.doc,.docx,.zip,.txt"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={order.status === 'cancelled' || uploading}
+            className="p-2.5 md:p-3 text-gray-500 hover:text-red-600 bg-gray-100 hover:bg-red-50 rounded-full transition-colors shrink-0 mb-[2px]"
+          >
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+            </svg>
+          </button>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1 px-4 py-3 md:py-3.5 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none shadow-sm resize-none min-h-[48px] max-h-32"
+            maxLength={2000}
+            rows={1}
+            disabled={order.status === 'cancelled'}
+            onInput={(e) => {
+              e.target.style.height = 'auto';
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 128)}px`;
+            }}
+          />
+          <button
+            type="submit"
+            disabled={(!message.trim() && !file) || sendMutation.isPending || uploading || order.status === 'cancelled'}
+            className="px-5 py-3 md:py-3.5 bg-red-600 text-white rounded-full hover:bg-red-700 font-medium disabled:opacity-50 transition-colors shadow-sm flex items-center justify-center shrink-0 mb-[2px] min-h-[48px] w-[50px] md:w-auto"
+          >
+            {uploading || sendMutation.isPending ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <svg className="w-5 h-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                <span className="hidden md:inline">Send</span>
+              </>
+            )}
+          </button>
+        </div>
       </form>
 
       {/* Order details modal */}
@@ -310,6 +454,16 @@ const CampusHubOrderChat = () => {
               <p className="text-xs text-gray-400">Order created: {new Date(order.createdAt).toLocaleString()}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Fullscreen Image Preview modal */}
+      {previewImage && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-[60] p-4" onClick={() => setPreviewImage(null)}>
+          <button onClick={() => setPreviewImage(null)} className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full transition-colors z-[70]">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <img src={previewImage} alt="Fullscreen Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl relative z-[65]" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>

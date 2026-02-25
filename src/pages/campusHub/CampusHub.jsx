@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { campusHubAPI } from '../../services/api';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { getImageUrl } from '../../utils/imageUrl';
 
 const CampusHub = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
 
@@ -96,13 +97,17 @@ const CampusHub = () => {
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">{service.title}</h2>
               <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
-              <div className="flex items-center gap-2 mb-4">
+              <div
+                className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity w-fit"
+                onClick={(e) => { e.stopPropagation(); navigate(`/profile/${service.provider?._id || service.provider?.id}`); }}
+                title={`View ${service.provider?.name || 'Provider'}'s profile`}
+              >
                 {service.provider?.profilePicture ? (
-                  <img src={getImageUrl(service.provider.profilePicture)} alt="" className="w-8 h-8 rounded-full object-cover" />
+                  <img src={getImageUrl(service.provider.profilePicture)} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">{service.provider?.name?.charAt(0) || 'P'}</div>
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">{service.provider?.name?.charAt(0) || 'P'}</div>
                 )}
-                <span className="text-xs text-gray-500">by {service.provider?.name || 'Provider'}</span>
+                <span className="text-xs text-gray-500 hover:text-red-600 hover:underline">by {service.provider?.name || 'Provider'}</span>
               </div>
               {user ? (
                 <Link

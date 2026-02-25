@@ -333,7 +333,7 @@ export const campusHubAPI = {
   updateOrderStatus: (id, status) => api.patch(`/campus-hub/orders/${id}/status`, { status }),
   // Chat
   getChatMessages: (orderId) => api.get(`/campus-hub/chat/${orderId}`),
-  sendChatMessage: (orderId, content) => api.post(`/campus-hub/chat/${orderId}`, { content }),
+  sendChatMessage: (orderId, data) => api.post(`/campus-hub/chat/${orderId}`, data),
   getUnreadCount: () => api.get('/campus-hub/chat/unread'),
   // Admin
   adminGetServices: () => api.get('/campus-hub/admin/services'),

@@ -87,17 +87,21 @@ const CampusHubServiceDetail = () => {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{service.title}</h1>
           <p className="text-gray-600 whitespace-pre-wrap mb-6">{service.description}</p>
-          <div className="flex items-center gap-3 py-4 border-t border-gray-200">
+          <div
+            className="flex items-center gap-3 py-4 border-t border-gray-200 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors w-fit"
+            onClick={() => navigate(`/profile/${service.provider?._id || service.provider?.id}`)}
+            title={`View ${service.provider?.name || 'Provider'}'s profile`}
+          >
             {service.provider?.profilePicture ? (
-              <img src={getImageUrl(service.provider.profilePicture)} alt="" className="w-12 h-12 rounded-full object-cover" />
+              <img src={getImageUrl(service.provider.profilePicture)} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold shrink-0">
                 {service.provider?.name?.charAt(0) || 'P'}
               </div>
             )}
             <div>
-              <p className="font-medium text-gray-900">{service.provider?.name}</p>
-              <p className="text-sm text-gray-500">Provider</p>
+              <p className="font-medium text-gray-900 group-hover:text-red-600 hover:underline">{service.provider?.name}</p>
+              <p className="text-sm text-gray-500">Service Provider</p>
             </div>
           </div>
           {user ? (
