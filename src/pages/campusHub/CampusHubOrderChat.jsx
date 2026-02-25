@@ -26,6 +26,7 @@ const CampusHubOrderChat = () => {
   const [uploading, setUploading] = useState(false);
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [optimisticMessage, setOptimisticMessage] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -49,18 +50,18 @@ const CampusHubOrderChat = () => {
   });
 
   const sendMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({ textToSend, fileToSend }) => {
       let attachmentUrl = null;
       let attachmentType = null;
 
-      if (file) {
+      if (fileToSend) {
         setUploading(true);
-        attachmentUrl = await uploadToCloudinary(file);
+        attachmentUrl = await uploadToCloudinary(fileToSend);
 
         // Simple type detection
-        if (file.type.startsWith('image/')) {
+        if (fileToSend.type.startsWith('image/')) {
           attachmentType = 'image';
-        } else if (file.type.startsWith('video/')) {
+        } else if (fileToSend.type.startsWith('video/')) {
           attachmentType = 'video';
         } else {
           attachmentType = 'raw';
@@ -69,19 +70,22 @@ const CampusHubOrderChat = () => {
       }
 
       return campusHubAPI.sendChatMessage(orderId, {
-        content: message,
+        content: textToSend,
         attachment: attachmentUrl,
         attachmentType
       });
     },
     onSuccess: () => {
-      setMessage('');
-      setFile(null);
+      setOptimisticMessage(null);
       queryClient.invalidateQueries(['campusHubChat', orderId]);
       refetchMessages();
     },
-    onError: (err) => {
+    onError: (err, variables) => {
       setUploading(false);
+      setOptimisticMessage(null);
+      // Restore inputs if failed
+      setMessage(variables.textToSend || '');
+      setFile(variables.fileToSend || null);
       toast.error(err.message || err.response?.data?.message || 'Failed to send message');
     },
   });
@@ -107,7 +111,27 @@ const CampusHubOrderChat = () => {
     if (e) e.preventDefault();
     const trimmed = message.trim();
     if (!trimmed && !file) return;
-    sendMutation.mutate();
+
+    // Set Optimistic UI instantly
+    setOptimisticMessage({
+      content: trimmed,
+      attachmentType: file ? (file.type.startsWith('image/') ? 'image' : 'raw') : null,
+      attachmentPreview: file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+      attachmentName: file ? file.name : null,
+      createdAt: new Date()
+    });
+
+    const textToSend = trimmed;
+    const fileToSend = file;
+
+    // Clear physical inputs instantly for snappy experience
+    setMessage('');
+    setFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    sendMutation.mutate({ textToSend, fileToSend });
   };
 
   const handleFileChange = (e) => {
@@ -138,7 +162,7 @@ const CampusHubOrderChat = () => {
     );
   }
 
-  const isProvider = user?.role === 'provider';
+  const isProvider = (order.provider?._id || order.provider?.id) === (user?._id || user?.id);
   const counterparty = isProvider ? order.student : order.provider;
   const serviceTitle = order.service?.title || 'Service';
   const meUser = isProvider ? order.provider : order.student;
@@ -311,6 +335,38 @@ const CampusHubOrderChat = () => {
             );
           })
         )}
+
+        {optimisticMessage && (
+          <div className="flex justify-end gap-2 opacity-60 animate-pulse">
+            <div className="max-w-[75%] rounded-lg px-4 py-2 bg-red-600 text-white shadow-sm border border-red-500">
+              <p className="text-sm font-medium opacity-90 mb-1">Sending...</p>
+
+              {(optimisticMessage.attachmentPreview || optimisticMessage.attachmentName) && (
+                <div className="mt-1 mb-2">
+                  {optimisticMessage.attachmentType === 'image' && optimisticMessage.attachmentPreview ? (
+                    <img src={optimisticMessage.attachmentPreview} alt="uploading preview" className="max-w-full rounded-lg max-h-60 object-contain bg-black/5" />
+                  ) : (
+                    <div className="flex items-center gap-2 p-3 rounded-lg border border-red-400 bg-red-700/30 text-white inline-flex max-w-full">
+                      <svg className="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                      <span className="text-sm font-medium underline break-all line-clamp-1">{optimisticMessage.attachmentName || 'Uploading File...'}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {optimisticMessage.content && <p className="break-words whitespace-pre-wrap">{optimisticMessage.content}</p>}
+              <p className="text-xs mt-1 text-red-100">
+                {new Date(optimisticMessage.createdAt).toLocaleTimeString()}
+              </p>
+            </div>
+            {user?.profilePicture ? (
+              <img src={getImageUrl(user.profilePicture)} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center text-xs font-bold text-red-700 flex-shrink-0 mt-1">{user?.name?.charAt(0) || '?'}</div>
+            )}
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 

@@ -10,6 +10,7 @@ import { getImageUrl } from '../../utils/imageUrl';
 const AdminCampusHubApplications = () => {
   const queryClient = useQueryClient();
   const [rejectReason, setRejectReason] = React.useState({});
+  const [previewImage, setPreviewImage] = React.useState(null);
 
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ['adminCampusHubApplications'],
@@ -88,7 +89,8 @@ const AdminCampusHubApplications = () => {
                       <img
                         src={imageUrl}
                         alt={app.fullName || 'Provider'}
-                        className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover ring-2 ring-gray-200"
+                        className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover ring-2 ring-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => setPreviewImage(imageUrl)}
                       />
                     ) : (
                       <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-gray-100 flex items-center justify-center">
@@ -98,7 +100,12 @@ const AdminCampusHubApplications = () => {
                     <p className="text-xs text-gray-500 mt-2 text-center">Provider photo / ID</p>
                     {app.serviceSampleImage && (
                       <div className="mt-3">
-                        <img src={getImageUrl(app.serviceSampleImage)} alt="Service sample" className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover ring-2 ring-gray-200" />
+                        <img
+                          src={getImageUrl(app.serviceSampleImage)}
+                          alt="Service sample"
+                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl object-cover ring-2 ring-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => setPreviewImage(getImageUrl(app.serviceSampleImage))}
+                        />
                         <p className="text-xs text-gray-500 mt-2 text-center">Service sample</p>
                       </div>
                     )}
@@ -207,6 +214,15 @@ const AdminCampusHubApplications = () => {
               );
             })}
           </div>
+        </div>
+      )}
+      {/* Fullscreen Image Preview modal */}
+      {previewImage && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-[60] p-4" onClick={() => setPreviewImage(null)}>
+          <button onClick={() => setPreviewImage(null)} className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 bg-black/50 rounded-full transition-colors z-[70]">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <img src={previewImage} alt="Fullscreen Preview" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl relative z-[65]" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>
