@@ -11,6 +11,8 @@ import { uploadToCloudinary } from '../../utils/cloudinary';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  quoted: 'bg-blue-100 text-blue-800 border-blue-200',
+  accepted: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   in_progress: 'bg-amber-100 text-amber-800 border-amber-200',
   completed: 'bg-green-100 text-green-800 border-green-200',
   cancelled: 'bg-gray-100 text-gray-800 border-gray-200',
@@ -27,6 +29,8 @@ const CampusHubOrderChat = () => {
   const [showOrderDetails, setShowOrderDetails] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [optimisticMessage, setOptimisticMessage] = useState(null);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quotePrice, setQuotePrice] = useState('');
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -91,12 +95,16 @@ const CampusHubOrderChat = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: (statusText) => campusHubAPI.updateOrderStatus(orderId, statusText),
-    onSuccess: (data, statusText) => {
+    mutationFn: ({ statusText, quotedPrice }) => campusHubAPI.updateOrderStatus(orderId, { status: statusText, quotedPrice }),
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['campusHubOrder', orderId]);
-      if (statusText === 'cancelled') toast.success('Order has been cancelled.');
-      else if (statusText === 'completed') toast.success('Order marked as completed.');
-      else toast.success('Order accepted successfully!');
+      if (variables.statusText === 'cancelled') toast.success('Order has been cancelled.');
+      else if (variables.statusText === 'completed') toast.success('Order marked as completed.');
+      else if (variables.statusText === 'quoted') {
+        toast.success('Quotation submitted successfully!');
+        setShowQuoteModal(false);
+      }
+      else toast.success('Order updated successfully!');
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Failed to update order status');
@@ -215,19 +223,22 @@ const CampusHubOrderChat = () => {
           </svg>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          {order.status === 'pending' && isProvider && (
+          {((order.status === 'pending' || order.status === 'quoted') && isProvider) && (
             <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 mr-1 sm:mr-2 sm:border-r border-gray-200 sm:pr-3">
               <button
-                onClick={() => updateStatusMutation.mutate('in_progress')}
+                onClick={() => {
+                  setQuotePrice(order.quotedPrice || order.service?.price || '');
+                  setShowQuoteModal(true);
+                }}
                 disabled={updateStatusMutation.isPending}
-                className="px-2 sm:px-3 py-1 bg-green-600 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-green-700 disabled:opacity-50"
+                className="px-2 sm:px-3 py-1 bg-blue-600 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-blue-700 disabled:opacity-50"
               >
-                {updateStatusMutation.isPending ? '...' : 'ACCEPT'}
+                {order.status === 'quoted' ? 'UPDATE QUOTE' : 'SUBMIT QUOTE'}
               </button>
               <button
                 onClick={() => {
                   if (window.confirm('Are you sure you want to decline this request?')) {
-                    updateStatusMutation.mutate('cancelled');
+                    updateStatusMutation.mutate({ statusText: 'cancelled' });
                   }
                 }}
                 disabled={updateStatusMutation.isPending}
@@ -237,12 +248,45 @@ const CampusHubOrderChat = () => {
               </button>
             </div>
           )}
-          {order.status === 'in_progress' && isProvider && (
+
+          {order.status === 'quoted' && !isProvider && (
             <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 mr-1 sm:mr-2 sm:border-r border-gray-200 sm:pr-3">
+              <button
+                onClick={() => updateStatusMutation.mutate({ statusText: 'accepted' })}
+                disabled={updateStatusMutation.isPending}
+                className="px-2 sm:px-3 py-1 bg-green-600 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                ACCEPT QUOTE (₦{Number(order.quotedPrice).toLocaleString()})
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Decline this quotation?')) {
+                    updateStatusMutation.mutate({ statusText: 'cancelled' });
+                  }
+                }}
+                disabled={updateStatusMutation.isPending}
+                className="px-2 sm:px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 text-[10px] sm:text-xs font-bold rounded disabled:opacity-50 border border-red-200"
+              >
+                REJECT
+              </button>
+            </div>
+          )}
+
+          {(order.status === 'accepted' || order.status === 'in_progress') && isProvider && (
+            <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 mr-1 sm:mr-2 sm:border-r border-gray-200 sm:pr-3">
+              {order.status === 'accepted' && (
+                <button
+                  onClick={() => updateStatusMutation.mutate({ statusText: 'in_progress' })}
+                  disabled={updateStatusMutation.isPending}
+                  className="px-2 sm:px-3 py-1 bg-amber-600 text-white text-[10px] sm:text-xs font-bold rounded hover:bg-amber-700 disabled:opacity-50"
+                >
+                  START SERVICE
+                </button>
+              )}
               <button
                 onClick={() => {
                   if (window.confirm('Mark this service as completed?')) {
-                    updateStatusMutation.mutate('completed');
+                    updateStatusMutation.mutate({ statusText: 'completed' });
                   }
                 }}
                 disabled={updateStatusMutation.isPending}
@@ -252,8 +296,8 @@ const CampusHubOrderChat = () => {
               </button>
               <button
                 onClick={() => {
-                  if (window.confirm('Are you sure you want to cancel this active order?')) {
-                    updateStatusMutation.mutate('cancelled');
+                  if (window.confirm('Are you sure you want to cancel this order?')) {
+                    updateStatusMutation.mutate({ statusText: 'cancelled' });
                   }
                 }}
                 disabled={updateStatusMutation.isPending}
@@ -264,7 +308,7 @@ const CampusHubOrderChat = () => {
             </div>
           )}
           <span className={`px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold rounded-full border shadow-sm flex-shrink-0 ${statusColors[order.status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
-            {order.status === 'in_progress' ? 'ACTIVE' : order.status?.toUpperCase()}
+             {order.status?.toUpperCase().replace('_', ' ')}
           </span>
         </div>
       </div>
@@ -476,9 +520,27 @@ const CampusHubOrderChat = () => {
               </div>
               <div>
                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
-                  {order.status === 'in_progress' ? 'ACTIVE' : order.status?.toUpperCase()}
+                  {order.status?.toUpperCase().replace('_', ' ')}
                 </span>
               </div>
+              {order.notes && (
+                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1 italic">Student Requirements</h3>
+                  <p className="text-sm font-bold text-gray-900 leading-relaxed italic">"{order.notes}"</p>
+                </div>
+              )}
+              {order.deadline && (
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 flex items-center justify-between">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Desired Deadline</h3>
+                  <p className="text-sm font-black text-gray-900 uppercase italic">{new Date(order.deadline).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                </div>
+              )}
+               {order.status === 'quoted' && (
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center justify-between">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-blue-400 italic">Current Quotation</h3>
+                  <p className="text-xl font-black text-blue-600 italic">₦{Number(order.quotedPrice).toLocaleString()}</p>
+                </div>
+              )}
               <div className="border-t border-gray-200 pt-4">
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Service Provider</h3>
                 <div className="flex items-center gap-3">
@@ -508,6 +570,57 @@ const CampusHubOrderChat = () => {
                 </div>
               </div>
               <p className="text-xs text-gray-400">Order created: {new Date(order.createdAt).toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Provider Quote Modal */}
+      {showQuoteModal && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-slide-up border border-gray-100">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Set <span className="text-red-600">Quote</span></h2>
+                  <p className="text-sm text-gray-500 font-medium">Final price for this request</p>
+                </div>
+                <button onClick={() => setShowQuoteModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 italic">Quoted Price (₦)</label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-5 text-gray-400 font-black italic">₦</span>
+                    <input
+                      type="number"
+                      value={quotePrice}
+                      onChange={(e) => setQuotePrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full pl-10 pr-5 py-5 bg-gray-50 border-2 border-transparent rounded-2xl focus:border-red-500 focus:bg-white transition-all text-xl font-black placeholder-gray-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 flex gap-4">
+                  <button
+                    onClick={() => setShowQuoteModal(false)}
+                    className="flex-1 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => updateStatusMutation.mutate({ statusText: 'quoted', quotedPrice: quotePrice })}
+                    disabled={updateStatusMutation.isPending || !quotePrice}
+                    className="flex-2 w-2/3 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-black transition-all shadow-xl shadow-red-600/20 disabled:opacity-50"
+                  >
+                    {updateStatusMutation.isPending ? 'Sending...' : 'Send Quote'}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

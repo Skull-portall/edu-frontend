@@ -21,7 +21,6 @@ export const AuthProvider = ({ children }) => {
   // const [loading,]
   // Check if user is logged in on mount
   useEffect(() => {
-    // Immediately set loading to false if no token exists
     const token = localStorage.getItem('token');
     if (!token) {
       setLoading(false);

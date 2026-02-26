@@ -16,6 +16,7 @@ const Profile = () => {
     phoneNumber: '',
     bio: '',
     status: 'available',
+    whatsappNumber: '',
     password: '',
     currentPassword: '',
     passwordConfirmation: ''
@@ -33,7 +34,8 @@ const Profile = () => {
     email: '',
     phoneNumber: '',
     bio: '',
-    status: 'available'
+    status: 'available',
+    whatsappNumber: ''
   });
 
   const isOwnProfile = currentUser && (currentUser.id === id || currentUser._id === id);
@@ -92,6 +94,7 @@ const Profile = () => {
           phoneNumber: userData.phoneNumber || '',
           bio: userData.bio || '',
           status: userData.status || 'available',
+          whatsappNumber: userData.whatsappNumber || '',
           password: '',
           currentPassword: '',
           passwordConfirmation: ''
@@ -101,6 +104,7 @@ const Profile = () => {
           name: userData.name || '',
           email: userData.email || '',
           phoneNumber: userData.phoneNumber || '',
+          whatsappNumber: userData.whatsappNumber || '',
           bio: userData.bio || '',
           status: userData.status || 'available'
         });
@@ -182,6 +186,7 @@ const Profile = () => {
       formDataToSend.append('phoneNumber', formData.phoneNumber);
       formDataToSend.append('bio', formData.bio || '');
       formDataToSend.append('status', formData.status);
+      formDataToSend.append('whatsappNumber', formData.whatsappNumber || '');
 
       if (profilePicture instanceof File) {
         try {
@@ -220,6 +225,7 @@ const Profile = () => {
           phoneNumber: updatedUser.phoneNumber || '',
           bio: updatedUser.bio || '',
           status: updatedUser.status || 'available',
+          whatsappNumber: updatedUser.whatsappNumber || '',
           password: '',
           currentPassword: '',
           passwordConfirmation: ''
@@ -230,7 +236,8 @@ const Profile = () => {
           email: updatedUser.email || '',
           phoneNumber: updatedUser.phoneNumber || '',
           bio: updatedUser.bio || '',
-          status: updatedUser.status || 'available'
+          status: updatedUser.status || 'available',
+          whatsappNumber: updatedUser.whatsappNumber || ''
         });
         setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       }
@@ -349,7 +356,12 @@ const Profile = () => {
             {/* User Info */}
             <div className="lg:col-span-3 text-center lg:text-left">
               <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 sm:mb-3">
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 break-words">{user.name}</h2>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                  <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  <span className="text-xs font-black tracking-tighter">{user.reputation || 0} RP</span>
+                </div>
                 {(user.role === 'class_rep' || user.isClassRep) && !user.isAdmin && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200" title="Verified Class Representative">
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -455,8 +467,86 @@ const Profile = () => {
                 {isOwnProfile ? 'Votes Cast' : 'Months Active'}
               </div>
             </div>
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-3 sm:p-4 md:p-6 text-center transform transition-all hover:shadow-lg hover:-translate-y-1 border border-amber-100 min-w-0">
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-amber-600 mb-1 sm:mb-2">{user.reputation || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-700 font-semibold break-words">Total Reputation</div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-6 sm:mb-8 p-6 sm:p-8">
+        <div className="flex items-center gap-3 mb-6 sm:mb-8">
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 border border-amber-100">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 010 4.438 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-.806.806 3.42 3.42 0 010-4.438 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 014.438 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Achievement Badges</h2>
+        </div>
+
+        {user.badges && user.badges.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {user.badges.map((badge, index) => (
+              <div key={index} className="flex flex-col items-center bg-gray-50 rounded-2xl p-4 border border-gray-100 group transition-all hover:bg-white hover:shadow-md">
+                <div className="text-4xl mb-3 transform group-hover:scale-110 transition-transform">{badge.icon}</div>
+                <div className="text-xs font-black text-gray-900 text-center uppercase tracking-tighter mb-1">{badge.name}</div>
+                <div className="text-[10px] text-gray-500 text-center leading-tight">{badge.description}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50 rounded-2xl p-8 text-center border-2 border-dashed border-gray-100">
+            <p className="text-gray-400 font-medium italic">"No badges earned yet. Keep contributing to unlock achievements!"</p>
+          </div>
+        )}
+      </div>
+
+      {/* SECTION: Communities */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-6 sm:mb-8 p-6 sm:p-8">
+        <div className="flex items-center gap-3 mb-6 sm:mb-8">
+          <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-600 border border-red-100">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Community Memberships</h2>
+        </div>
+
+        {user.communities && user.communities.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {user.communities.map((community) => (
+              <Link 
+                key={community._id} 
+                to={`/communities/${community._id}`}
+                className="group flex flex-col bg-gray-50 rounded-xl p-6 border border-gray-200 hover:bg-white hover:shadow-md transition-all duration-300"
+              >
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-gray-400 group-hover:text-red-600 transition-colors shadow-sm border border-gray-100">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900 group-hover:text-red-600 transition-colors">{community.name}</h3>
+                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">{community.category || 'General'}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">{community.description || 'Join the discussion and collaborate with peers.'}</p>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-gray-50 rounded-xl p-12 text-center border border-gray-200">
+            <p className="text-gray-500 mb-6 font-medium italic">You haven't joined any communities yet. Join one to connect with other students.</p>
+            <Link to="/communities" className="inline-flex items-center gap-2 text-sm font-bold text-red-600 hover:underline">
+              Browse Communities 
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* SECTION 6: Recent Questions (for viewing other users) */}
@@ -595,9 +685,9 @@ const Profile = () => {
                     </p>
                   )}
                 </div>
-                <div>
+                 <div>
                   <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number / WhatsApp <span className="text-red-500 text-xs">*</span>
+                    Official Phone Number <span className="text-red-500 text-xs">*</span>
                   </label>
                   <input
                     type="tel"
@@ -608,7 +698,7 @@ const Profile = () => {
                     required
                     className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.phoneNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                       }`}
-                    placeholder="+1234567890 or WhatsApp number"
+                    placeholder="+1234567890"
                   />
                   {errors.phoneNumber && (
                     <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
@@ -616,6 +706,29 @@ const Profile = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                       <span>{errors.phoneNumber}</span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="whatsappNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    WhatsApp Number <span className="text-gray-500 text-xs">(Reps Only)</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="whatsappNumber"
+                    name="whatsappNumber"
+                    value={formData.whatsappNumber}
+                    onChange={handleChange}
+                    className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.whatsappNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="+1234567890"
+                  />
+                  {errors.whatsappNumber && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>{errors.whatsappNumber}</span>
                     </p>
                   )}
                 </div>

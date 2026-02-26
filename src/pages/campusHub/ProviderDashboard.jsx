@@ -8,10 +8,12 @@ import CampusHubHeader from '../../components/campusHub/CampusHubHeader';
 import { getImageUrl } from '../../utils/imageUrl';
 
 const statusColors = {
-  open: 'bg-blue-100 text-blue-800',
-  in_progress: 'bg-amber-100 text-amber-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-gray-100 text-gray-800',
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  quoted: 'bg-blue-100 text-blue-800 border-blue-200',
+  accepted: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  in_progress: 'bg-amber-100 text-amber-800 border-amber-200',
+  completed: 'bg-green-100 text-green-800 border-green-200',
+  cancelled: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
 const ProviderDashboard = () => {
@@ -36,7 +38,8 @@ const ProviderDashboard = () => {
     enabled: !!user && user.role === 'provider',
   });
 
-  const openOrders = orders.filter(o => o.status === 'open' || o.status === 'in_progress');
+  const activeStatuses = ['pending', 'quoted', 'accepted', 'in_progress'];
+  const openOrders = orders.filter(o => activeStatuses.includes(o.status));
   const recentOrders = orders.slice(0, 5);
 
   if (user?.role !== 'provider') {
@@ -141,7 +144,7 @@ const ProviderDashboard = () => {
                       <p className="font-medium text-gray-900 truncate">{order.service?.title}</p>
                       <p className="text-sm text-gray-500 truncate">{student?.name}</p>
                     </div>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[order.status] || statusColors.open}`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[order.status] || 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                       {order.status.replace('_', ' ')}
                     </span>
                   </Link>

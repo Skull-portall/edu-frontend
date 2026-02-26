@@ -8,10 +8,12 @@ import { useQuery } from '@tanstack/react-query';
 import Loader from '../../components/common/Loader';
 
 const statusColors = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  in_progress: 'bg-amber-100 text-amber-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-gray-100 text-gray-800',
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  quoted: 'bg-blue-100 text-blue-800 border-blue-200',
+  accepted: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  in_progress: 'bg-amber-100 text-amber-800 border-amber-200',
+  completed: 'bg-green-100 text-green-800 border-green-200',
+  cancelled: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
 const CampusHubOrders = () => {
@@ -125,8 +127,8 @@ const CampusHubOrders = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
-                    {status === 'in_progress' ? 'ACTIVE' : status.toUpperCase()}
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                    {status.toUpperCase().replace('_', ' ')}
                   </span>
                   {order.unreadCount > 0 && (
                     <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">
