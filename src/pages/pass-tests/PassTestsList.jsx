@@ -178,12 +178,25 @@ const PassTestsList = () => {
                 className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
               >
                 <div className="flex items-start justify-between mb-8">
-                  <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${test.type === 'test'
-                    ? 'bg-red-50 text-red-700 border-red-100'
-                    : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                    }`}>
-                    {test.type}
-                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${test.type === 'test'
+                      ? 'bg-red-50 text-red-700 border-red-100'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                      }`}>
+                      {test.type}
+                    </span>
+                    {test.isVerified && (
+                      <span className="bg-blue-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-blue-400 italic shadow-sm animate-pulse flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                        Verified
+                      </span>
+                    )}
+                    {test.isFresh && (
+                      <span className="bg-emerald-500 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest italic shadow-sm">
+                        Fresh
+                      </span>
+                    )}
+                  </div>
 
                   {user?.isAdmin && !test.isApproved && (
                     <div className="flex gap-2">
