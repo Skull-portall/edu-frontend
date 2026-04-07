@@ -2,7 +2,7 @@ import Loader from '../../components/common/Loader';
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import api, { notificationsAPI, campusHubAPI } from '../../services/api';
+import api, { notificationsAPI, campusHubAPI, usersAPI } from '../../services/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getImageUrl } from '../../utils/imageUrl';
 
@@ -44,15 +44,15 @@ const Dashboard = () => {
  },
  });
 
- // Notifications Query
- const { data: notifications = [] } = useQuery({
- queryKey: ['notifications'],
- queryFn: async () => {
- const response = await notificationsAPI.getAll();
- return response.data.notifications || [];
- },
- refetchInterval: 60000, // Refresh every minute
- });
+  // Notifications Query
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const response = await notificationsAPI.getAll();
+      return response.data.notifications || [];
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
 
  // Mark as Read Mutation
  const markAsReadMutation = useMutation({
@@ -87,71 +87,71 @@ const Dashboard = () => {
  const unreadCount = notifications.filter(n => !n.read_at).length;
  const questions = data?.recentQuestions || [];
 
- return (
- <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
- {/* Header Section */}
- <div className="mb-6 lg:mb-8">
- <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
- <div className="welcome-header-container">
- <h1 className="welcome-heading text-xl sm:text-2xl md:text-2xl font-semibold mb-2">
- <span className="welcome-text">Welcome back,</span>
- <span className="username-text">{user?.name || 'User'}</span>
- <span className="welcome-emoji">👋</span>
- </h1>
- <p className="text-xs sm:text-sm text-gray-600 welcome-subtitle">Explore questions, share knowledge, and help others learn</p>
- </div>
- <div className="flex flex-wrap items-center gap-3">
- <Link to="/campus-hub" className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-indigo-600 text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-all">
- <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
- </svg>
- Campus Hub
- </Link>
- {(user?.role === 'student') && (
- <Link to="/campus-hub/apply" className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
- <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
- </svg>
- Apply as Service Provider
- </Link>
- )}
- <Link
- to="/questions/create"
- className="btn-create btn-create-animate"
- >
- <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
- </svg>
- <span className="btn-text">Ask Question</span>
- </Link>
- </div>
- </div>
- </div>
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
+      {/* Header Section */}
+      <div className="mb-6 lg:mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="welcome-header-container">
+            <h1 className="welcome-heading text-xl sm:text-2xl md:text-2xl font-semibold mb-2">
+              <span className="welcome-text">Welcome back,</span>
+              <span className="username-text">{user?.name || 'User'}</span>
+              <span className="welcome-emoji">👋</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600 welcome-subtitle">Explore questions, share knowledge, and help others learn</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link to="/campus-hub" className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-indigo-600 text-indigo-600 rounded-lg font-semibold hover:bg-indigo-50 transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+              Campus Hub
+            </Link>
+            {(user?.role === 'student') && (
+              <Link to="/campus-hub/apply" className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                Apply as Service Provider
+              </Link>
+            )}
+            <Link
+              to="/questions/create"
+              className="btn-create btn-create-animate"
+            >
+              <svg className="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <span className="btn-text">Ask Question</span>
+            </Link>
+          </div>
+        </div>
+      </div>
 
- {/* Stats Cards */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 lg:mb-8 max-w-4xl">
- <div className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in">
- <div className="flex items-center justify-between mb-2">
- <span className="text-gray-600 text-sm lg:text-base font-medium">Your Questions</span>
- <svg className="w-6 h-6 lg:w-7 lg:h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
- </svg>
- </div>
- <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 ">{data?.stats?.myQuestions || 0}</div>
- <div className="text-sm lg:text-base text-gray-500 mt-2">Questions Asked</div>
- </div>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 lg:mb-8 max-w-4xl">
+        <div className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-600 text-sm lg:text-base font-medium">Your Questions</span>
+            <svg className="w-6 h-6 lg:w-7 lg:h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{data?.stats?.myQuestions || 0}</div>
+          <div className="text-sm lg:text-base text-gray-500 mt-2">Questions Asked</div>
+        </div>
 
- <div className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in" style={{ animationDelay: '0.1s' }}>
- <div className="flex items-center justify-between mb-2">
- <span className="text-gray-600 text-sm lg:text-base font-medium">Your Answers</span>
- <svg className="w-6 h-6 lg:w-7 lg:h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
- </svg>
- </div>
- <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 ">{data?.stats?.myAnswers || 0}</div>
- <div className="text-sm lg:text-base text-gray-500 mt-2">Answers Provided</div>
- </div>
- </div>
+        <div className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-gray-600 text-sm lg:text-base font-medium">Your Answers</span>
+            <svg className="w-6 h-6 lg:w-7 lg:h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+          </div>
+          <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">{data?.stats?.myAnswers || 0}</div>
+          <div className="text-sm lg:text-base text-gray-500 mt-2">Answers Provided</div>
+        </div>
+      </div>
 
  {/* Latest from Campus Hub */}
  {campusHubServices.length > 0 && (
@@ -623,14 +623,14 @@ const Dashboard = () => {
  )}
  </div>
 
- {/* Pagination */}
- {data?.pagination && data.pagination.total > data.pagination.per_page && (
- <div className="mt-8">
- {/* Pagination component would go here */}
- </div>
- )}
- </div>
- );
+      {/* Pagination */}
+      {data?.pagination && data.pagination.total > data.pagination.per_page && (
+        <div className="mt-8">
+          {/* Pagination component would go here */}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Dashboard;

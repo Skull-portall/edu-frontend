@@ -7,11 +7,11 @@ import Loader from '../../components/common/Loader';
 import CampusHubHeader from '../../components/campusHub/CampusHubHeader';
 import { getImageUrl } from '../../utils/imageUrl';
 
-const statusConfig = {
- open: { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200', dot: 'bg-amber-500' },
- in_progress: { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200', dot: 'bg-blue-500' },
- completed: { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200', dot: 'bg-emerald-500' },
- cancelled: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200', dot: 'bg-gray-400' },
+const statusColors = {
+  open: 'bg-blue-100 text-blue-800',
+  in_progress: 'bg-amber-100 text-amber-800',
+  completed: 'bg-green-100 text-green-800',
+  cancelled: 'bg-gray-100 text-gray-800',
 };
 
 const ProviderDashboard = () => {
@@ -36,8 +36,8 @@ const ProviderDashboard = () => {
  enabled: !!user && user.role === 'provider',
  });
 
- const openOrders = orders.filter(o => o.status === 'open' || o.status === 'in_progress');
- const recentOrders = orders.slice(0, 5);
+  const openOrders = orders.filter(o => o.status === 'open' || o.status === 'in_progress');
+  const recentOrders = orders.slice(0, 5);
 
  if (user?.role !== 'provider') {
  return (
@@ -96,46 +96,42 @@ const ProviderDashboard = () => {
  </div>
  </div>
 
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
- <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full">
- <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
- <h2 className="text-xl font-bold text-gray-900 tracking-tight">Recent Deal Requests</h2>
- <Link to="/campus-hub/orders" className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 rounded-lg text-sm text-red-600 font-bold hover:bg-red-100 transition-colors">View All</Link>
- </div>
- <div className="divide-y divide-gray-50 flex-1 flex flex-col">
- {recentOrders.length === 0 ? (
- <div className="p-16 text-center flex-1 flex flex-col items-center justify-center">
- <p className="text-gray-400 font-medium text-lg">No order requests yet.</p>
- </div>
- ) : (
- recentOrders.map((order) => {
- const student = order.student;
- const conf = statusConfig[order.status] || statusConfig.open;
- return (
- <Link
- key={order._id}
- to={`/campus-hub/orders/${order._id}/chat`}
- className="flex items-center gap-5 p-6 hover:bg-gray-50/50 transition-colors group"
- >
- {student?.profilePicture ? (
- <img src={getImageUrl(student.profilePicture)} alt="" className="w-14 h-14 rounded-2xl object-cover shadow-sm border border-gray-100" />
- ) : (
- <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-black shadow-inner border border-transparent">{student?.name?.charAt(0) || '?'}</div>
- )}
- <div className="flex-1 min-w-0">
- <p className="font-extrabold text-gray-900 text-lg truncate group-hover:text-red-600 transition-colors mb-0.5">{order.service?.title}</p>
- <p className="text-sm text-gray-500 font-bold truncate">Client: {student?.name}</p>
- </div>
- <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase border flex flex-shrink-0 items-center gap-2 ${conf.bg} ${conf.text} ${conf.border}`}>
- <span className={`w-1.5 h-1.5 rounded-full ${conf.dot}`}></span>
- {order.status.replace('_', ' ')}
- </div>
- </Link>
- );
- })
- )}
- </div>
- </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-gray-900">Recent Order Requests</h2>
+            <Link to="/campus-hub/orders" className="text-sm text-red-600 font-medium hover:underline">View all</Link>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {recentOrders.length === 0 ? (
+              <p className="p-6 text-gray-500 text-center">No orders yet</p>
+            ) : (
+              recentOrders.map((order) => {
+                const student = order.student;
+                return (
+                  <Link
+                    key={order._id}
+                    to={`/campus-hub/orders/${order._id}/chat`}
+                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    {student?.profilePicture ? (
+                      <img src={getImageUrl(student.profilePicture)} alt="" className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">{student?.name?.charAt(0) || '?'}</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{order.service?.title}</p>
+                      <p className="text-sm text-gray-500 truncate">{student?.name}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[order.status] || statusColors.open}`}>
+                      {order.status.replace('_', ' ')}
+                    </span>
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </div>
 
  <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full">
  <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">

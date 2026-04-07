@@ -6,37 +6,37 @@ import Loader from '../../components/common/Loader';
 
 
 const Profile = () => {
- const { id } = useParams();
- const { user: currentUser, logout } = useAuth();
- const [user, setUser] = useState(null);
- const [loading, setLoading] = useState(true);
- const [editing, setEditing] = useState(false);
- const [recentQuestions, setRecentQuestions] = useState([]);
- const [formData, setFormData] = useState({
- name: '',
- email: '',
- phoneNumber: '',
- bio: '',
- status: 'available',
- password: '',
- currentPassword: '',
- passwordConfirmation: ''
- });
- const [profilePicture, setProfilePicture] = useState(null);
- const [previewPicture, setPreviewPicture] = useState(null);
- const [showCurrentPassword, setShowCurrentPassword] = useState(false);
- const [showNewPassword, setShowNewPassword] = useState(false);
- const [showConfirmPassword, setShowConfirmPassword] = useState(false);
- const [errors, setErrors] = useState({});
- const [message, setMessage] = useState({ type: '', text: '' });
- const [imageError, setImageError] = useState(false);
- const [originalData, setOriginalData] = useState({
- name: '',
- email: '',
- phoneNumber: '',
- bio: '',
- status: 'available'
- });
+  const { id } = useParams();
+  const { user: currentUser } = useAuth();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [recentQuestions, setRecentQuestions] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phoneNumber: '',
+    bio: '',
+    status: 'available',
+    password: '',
+    currentPassword: '',
+    passwordConfirmation: ''
+  });
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [previewPicture, setPreviewPicture] = useState(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [imageError, setImageError] = useState(false);
+  const [originalData, setOriginalData] = useState({
+    name: '',
+    email: '',
+    phoneNumber: '',
+    bio: '',
+    status: 'available'
+  });
 
  const isOwnProfile = currentUser && (currentUser.id === id || currentUser._id === id);
 
@@ -79,46 +79,46 @@ const Profile = () => {
  setImageError(false);
  }, [id]);
 
- const fetchProfile = async () => {
- setLoading(true);
- try {
- const response = isOwnProfile
- ? await usersAPI.getProfile()
- : await usersAPI.getById(id);
- if (response.data.success) {
- const userData = response.data.data;
- setUser(userData);
- const initialData = {
- name: userData.name || '',
- email: userData.email || '',
- phoneNumber: userData.phoneNumber || '',
- bio: userData.bio || '',
- status: userData.status || 'available',
- password: '',
- currentPassword: '',
- passwordConfirmation: ''
- };
- setFormData(initialData);
- setOriginalData({
- name: userData.name || '',
- email: userData.email || '',
- phoneNumber: userData.phoneNumber || '',
- bio: userData.bio || '',
- status: userData.status || 'available'
- });
- if (userData.profilePicture) {
- const picUrl = getProfilePictureUrl(userData.profilePicture);
- setPreviewPicture(picUrl);
- }
- setImageError(false);
- }
- } catch (error) {
- console.error('Error fetching profile:', error);
- setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to load profile' });
- } finally {
- setLoading(false);
- }
- };
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      const response = isOwnProfile
+        ? await usersAPI.getProfile()
+        : await usersAPI.getById(id);
+      if (response.data.success) {
+        const userData = response.data.data;
+        setUser(userData);
+        const initialData = {
+          name: userData.name || '',
+          email: userData.email || '',
+          phoneNumber: userData.phoneNumber || '',
+          bio: userData.bio || '',
+          status: userData.status || 'available',
+          password: '',
+          currentPassword: '',
+          passwordConfirmation: ''
+        };
+        setFormData(initialData);
+        setOriginalData({
+          name: userData.name || '',
+          email: userData.email || '',
+          phoneNumber: userData.phoneNumber || '',
+          bio: userData.bio || '',
+          status: userData.status || 'available'
+        });
+        if (userData.profilePicture) {
+          const picUrl = getProfilePictureUrl(userData.profilePicture);
+          setPreviewPicture(picUrl);
+        }
+        setImageError(false);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to load profile' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
  const fetchRecentQuestions = async () => {
  try {
@@ -177,13 +177,13 @@ const Profile = () => {
 
  setLoading(true);
 
- try {
- const formDataToSend = new FormData();
- formDataToSend.append('name', formData.name);
- formDataToSend.append('email', formData.email);
- formDataToSend.append('phoneNumber', formData.phoneNumber);
- formDataToSend.append('bio', formData.bio || '');
- formDataToSend.append('status', formData.status);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('phoneNumber', formData.phoneNumber);
+      formDataToSend.append('bio', formData.bio || '');
+      formDataToSend.append('status', formData.status);
 
  if (profilePicture instanceof File) {
  try {
@@ -204,54 +204,54 @@ const Profile = () => {
  formDataToSend.append('currentPassword', formData.currentPassword);
  }
 
- const response = await usersAPI.updateProfile(formDataToSend);
- if (response.data.success) {
- const updatedUser = response.data.data;
- setUser(updatedUser);
- if (updatedUser.profilePicture) {
- setPreviewPicture(getProfilePictureUrl(updatedUser.profilePicture));
- }
- setEditing(false);
- setLoading(false);
- setMessage({ type: 'success', text: 'Profile updated successfully!' });
- setProfilePicture(null);
- setImageError(false);
- const updatedFormData = {
- name: updatedUser.name || '',
- email: updatedUser.email || '',
- phoneNumber: updatedUser.phoneNumber || '',
- bio: updatedUser.bio || '',
- status: updatedUser.status || 'available',
- password: '',
- currentPassword: '',
- passwordConfirmation: ''
- };
- setFormData(updatedFormData);
- setOriginalData({
- name: updatedUser.name || '',
- email: updatedUser.email || '',
- phoneNumber: updatedUser.phoneNumber || '',
- bio: updatedUser.bio || '',
- status: updatedUser.status || 'available'
- });
- setTimeout(() => setMessage({ type: '', text: '' }), 5000);
- }
- } catch (error) {
- setLoading(false);
- if (error.response?.data?.errors) {
- const errorObj = {};
- error.response.data.errors.forEach(err => {
- errorObj[err.path || err.field || err.param] = err.msg || err.message;
- });
- setErrors(errorObj);
- } else {
- setMessage({
- type: 'error',
- text: error.response?.data?.message || 'Failed to update profile'
- });
- }
- }
- };
+      const response = await usersAPI.updateProfile(formDataToSend);
+      if (response.data.success) {
+        const updatedUser = response.data.data;
+        setUser(updatedUser);
+        if (updatedUser.profilePicture) {
+          setPreviewPicture(getProfilePictureUrl(updatedUser.profilePicture));
+        }
+        setEditing(false);
+        setLoading(false);
+        setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        setProfilePicture(null);
+        setImageError(false);
+        const updatedFormData = {
+          name: updatedUser.name || '',
+          email: updatedUser.email || '',
+          phoneNumber: updatedUser.phoneNumber || '',
+          bio: updatedUser.bio || '',
+          status: updatedUser.status || 'available',
+          password: '',
+          currentPassword: '',
+          passwordConfirmation: ''
+        };
+        setFormData(updatedFormData);
+        setOriginalData({
+          name: updatedUser.name || '',
+          email: updatedUser.email || '',
+          phoneNumber: updatedUser.phoneNumber || '',
+          bio: updatedUser.bio || '',
+          status: updatedUser.status || 'available'
+        });
+        setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      }
+    } catch (error) {
+      setLoading(false);
+      if (error.response?.data?.errors) {
+        const errorObj = {};
+        error.response.data.errors.forEach(err => {
+          errorObj[err.path || err.field || err.param] = err.msg || err.message;
+        });
+        setErrors(errorObj);
+      } else {
+        setMessage({
+          type: 'error',
+          text: error.response?.data?.message || 'Failed to update profile'
+        });
+      }
+    }
+  };
 
  const handlePictureChange = (e) => {
  const file = e.target.files[0];
@@ -356,23 +356,37 @@ const Profile = () => {
  </div>
  </div>
 
- <div className="text-center sm:text-left">
- <h2 className="text-3xl sm:text-5xl font-black text-gray-900 tracking-tight mb-3 drop-shadow-sm">{user.name}</h2>
- <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 text-gray-500 font-medium mb-8 justify-center sm:justify-start">
- <span className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>{user.email}</span>
- {user.phoneNumber && (
- <a href={`https://wa.me/${user.phoneNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-green-700 hover:text-green-800 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg border border-green-100 transition-colors"><svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" /></svg>{user.phoneNumber}</a>
- )}
- </div>
-
- {/* Bio */}
- {user.bio && (
- <div className="bg-gradient-to-br from-red-50/30 to-transparent p-1 rounded-3xl mb-8 border border-red-100 shadow-sm max-w-4xl">
- <div className="bg-white rounded-[1.3rem] p-6 shadow-inner text-base text-gray-700 leading-relaxed font-medium">
- {user.bio}
- </div>
- </div>
- )}
+            {/* User Info */}
+            <div className="lg:col-span-3 text-center lg:text-left">
+              <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 sm:mb-3">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 break-words">{user.name}</h2>
+                {(user.role === 'class_rep' || user.isClassRep) && !user.isAdmin && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200" title="Verified Class Representative">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Verified
+                  </span>
+                )}
+              </div>
+              <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 break-all flex items-center justify-center lg:justify-start gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                {user.email}
+              </p>
+              {/* Bio */}
+              {user.bio && (
+                <div className="mb-4 sm:mb-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 px-4 py-3 sm:px-5 sm:py-4">
+                  <div className="flex items-start gap-2 mb-2">
+                    <svg className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">About</h3>
+                  </div>
+                  <p className="text-sm sm:text-base text-gray-800 leading-relaxed break-words whitespace-pre-wrap">{user.bio}</p>
+                </div>
+              )}
 
  {/* Info Cards Grid */}
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -402,28 +416,28 @@ const Profile = () => {
  </div>
  </div>
 
- {/* Modern Stats Row */}
- <div className="bg-gray-50/50 border-t border-gray-100 px-6 sm:px-10 lg:px-12 py-10">
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
- {[
- { value: user.questionsCount || 0, label: 'Questions', sub: 'Asked from Community', color: 'text-red-600', hue: 'bg-white border-red-100', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
- { value: user.answersCount || 0, label: 'Answers', sub: 'Responses Provided', color: 'text-blue-600', hue: 'bg-white border-blue-100', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
- { value: isOwnProfile ? (user.votesCount || 0) : Math.max(0, Math.round(Math.abs(new Date() - new Date(user.createdAt || Date.now())) / (1000 * 60 * 60 * 24 * 30))) , label: isOwnProfile ? 'Votes' : 'Months', sub: isOwnProfile ? 'Total Votes Cast' : 'Active Months', color: 'text-violet-600', hue: 'bg-white border-violet-100', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
- ].map((stat, i) => (
- <div key={i} className={`flex items-center gap-5 p-6 rounded-[2rem] ${stat.hue} shadow-lg shadow-gray-200/50 border transition-all hover:-translate-y-1.5 duration-300 hover:shadow-xl`}>
- <div className={`w-16 h-16 shrink-0 rounded-[1.25rem] flex items-center justify-center bg-gray-50 shadow-inner border border-gray-100 ${stat.color}`}>
- <svg className="w-8 h-8 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={stat.icon} /></svg>
- </div>
- <div>
- <div className={`text-4xl font-black ${stat.color} leading-none mb-1 drop-shadow-sm`}>{stat.value}</div>
- <div className="text-sm font-black text-gray-800 tracking-tight uppercase">{stat.label}</div>
- <div className="text-xs font-semibold text-gray-400">{stat.sub}</div>
- </div>
- </div>
- ))}
- </div>
- </div>
- </div>
+        {/* SECTION 5: Stats */}
+        <div className="px-6 sm:px-8 lg:px-10 py-6 sm:py-8">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6">
+            <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl p-3 sm:p-4 md:p-6 text-center transform transition-all hover:shadow-lg hover:-translate-y-1 border border-red-100 min-w-0">
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-red-600 mb-1 sm:mb-2">{user.questionsCount || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-700 font-semibold break-words">Questions Asked</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 sm:p-4 md:p-6 text-center transform transition-all hover:shadow-lg hover:-translate-y-1 border border-blue-100 min-w-0">
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 mb-1 sm:mb-2">{user.answersCount || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-700 font-semibold break-words">Answers Provided</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-3 sm:p-4 md:p-6 text-center transform transition-all hover:shadow-lg hover:-translate-y-1 border border-purple-100 min-w-0">
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-purple-600 mb-1 sm:mb-2">
+                {isOwnProfile ? (user.votesCount || 0) : calculateMonthsActive()}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-700 font-semibold break-words">
+                {isOwnProfile ? 'Votes Cast' : 'Months Active'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
  {/* SECTION 6: Recent Questions (for viewing other users) */}
  {!isOwnProfile && (
@@ -527,105 +541,105 @@ const Profile = () => {
  </div>
  </div>
 
- {/* Basic Info Fields */}
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div>
- <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
- Full Name
- </label>
- <input
- type="text"
- id="name"
- name="name"
- value={formData.name}
- onChange={handleChange}
- required
- className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.name ? 'border-red-500' : 'border-gray-300'
- }`}
- placeholder="Enter your full name"
- />
- {errors.name && (
- <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
- </svg>
- <span>{errors.name}</span>
- </p>
- )}
- </div>
- <div>
- <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
- Email Address
- </label>
- <input
- type="email"
- id="email"
- name="email"
- value={formData.email}
- onChange={handleChange}
- required
- className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.email ? 'border-red-500' : 'border-gray-300'
- }`}
- placeholder="you@example.com"
- />
- {errors.email && (
- <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
- </svg>
- <span>{errors.email}</span>
- </p>
- )}
- </div>
- <div>
- <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
- Phone Number / WhatsApp <span className="text-red-500 text-xs">*</span>
- </label>
- <input
- type="tel"
- id="phoneNumber"
- name="phoneNumber"
- value={formData.phoneNumber}
- onChange={handleChange}
- required
- className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
- }`}
- placeholder="+1234567890 or WhatsApp number"
- />
- {errors.phoneNumber && (
- <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
- </svg>
- <span>{errors.phoneNumber}</span>
- </p>
- )}
- </div>
- <div>
- <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
- Status
- </label>
- <div className="relative">
- <select
- id="status"
- name="status"
- value={formData.status}
- onChange={handleChange}
- className="appearance-none relative block w-full px-4 py-3 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 cursor-pointer hover:border-red-300"
- >
- <option value="available">Available</option>
- <option value="busy">Busy</option>
- <option value="away">Away</option>
- <option value="offline">Offline</option>
- </select>
- <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
- <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
- </svg>
- </div>
- </div>
- </div>
- </div>
+              {/* Basic Info Fields */}
+              < div className="grid grid-cols-1 md:grid-cols-2 gap-4" >
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="Enter your full name"
+                  />
+                  {errors.name && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>{errors.name}</span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="you@example.com"
+                  />
+                  {errors.email && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>{errors.email}</span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number / WhatsApp <span className="text-red-500 text-xs">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleChange}
+                    required
+                    className={`appearance-none relative block w-full px-4 py-3 border placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all ${errors.phoneNumber ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="+1234567890 or WhatsApp number"
+                  />
+                  {errors.phoneNumber && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span>{errors.phoneNumber}</span>
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                    Status
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="appearance-none relative block w-full px-4 py-3 border border-gray-300 bg-white text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 cursor-pointer hover:border-red-300"
+                    >
+                      <option value="available">Available</option>
+                      <option value="busy">Busy</option>
+                      <option value="away">Away</option>
+                      <option value="offline">Offline</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-700">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div >
 
  {/* Bio */}
  <div>

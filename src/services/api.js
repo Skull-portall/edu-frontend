@@ -162,6 +162,7 @@ export const usersAPI = {
     });
   },
   getMyQuestions: () => api.get('/users/me/questions'),
+  getMyRepresentative: () => api.get('/users/me/representative'),
 };
 
 // Notes API
@@ -192,7 +193,15 @@ export const communitiesAPI = {
   update: (id, data) => api.put(`/communities/${id}`, data),
   delete: (id) => api.delete(`/communities/${id}`),
   createPost: (communityId, data) => api.post(`/communities/${communityId}/posts`, data),
+  joinCommunity: (id) => api.post(`/communities/${id}/join`),
+  leaveCommunity: (id) => api.post(`/communities/${id}/leave`),
+  reactToPost: (communityId, postId, type) => api.post(`/communities/${communityId}/posts/${postId}/react`, { type }),
   deletePost: (communityId, postId) => api.delete(`/communities/${communityId}/posts/${postId}`),
+  pinResource: (id, resourceId) => api.post(`/communities/${id}/pin`, { resourceId }),
+  unpinResource: (id, resourceId) => api.delete(`/communities/${id}/pin/${resourceId}`),
+  getPostThread: (communityId, postId) => api.get(`/communities/${communityId}/posts/${postId}/thread`),
+  repostPost: (communityId, postId, content) => api.post(`/communities/${communityId}/posts/${postId}/repost`, { content }),
+  getCategories: () => api.get('/communities/categories/list'),
 };
 
 // Notifications API
@@ -289,6 +298,12 @@ export const adminAPI = {
   updateTopic: (id, data) => api.put(`/admin/topics/${id}`, data),
   deleteTopic: (id) => api.delete(`/admin/topics/${id}`),
 
+  // Community Categories
+  getCommunityCategories: () => api.get('/admin/community-categories'),
+  createCommunityCategory: (data) => api.post('/admin/community-categories', data),
+  updateCommunityCategory: (id, data) => api.put(`/admin/community-categories/${id}`, data),
+  deleteCommunityCategory: (id) => api.delete(`/admin/community-categories/${id}`),
+
   // Communities
   getCommunities: (params) => api.get('/admin/communities', { params }),
   toggleCommunity: (id) => api.post(`/admin/communities/${id}/toggle`),
@@ -337,10 +352,10 @@ export const campusHubAPI = {
   updateService: (id, data) => api.put(`/campus-hub/services/${id}`, data),
   deleteService: (id) => api.delete(`/campus-hub/services/${id}`),
   // Orders
-  createOrder: (serviceId) => api.post('/campus-hub/orders', { serviceId }),
+  createOrder: (payload) => api.post('/campus-hub/orders', payload),
   getMyOrders: () => api.get('/campus-hub/orders'),
   getOrderById: (id) => api.get(`/campus-hub/orders/${id}`),
-  updateOrderStatus: (id, status) => api.patch(`/campus-hub/orders/${id}/status`, { status }),
+  updateOrderStatus: (id, payload) => api.patch(`/campus-hub/orders/${id}/status`, payload),
   // Chat
   getChatMessages: (orderId) => api.get(`/campus-hub/chat/${orderId}`),
   sendChatMessage: (orderId, data) => api.post(`/campus-hub/chat/${orderId}`, data),

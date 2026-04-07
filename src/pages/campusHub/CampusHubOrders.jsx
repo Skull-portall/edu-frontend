@@ -7,11 +7,11 @@ import { getImageUrl } from '../../utils/imageUrl';
 import { useQuery } from '@tanstack/react-query';
 import Loader from '../../components/common/Loader';
 
-const statusConfig = {
- pending: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500', label: 'PENDING' },
- in_progress: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500', label: 'ACTIVE' },
- completed: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500', label: 'COMPLETED' },
- cancelled: { bg: 'bg-gray-50', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400', label: 'CANCELLED' },
+const statusColors = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  in_progress: 'bg-amber-100 text-amber-800',
+  completed: 'bg-green-100 text-green-800',
+  cancelled: 'bg-gray-100 text-gray-800',
 };
 
 const CampusHubOrders = () => {
@@ -70,79 +70,73 @@ const CampusHubOrders = () => {
  </div>
  )}
 
- <div className="space-y-5">
- {displayOrders.map((order) => {
- const isMyService = order.provider?._id === user?._id || order.provider?.id === user?.id;
- const counterparty = isMyService ? order.student : order.provider;
- const serviceTitle = order.service?.title || 'Service Unavailable';
- const status = order.status || 'pending';
- const conf = statusConfig[status] || statusConfig.pending;
-
- return (
- <div
- key={order._id}
- onClick={() => navigate(`/campus-hub/orders/${order._id}/chat`)}
- className="group bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] p-6 hover:shadow-[0_8px_30px_-4px_rgba(220,38,38,0.12)] hover:border-red-100 transition-all duration-300 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden"
- >
- {/* Highlight bar for active unread */}
- {order.unreadCount > 0 && (
- <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b from-red-500 to-rose-600 shadow-lg shadow-red-500/50"></div>
- )}
-
- <div className="flex items-start sm:items-center gap-5 flex-1 min-w-0">
- <div
- onClick={(e) => { e.stopPropagation(); navigate(`/profile/${counterparty?._id || counterparty?.id}`); }}
- className="relative cursor-pointer flex-shrink-0 group/avatar"
- >
- {counterparty?.profilePicture ? (
- <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-16 h-16 rounded-2xl object-cover shadow-sm border-2 border-transparent group-hover/avatar:border-red-100 transition-all" />
- ) : (
- <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-50 to-gray-200 flex items-center justify-center text-xl font-black text-gray-400 group-hover/avatar:border-red-100 border-2 border-transparent transition-all shadow-inner">{counterparty?.name?.charAt(0) || '?'}</div>
- )}
- {order.unreadCount > 0 && (
- <div className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 border-[3px] border-white rounded-full animate-bounce shadow-sm"></div>
- )}
- </div>
- 
- <div className="min-w-0 flex-1">
- <div className="flex items-center gap-3 mb-1.5">
- <h2 className="text-xl font-extrabold text-gray-900 truncate group-hover:text-red-600 transition-colors">{serviceTitle}</h2>
- </div>
- <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm">
- <p className="flex items-center gap-2 text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg">
- <span className="font-bold text-gray-400 text-xs uppercase tracking-wider">{isMyService ? 'Client' : 'Provider'}</span>
- <span className="font-bold text-gray-700">{counterparty?.name || 'Unknown User'}</span>
- </p>
- <p className="text-gray-400 font-medium flex items-center gap-1.5 px-2.5 py-1">
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
- {new Date(order.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
- </p>
- </div>
- </div>
- </div>
-
- <div className="flex items-center justify-between sm:justify-end gap-5 sm:flex-col sm:items-end flex-shrink-0 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t sm:border-t-0 border-gray-100">
- <div className={`px-4 py-2 rounded-xl text-[11px] font-black tracking-widest border flex items-center gap-2 ${conf.bg} ${conf.text} ${conf.border}`}>
- <span className={`w-2 h-2 rounded-full ${conf.dot} animate-pulse`}></span>
- {conf.label}
- </div>
- <div className="flex items-center gap-4">
- {order.unreadCount > 0 && (
- <span className="text-xs font-black text-red-600 bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg shadow-sm">
- {order.unreadCount} New
- </span>
- )}
- <div className="hidden sm:flex w-11 h-11 rounded-2xl bg-gray-50 items-center justify-center text-gray-400 group-hover:bg-red-50 group-hover:text-red-600 transition-colors shadow-sm">
- <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
- </svg>
- </div>
- </div>
- </div>
- </div>
- );
- })}
- </div>
+      <div className="space-y-4">
+        {displayOrders.map((order) => {
+          const isMyService = order.provider?._id === user?._id || order.provider?.id === user?.id;
+          const counterparty = isMyService ? order.student : order.provider;
+          const serviceTitle = order.service?.title || 'Service';
+          const status = order.status || 'pending';
+          return (
+            <div
+              key={order._id}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6 hover:shadow-md transition-all cursor-pointer"
+              onClick={() => navigate(`/campus-hub/orders/${order._id}/chat`)}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div
+                    onClick={(e) => { e.stopPropagation(); navigate(`/profile/${counterparty?._id || counterparty?.id}`); }}
+                    className="cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0"
+                    title={`View ${counterparty?.name}'s profile`}
+                  >
+                    {counterparty?.profilePicture ? (
+                      <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-12 h-12 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">{counterparty?.name?.charAt(0) || '?'}</div>
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 mb-1">{serviceTitle}</h2>
+                    <p className="text-sm text-gray-500">
+                      {isMyService ? 'Client' : 'Provider'}:{' '}
+                      <span
+                        onClick={(e) => { e.stopPropagation(); navigate(`/profile/${counterparty?._id || counterparty?.id}`); }}
+                        className="font-medium hover:text-red-600 hover:underline cursor-pointer"
+                        title={`View ${counterparty?.name}'s profile`}
+                      >
+                        {counterparty?.name || '—'}
+                      </span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border shadow-sm ${statusColors[status] || 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                    {status === 'in_progress' ? 'ACTIVE' : status.toUpperCase()}
+                  </span>
+                  {order.unreadCount > 0 && (
+                    <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">
+                      {order.unreadCount > 99 ? '99+' : order.unreadCount} Unread
+                    </span>
+                  )}
+                  <Link
+                    to={`/campus-hub/orders/${order._id}/chat`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                    Open Chat
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
  {displayOrders.length === 0 && (
  <div className="text-center py-24 bg-gray-50/50 rounded-3xl border border-dashed border-gray-300 mt-4">

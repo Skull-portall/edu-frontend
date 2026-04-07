@@ -152,38 +152,38 @@ const PassTestsList = () => {
  </div>
  </div>
 
- <div className="animate-slide-up">
- {tests.length === 0 ? (
- <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 animate-fade-in">
- <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
- <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
- </svg>
- </div>
- <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">No Papers Found</h3>
- <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">No past papers match your search. Try different keywords.</p>
- <button
- onClick={() => navigate('/pass-tests')}
- className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 text-sm"
- >
- Clear Filters
- </button>
- </div>
- ) : (
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
- {tests.map((test, index) => (
- <article
- key={test._id}
- onClick={() => navigate(`/pass-tests/${test._id}`)}
- className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
- >
- <div className="flex items-start justify-between mb-8">
- <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${test.type === 'test'
- ? 'bg-red-50 text-red-700 border-red-100'
- : 'bg-emerald-50 text-emerald-700 border-emerald-100'
- }`}>
- {test.type}
- </span>
+      <div className="animate-slide-up">
+        {tests.length === 0 ? (
+          <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 animate-fade-in">
+            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">No Papers Found</h3>
+            <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">No past papers match your search. Try different keywords.</p>
+            <button
+              onClick={() => navigate('/pass-tests')}
+              className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 text-sm"
+            >
+              Clear Filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {tests.map((test, index) => (
+              <article
+                key={test._id}
+                onClick={() => navigate(`/pass-tests/${test._id}`)}
+                className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
+              >
+                <div className="flex items-start justify-between mb-8">
+                  <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${test.type === 'test'
+                    ? 'bg-red-50 text-red-700 border-red-100'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    }`}>
+                    {test.type}
+                  </span>
 
  {user?.isAdmin && !test.isApproved && (
  <div className="flex gap-2">

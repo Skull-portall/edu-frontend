@@ -14,21 +14,21 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
- const [user, setUser] = useState(null);
- const [loading, setLoading] = useState(true);
- const [isAuthenticated, setIsAuthenticated] = useState(false);
- const queryClient = useQueryClient();
- // const [loading,]
- // Check if user is logged in on mount
- useEffect(() => {
- // Immediately set loading to false if no token exists
- const token = localStorage.getItem('token');
- if (!token) {
- setLoading(false);
- return;
- }
- checkAuth();
- }, []);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const queryClient = useQueryClient();
+  // const [loading,]
+  // Check if user is logged in on mount
+  useEffect(() => {
+    // Immediately set loading to false if no token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    checkAuth();
+  }, []);
 
  const checkAuth = async () => {
  try {
