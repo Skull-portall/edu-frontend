@@ -1,0 +1,58 @@
+{
+  "name": "eDu Live - Campus Learning Hub",
+  "short_name": "eDu Live",
+  "description": "Your all-in-one campus platform for questions, notes, past papers, communities, and campus services.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#dc2626",
+  "background_color": "#f9fafb",
+  "lang": "en",
+  "categories": ["education", "social"],
+  "icons": [
+    {
+      "src": "/images/logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Go to your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/images/logo.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Campus Hub",
+      "short_name": "Hub",
+      "description": "Browse campus services",
+      "url": "/campus-hub",
+      "icons": [{ "src": "/images/logo.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Notifications",
+      "short_name": "Alerts",
+      "description": "View your notifications",
+      "url": "/notifications",
+      "icons": [{ "src": "/images/logo.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

@@ -200,6 +200,7 @@ export const notificationsAPI = {
   getAll: () => api.get('/notifications'),
   markAsRead: (id) => api.post(`/notifications/${id}/read`),
   markAllAsRead: () => api.post('/notifications/read-all'),
+  clearAll: () => api.delete('/notifications/clear-all'),
 };
 
 // Search API

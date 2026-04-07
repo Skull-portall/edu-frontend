@@ -11,13 +11,13 @@ const UPLOADS_BASE = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
  * Handles: full URL, /uploads/..., uploads/..., and Windows backslashes.
  */
 export function getImageUrl(path) {
-  if (!path || typeof path !== 'string') return null;
-  const p = path.replace(/\\/g, '/').trim();
-  if (p.startsWith('http://') || p.startsWith('https://')) return p;
-  const normalized = p.startsWith('/') ? p : `/${p}`;
-  // In development, use relative path so request goes to same origin and Vite proxies to backend
-  if (import.meta.env.DEV && normalized.startsWith('/uploads')) return normalized;
-  return `${UPLOADS_BASE}${normalized}`;
+ if (!path || typeof path !== 'string') return null;
+ const p = path.replace(/\\/g, '/').trim();
+ if (p.startsWith('http://') || p.startsWith('https://')) return p;
+ const normalized = p.startsWith('/') ? p : `/${p}`;
+ // In development, use relative path so request goes to same origin and Vite proxies to backend
+ if (import.meta.env.DEV && normalized.startsWith('/uploads')) return normalized;
+ return `${UPLOADS_BASE}${normalized}`;
 }
 
 export { UPLOADS_BASE };
