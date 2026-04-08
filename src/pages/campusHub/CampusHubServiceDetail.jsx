@@ -25,7 +25,7 @@ const CampusHubServiceDetail = () => {
  });
 
   const createOrderMutation = useMutation({
-    mutationFn: () => campusHubAPI.createOrder(id),
+    mutationFn: () => campusHubAPI.createOrder({ serviceId: id }),
     onSuccess: (res) => {
       queryClient.invalidateQueries(['campusHubOrders']);
       if (res.data.reused) {
@@ -46,7 +46,7 @@ const CampusHubServiceDetail = () => {
       navigate('/login');
       return;
     }
-    if (service.provider._id === user._id || service.provider._id === user.id) {
+    if (String(service?.provider?._id || service?.provider?.id) === String(user._id || user.id)) {
       toast.error('You cannot request your own service.');
       return;
     }
@@ -105,7 +105,7 @@ const CampusHubServiceDetail = () => {
             </div>
           </div>
           {user ? (
-            (service.provider._id === user._id || service.provider._id === user.id) ? (
+            (String(service?.provider?._id || service?.provider?.id) === String(user._id || user.id)) ? (
               <p className="text-gray-500 text-sm">This is your service. Edit it from My Services.</p>
             ) : (
               <button

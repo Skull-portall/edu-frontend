@@ -67,7 +67,6 @@ function App() {
  <Router>
  <PwaInstallPrompt />
  <ScrollToTop />
- <WhatsAppSupport />
  <Routes>
  {/* Public routes */}
  <Route path="/" element={<Landing />} />

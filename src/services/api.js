@@ -355,7 +355,7 @@ export const campusHubAPI = {
   createOrder: (payload) => api.post('/campus-hub/orders', payload),
   getMyOrders: () => api.get('/campus-hub/orders'),
   getOrderById: (id) => api.get(`/campus-hub/orders/${id}`),
-  updateOrderStatus: (id, payload) => api.patch(`/campus-hub/orders/${id}/status`, payload),
+  updateOrderStatus: (id, status) => api.patch(`/campus-hub/orders/${id}/status`, { status }),
   // Chat
   getChatMessages: (orderId) => api.get(`/campus-hub/chat/${orderId}`),
   sendChatMessage: (orderId, data) => api.post(`/campus-hub/chat/${orderId}`, data),

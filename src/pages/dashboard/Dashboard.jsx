@@ -44,6 +44,24 @@ const Dashboard = () => {
  },
  });
 
+ // Check provider application status (only for non-providers)
+ const isProvider = user?.role === 'provider' || user?.isProvider;
+ const { data: myApplication } = useQuery({
+ queryKey: ['myProviderApplication'],
+ queryFn: async () => {
+ try {
+ const res = await campusHubAPI.getMyApplication();
+ return res.data.data || null;
+ } catch { return null; }
+ },
+ enabled: !!user && !isProvider,
+ staleTime: 60000, // Cache for 1 min — no loading flash
+ });
+ const hasApplied = !!myApplication;
+ const isPending = myApplication?.status === 'pending';
+ const isRejected = myApplication?.status === 'rejected';
+ const showProviderBanner = !isProvider && (!hasApplied || isRejected);
+
   // Notifications Query
   const { data: notifications = [] } = useQuery({
     queryKey: ['notifications'],
@@ -107,7 +125,8 @@ const Dashboard = () => {
               </svg>
               Campus Hub
             </Link>
-            {(user?.role === 'student') && (
+            {/* Only show Apply button for non-providers who haven't applied */}
+            {!isProvider && showProviderBanner && (
               <Link to="/campus-hub/apply" className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-rose-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
@@ -360,8 +379,8 @@ const Dashboard = () => {
  {user && (
  <div className="mb-6 lg:mb-8">
  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 lg:mb-6">Campus Hub</h2>
- {/* Apply as Service Provider button - show when user is NOT already a provider */}
- {user.role !== 'provider' && (
+ {/* Apply as Service Provider banner — hide if provider or has pending/approved application */}
+ {showProviderBanner && (
  <div className="mb-6 p-4 sm:p-6 bg-gradient-to-r from-indigo-50 to-rose-50 border border-indigo-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
  <div>
  <h3 className="text-lg font-bold text-gray-900 mb-1">Become a Service Provider</h3>
@@ -374,37 +393,60 @@ const Dashboard = () => {
  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
  </svg>
- Apply as Service Provider
+ {isRejected ? 'Re-Apply as Provider' : 'Apply as Service Provider'}
  </Link>
  </div>
  )}
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
- {(user.role === 'student' || user.role === 'provider') && (
- <Link to="/campus-hub/orders" className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+ {isPending && (
+ <div className="mb-6 p-4 sm:p-6 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-4">
+ <svg className="w-8 h-8 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+ <div>
+ <h3 className="font-bold text-amber-800">Application Under Review</h3>
+ <p className="text-sm text-amber-700">Your provider application is being reviewed by our admin team. You'll be notified once approved.</p>
+ </div>
+ </div>
+ )}
+ <div className={`grid grid-cols-1 md:grid-cols-2 ${isProvider ? 'lg:grid-cols-3' : ''} gap-4 sm:gap-6`}>
+ {(user.role === 'student' || isProvider) && (
+ <Link to="/campus-hub/orders" className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all flex flex-col items-center sm:flex-row gap-4">
  <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center flex-shrink-0">
  <svg className="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
  </svg>
  </div>
- <div>
+ <div className="text-center sm:text-left">
  <h3 className="font-bold text-gray-900">My Orders</h3>
- <p className="text-sm text-gray-600">{user.role === 'provider' ? 'View and chat with students who requested your services.' : 'View your requests and chat with providers.'}</p>
+ <p className="text-sm text-gray-600">{isProvider ? 'View and chat with students who requested your services.' : 'View your requests and chat with providers.'}</p>
  </div>
- <span className="text-rose-600 font-medium text-sm ml-auto">View →</span>
+ <span className="text-rose-600 font-medium text-sm sm:ml-auto mt-2 sm:mt-0">View →</span>
  </Link>
  )}
- {user.role === 'provider' && (
- <Link to="/campus-hub/my-services" className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+ {isProvider && (
+ <Link to="/campus-hub/my-services" className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all flex flex-col items-center sm:flex-row gap-4">
  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
  <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
  </svg>
  </div>
- <div>
+ <div className="text-center sm:text-left">
  <h3 className="font-bold text-gray-900">My Services</h3>
  <p className="text-sm text-gray-600">Create, edit, or delete your posted services.</p>
  </div>
- <span className="text-emerald-600 font-medium text-sm ml-auto">Manage →</span>
+ <span className="text-emerald-600 font-medium text-sm sm:ml-auto mt-2 sm:mt-0">Manage →</span>
+ </Link>
+ )}
+ {isProvider && (
+ <Link to="/campus-hub/provider-dashboard" className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all flex flex-col items-center sm:flex-row gap-4 group">
+ <div className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+ <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+ </svg>
+ </div>
+ <div className="text-center sm:text-left">
+ <h3 className="font-bold text-white group-hover:text-red-400 transition-colors">Provider Dashboard</h3>
+ <p className="text-sm text-gray-300">View stats and manage your business.</p>
+ </div>
+ <span className="text-gray-300 group-hover:text-red-400 transition-colors font-medium text-sm sm:ml-auto mt-2 sm:mt-0">Dashboard →</span>
  </Link>
  )}
  </div>

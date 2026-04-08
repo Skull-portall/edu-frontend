@@ -136,7 +136,7 @@ const ApplyAsProvider = () => {
  }
  };
 
- if (user?.role === 'provider') {
+ if (user?.role === 'provider' || user?.isProvider) {
  return (
  <div className="max-w-2xl mx-auto px-4 py-16 text-center">
  <div className="w-24 h-24 bg-green-50 border-2 border-green-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">

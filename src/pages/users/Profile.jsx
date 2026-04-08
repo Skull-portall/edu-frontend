@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { usersAPI, questionsAPI, API_BASE_URL } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import Loader from '../../components/common/Loader';
-
+import WhatsAppSupport from '../../components/common/WhatsAppSupport';
 
 const Profile = () => {
   const { id } = useParams();
@@ -294,7 +294,8 @@ const Profile = () => {
  }
 
  return (
- <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 animate-fade-in">
+ <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 animate-fade-in relative shadow-none">
+ <WhatsAppSupport />
  {/* Page Title */}
  {isOwnProfile && (
  <div className="flex items-center justify-between mb-6 sm:mb-8">

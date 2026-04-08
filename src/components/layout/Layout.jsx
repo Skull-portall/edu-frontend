@@ -36,7 +36,27 @@ const Layout = () => {
  return response.data?.notifications || [];
  },
  enabled: !!user,
+ refetchInterval: 10000,
  });
+
+ const prevNotificationsRef = useRef([]);
+
+ useEffect(() => {
+ if (!user || !notifications.length) return;
+ const prevItems = prevNotificationsRef.current;
+ 
+ if (prevItems.length > 0) {
+   const prevIds = new Set(prevItems.map(n => n._id));
+   const newItems = notifications.filter(n => !prevIds.has(n._id) && !n.read_at && !n.isRead);
+   
+   newItems.forEach(n => {
+     const title = n.data?.title || 'New Notification';
+     toast.success(title, { icon: '🔔', duration: 5000 });
+   });
+ }
+ 
+ prevNotificationsRef.current = notifications;
+ }, [notifications, user]);
 
  const unreadNotifications = notifications.filter(n => !n.isRead && !n.readAt).length;
 
@@ -309,6 +329,20 @@ const Layout = () => {
  </div>
  </Link>
  )}
+ {(user.role === 'provider' || user.isProvider) && (
+ <Link
+ to="/campus-hub/provider-dashboard"
+ className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+ onClick={() => setProfileMenuOpen(false)}
+ >
+ <div className="flex items-center space-x-2">
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+ </svg>
+ <span>Provider Dashboard</span>
+ </div>
+ </Link>
+ )}
  {user.isAdmin && (
  <Link
  to="/admin"
@@ -411,6 +445,15 @@ const Layout = () => {
  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
  </div>
  <span className="text-[9px] font-bold tracking-wider uppercase text-gray-600 group-hover:text-red-500 transition-colors text-center">Rep Dash</span>
+ </Link>
+ )}
+
+ {(user?.role === 'provider' || user?.isProvider) && (
+ <Link to="/campus-hub/provider-dashboard" onClick={() => setMobileMenuOpen(false)} className="flex flex-col items-center gap-2 group w-full">
+ <div className="w-12 h-12 rounded-full bg-gray-100 /80 flex items-center justify-center text-red-500 shadow-inner group-hover:bg-red-50 :bg-red-500/10 transition-colors">
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+ </div>
+ <span className="text-[9px] font-bold tracking-wider uppercase text-gray-600 group-hover:text-red-500 transition-colors text-center">Pro Dash</span>
  </Link>
  )}
 

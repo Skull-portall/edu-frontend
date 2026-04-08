@@ -113,11 +113,17 @@ export const SocketProvider = ({ children }) => {
 
  // Listen for real-time chat messages
  newSocket.on('new_chat_message', (message) => {
- playBeep();
- if (message?.order) {
- queryClient.invalidateQueries({ queryKey: ['campusHubChatMessages', message.order] });
- }
- queryClient.invalidateQueries({ queryKey: ['campusHubUnreadCount'] });
+   // Only play sound if the message is from someone else
+   const myId = user?._id || user?.id;
+   const senderId = message?.sender?._id || message?.sender?.id;
+   if (senderId && senderId !== myId) {
+     playBeep();
+   }
+   if (message?.order) {
+     const orderId = message.order?._id || message.order;
+     queryClient.invalidateQueries({ queryKey: ['campusHubChat', orderId] });
+   }
+   queryClient.invalidateQueries({ queryKey: ['campusHubUnreadCount'] });
  });
 
  return () => {

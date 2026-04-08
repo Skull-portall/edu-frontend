@@ -24,7 +24,7 @@ const ProviderDashboard = () => {
  const res = await campusHubAPI.getMyOrders();
  return res.data.data || [];
  },
- enabled: !!user && user.role === 'provider',
+ enabled: !!user && (user.role === 'provider' || user.isProvider),
  });
 
  const { data: services = [], isLoading: servicesLoading } = useQuery({
@@ -33,13 +33,13 @@ const ProviderDashboard = () => {
  const res = await campusHubAPI.getMyServices();
  return res.data.data || [];
  },
- enabled: !!user && user.role === 'provider',
+ enabled: !!user && (user.role === 'provider' || user.isProvider),
  });
 
   const openOrders = orders.filter(o => o.status === 'open' || o.status === 'in_progress');
   const recentOrders = orders.slice(0, 5);
 
- if (user?.role !== 'provider') {
+ if (user?.role !== 'provider' && !user?.isProvider) {
  return (
  <div className="max-w-4xl mx-auto px-4 py-20 text-center">
  <div className="w-28 h-28 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-red-100">
@@ -97,14 +97,16 @@ const ProviderDashboard = () => {
  </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-gray-900">Recent Order Requests</h2>
-            <Link to="/campus-hub/orders" className="text-sm text-red-600 font-medium hover:underline">View all</Link>
+        <div className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_8px_30px_-4px_rgba(0,0,0,0.05)] overflow-hidden flex flex-col h-full">
+          <div className="px-8 py-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Recent Order Requests</h2>
+            <Link to="/campus-hub/orders" className="flex items-center gap-1.5 px-4 py-1.5 bg-red-50 rounded-lg text-sm text-red-600 font-bold hover:bg-red-100 transition-colors">View all</Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50 flex-1 flex flex-col">
             {recentOrders.length === 0 ? (
-              <p className="p-6 text-gray-500 text-center">No orders yet</p>
+              <div className="p-16 text-center flex-1 flex flex-col items-center justify-center">
+                <p className="text-gray-400 font-medium text-lg mb-6">No order requests yet.</p>
+              </div>
             ) : (
               recentOrders.map((order) => {
                 const student = order.student;
@@ -112,19 +114,24 @@ const ProviderDashboard = () => {
                   <Link
                     key={order._id}
                     to={`/campus-hub/orders/${order._id}/chat`}
-                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-6 hover:bg-gray-50/50 transition-colors group"
                   >
-                    {student?.profilePicture ? (
-                      <img src={getImageUrl(student.profilePicture)} alt="" className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">{student?.name?.charAt(0) || '?'}</div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{order.service?.title}</p>
-                      <p className="text-sm text-gray-500 truncate">{student?.name}</p>
+                    <div className="flex items-center gap-4 min-w-0 flex-1 pr-6">
+                      <div className="relative shrink-0">
+                        {student?.profilePicture ? (
+                          <img src={getImageUrl(student.profilePicture)} alt="" className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm group-hover:border-red-50 transition-colors" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 font-extrabold border-2 border-white shadow-sm group-hover:border-red-50 transition-colors">{student?.name?.charAt(0) || '?'}</div>
+                        )}
+                        {order.unreadCount > 0 && <div className="absolute 0 0 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-extrabold text-gray-900 text-lg truncate mb-1 group-hover:text-red-600 transition-colors">{order.service?.title}</p>
+                        <p className="text-sm font-medium text-gray-500 truncate">{student?.name}</p>
+                      </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[order.status] || statusColors.open}`}>
-                      {order.status.replace('_', ' ')}
+                    <span className={`shrink-0 px-4 py-2 rounded-xl font-black text-[10px] tracking-widest uppercase shadow-sm border ${order.status === 'in_progress' ? 'bg-amber-50 text-amber-700 border-amber-200' : (order.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200')}`}>
+                      {order.status === 'in_progress' ? 'ACTIVE' : order.status.replace('_', ' ')}
                     </span>
                   </Link>
                 );

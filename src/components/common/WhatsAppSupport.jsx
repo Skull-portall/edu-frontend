@@ -3,15 +3,15 @@ import React from 'react';
 const WhatsAppSupport = () => {
   return (
     <a
-      href="https://wa.me/2349028321784"
+      href="https://wa.me/2349028321784?text=Hello%20eDu%20Live%20Support%2C%20I%20need%20help%20with..."
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-24 right-5 md:bottom-10 md:right-10 z-[100] flex items-center justify-center w-14 h-14 bg-green-500 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all duration-300"
+      className="fixed bottom-24 right-4 md:bottom-8 md:right-6 z-[100] flex items-center justify-center w-12 h-12 bg-green-500 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-105 transition-all duration-300"
       aria-label="Contact Support on WhatsApp"
     >
-      <div className="absolute -inset-2 bg-green-400 rounded-full opacity-30 animate-pulse"></div>
+      <div className="absolute -inset-1.5 bg-green-400 rounded-full opacity-25 animate-pulse"></div>
       <svg
-        className="w-8 h-8 text-white relative z-10"
+        className="w-6 h-6 text-white relative z-10"
         fill="currentColor"
         viewBox="0 0 24 24"
       >
