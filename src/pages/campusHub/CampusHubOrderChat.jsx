@@ -266,10 +266,21 @@ const CampusHubOrderChat = () => {
   const grouped = groupMessagesByDate(localMessages);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex flex-col bg-[#efeae2] overflow-hidden w-full h-[100dvh]">
+      {/* ── Background Wallpaper ────────────────────────────────────────────── */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-0" 
+        style={{
+          backgroundImage: `url('/images/logo.svg')`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '100px 100px',
+          opacity: 0.05
+        }}
+      />
+
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 shadow-sm flex-shrink-0 z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div className="relative bg-[#f0f2f5] border-b border-gray-200 flex-shrink-0 z-20 pt-safe" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center gap-3">
           {/* Back */}
           <button
             onClick={() => navigate('/campus-hub/orders')}
@@ -368,7 +379,7 @@ const CampusHubOrderChat = () => {
       </div>
 
       {/* ── Messages area ──────────────────────────────────────────────────── */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-6 max-w-4xl w-full mx-auto space-y-1">
+      <div ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto px-4 py-6 max-w-4xl w-full mx-auto space-y-1">
         {messagesLoading && localMessages.length === 0 ? (
           <div className="flex justify-center items-center h-full"><Loader /></div>
         ) : localMessages.length === 0 ? (
@@ -493,8 +504,8 @@ const CampusHubOrderChat = () => {
       </div>
 
       {/* ── Input area ─────────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 bg-white border-t border-gray-100 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.04)] z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+      <div className="relative flex-shrink-0 bg-[#f0f2f5] border-t border-gray-200 z-20 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-3">
           {/* File preview */}
           {file && (
             <div className="mb-3 flex items-center gap-3 p-2.5 bg-gray-50 border border-gray-200 rounded-2xl relative max-w-xs">
@@ -535,7 +546,7 @@ const CampusHubOrderChat = () => {
             </button>
 
             {/* Text input */}
-            <div className="flex-1 bg-gray-50 border-2 border-gray-100 focus-within:border-red-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-red-100/50 rounded-[1.25rem] transition-all">
+            <div className="flex-1 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <textarea
                 ref={textareaRef}
                 value={message}

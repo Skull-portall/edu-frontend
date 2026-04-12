@@ -7,9 +7,10 @@ import WhatsAppSupport from '../../components/common/WhatsAppSupport';
 
 const Profile = () => {
   const { id } = useParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [editing, setEditing] = useState(false);
   const [recentQuestions, setRecentQuestions] = useState([]);
   const [formData, setFormData] = useState({
@@ -480,15 +481,30 @@ const Profile = () => {
               {isOwnProfile && (
                 <button
                   onClick={async () => {
-                    if (logout) {
-                      await logout();
-                      window.location.href = '/login';
+                    if (logout && !isLoggingOut) {
+                      setIsLoggingOut(true);
+                      try {
+                        await logout();
+                        window.location.href = '/login';
+                      } catch (error) {
+                        setIsLoggingOut(false);
+                      }
                     }
                   }}
-                  className="bg-white text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 font-semibold flex items-center gap-2 border border-red-200 shadow-sm transition-all hover:border-red-300"
+                  disabled={isLoggingOut}
+                  className="bg-white text-red-600 px-4 py-2 rounded-lg hover:bg-red-50 font-semibold flex items-center gap-2 border border-red-200 shadow-sm transition-all hover:border-red-300 disabled:opacity-75 disabled:cursor-not-allowed"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                  <span>Logout</span>
+                  {isLoggingOut ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                      <span>Logging out...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                      <span>Logout</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>

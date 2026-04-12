@@ -55,8 +55,33 @@ const AdminUserDetail = () => {
  },
  });
 
+ // Fetch Campuses
+ const { data: campusesData } = useQuery({
+ queryKey: ['metaCampuses'],
+ queryFn: async () => {
+ const response = await metaAPI.getCampuses();
+ return response.data;
+ },
+ });
+
+ // Fetch Departments
+ const { data: departmentsData } = useQuery({
+ queryKey: ['metaDepartments'],
+ queryFn: async () => {
+ const response = await metaAPI.getDepartments();
+ return response.data;
+ },
+ });
+
  const user = userData?.data;
  const semesters = semestersData?.data || [];
+ const campuses = campusesData?.data || [];
+ const departments = departmentsData?.data || [];
+
+ const [showCampusForm, setShowCampusForm] = useState(false);
+ const [campusFormData, setCampusFormData] = useState({ campus_id: '' });
+ const [showDepartmentForm, setShowDepartmentForm] = useState(false);
+ const [departmentFormData, setDepartmentFormData] = useState({ department_id: '' });
 
  // Mutations
  const suspendMutation = useMutation({
@@ -106,6 +131,26 @@ const AdminUserDetail = () => {
  onError: (err) => toast.error(err.response?.data?.message || 'Failed to update role')
  });
 
+ const updateCampusMutation = useMutation({
+ mutationFn: (campusId) => adminAPI.updateUserCampus(id, campusId),
+ onSuccess: () => {
+ toast.success('User campus updated successfully!');
+ setShowCampusForm(false);
+ queryClient.invalidateQueries(['adminUser', id]);
+ },
+ onError: (err) => toast.error(err.response?.data?.message || 'Failed to update campus')
+ });
+
+ const updateDepartmentMutation = useMutation({
+ mutationFn: (departmentId) => adminAPI.updateUserDepartment(id, departmentId),
+ onSuccess: () => {
+ toast.success('User department updated successfully!');
+ setShowDepartmentForm(false);
+ queryClient.invalidateQueries(['adminUser', id]);
+ },
+ onError: (err) => toast.error(err.response?.data?.message || 'Failed to update department')
+ });
+
  const handleSuspend = () => {
  if (window.confirm('Are you sure you want to suspend this user?')) {
  suspendMutation.mutate();
@@ -128,6 +173,16 @@ const AdminUserDetail = () => {
  const handleUpdateRole = (e) => {
  e.preventDefault();
  updateRoleMutation.mutate(roleFormData.role);
+ };
+
+ const handleUpdateCampus = (e) => {
+ e.preventDefault();
+ updateCampusMutation.mutate(campusFormData.campus_id);
+ };
+
+ const handleUpdateDepartment = (e) => {
+ e.preventDefault();
+ updateDepartmentMutation.mutate(departmentFormData.department_id);
  };
 
  if (userLoading) {
@@ -292,14 +347,86 @@ const AdminUserDetail = () => {
 
  <div>
  <label className="text-sm font-medium text-gray-500">Campus</label>
- <p className="mt-1 text-base font-semibold text-gray-900">{user.campus?.name || 'N/A'}</p>
- {user.campus?.code && <p className="text-sm text-gray-500">{user.campus.code}</p>}
+ <div className="mt-1 flex items-center justify-between">
+   <div className="flex flex-col">
+     <span className="text-base font-semibold text-gray-900">{user.campus?.name || 'N/A'}</span>
+     {user.campus?.code && <p className="text-sm text-gray-500">{user.campus.code}</p>}
+   </div>
+   <button
+     onClick={() => setShowCampusForm(!showCampusForm)}
+     className="text-red-600 hover:text-red-700 text-sm font-medium"
+   >
+     Edit
+   </button>
+ </div>
+ {showCampusForm && (
+ <form onSubmit={handleUpdateCampus} className="mt-3 space-y-2">
+ <select
+ value={campusFormData.campus_id}
+ onChange={(e) => setCampusFormData({ campus_id: e.target.value })}
+ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500"
+ >
+ <option value="">Select Campus</option>
+ {campuses.map(campus => (
+ <option key={campus._id} value={campus._id}>{campus.name} ({campus.code})</option>
+ ))}
+ </select>
+ <div className="flex gap-2">
+ <button
+ type="submit"
+ disabled={updateCampusMutation.isPending}
+ className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm disabled:opacity-50"
+ >
+ {updateCampusMutation.isPending ? 'Saving...' : 'Save'}
+ </button>
+ <button type="button" onClick={() => setShowCampusForm(false)} className="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
+ Cancel
+ </button>
+ </div>
+ </form>
+ )}
  </div>
 
  <div>
  <label className="text-sm font-medium text-gray-500">Department</label>
- <p className="mt-1 text-base font-semibold text-gray-900">{user.department?.name || 'N/A'}</p>
- {user.department?.code && <p className="text-sm text-gray-500">{user.department.code}</p>}
+ <div className="mt-1 flex items-center justify-between">
+   <div className="flex flex-col">
+     <span className="text-base font-semibold text-gray-900">{user.department?.name || 'N/A'}</span>
+     {user.department?.code && <p className="text-sm text-gray-500">{user.department.code}</p>}
+   </div>
+   <button
+     onClick={() => setShowDepartmentForm(!showDepartmentForm)}
+     className="text-red-600 hover:text-red-700 text-sm font-medium"
+   >
+     Edit
+   </button>
+ </div>
+ {showDepartmentForm && (
+ <form onSubmit={handleUpdateDepartment} className="mt-3 space-y-2">
+ <select
+ value={departmentFormData.department_id}
+ onChange={(e) => setDepartmentFormData({ department_id: e.target.value })}
+ className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500"
+ >
+ <option value="">Select Department</option>
+ {departments.map(dept => (
+ <option key={dept._id} value={dept._id}>{dept.name} ({dept.code})</option>
+ ))}
+ </select>
+ <div className="flex gap-2">
+ <button
+ type="submit"
+ disabled={updateDepartmentMutation.isPending}
+ className="flex-1 bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 text-sm disabled:opacity-50"
+ >
+ {updateDepartmentMutation.isPending ? 'Saving...' : 'Save'}
+ </button>
+ <button type="button" onClick={() => setShowDepartmentForm(false)} className="flex-1 bg-gray-200 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-300 text-sm">
+ Cancel
+ </button>
+ </div>
+ </form>
+ )}
  </div>
 
  {user.phoneNumber && (

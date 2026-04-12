@@ -245,6 +245,10 @@ export const adminAPI = {
   deleteUser: (id, reason) => api.delete(`/admin/users/${id}`, { data: { reason } }),
   updateUserSemester: (id, semesterId) =>
     api.post(`/admin/users/${id}/semester`, { semester_id: semesterId }),
+  updateUserCampus: (id, campusId) =>
+    api.post(`/admin/users/${id}/campus`, { campus_id: campusId }),
+  updateUserDepartment: (id, departmentId) =>
+    api.post(`/admin/users/${id}/department`, { department_id: departmentId }),
   promoteSemester: () => api.post('/admin/users/promote-semester'),
 
   // Class Reps
