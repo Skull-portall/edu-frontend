@@ -375,11 +375,11 @@ const QuestionDetail = () => {
 
  {/* Answers List */}
  <div className="max-w-4xl mx-auto space-y-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
- <div className="flex items-center justify-between border-b-2 border-gray-100 pb-6 mb-10">
- <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gray-100 pb-6 mb-10">
+ <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight break-words">
  Community <span className="text-red-600">Answers</span>
  </h2>
- <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
+ <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest self-start sm:self-auto">
  {answers.length} Answers
  </span>
  </div>
@@ -389,11 +389,11 @@ const QuestionDetail = () => {
  {answers.sort((a, b) => b.isAccepted - a.isAccepted).map((answer) => (
  <div
  key={answer._id}
- className={`relative group bg-white rounded-3xl p-8 sm:p-10 border-2 transition-all hover:shadow-2xl hover:shadow-gray-200/50 ${answer.isAccepted ? 'border-emerald-500 shadow-xl shadow-emerald-500/10' : 'border-gray-50'
+ className={`relative group bg-white rounded-3xl p-6 sm:p-10 border-2 transition-all hover:shadow-2xl hover:shadow-gray-200/50 ${answer.isAccepted ? 'border-emerald-500 shadow-xl shadow-emerald-500/10 mt-6 sm:mt-0' : 'border-gray-50'
  }`}
  >
  {answer.isAccepted && (
- <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20">
+ <div className="absolute top-0 right-4 sm:right-0 -translate-y-1/2 sm:translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20 whitespace-nowrap">
  Accepted Answer
  </div>
  )}
