@@ -2,13 +2,11 @@ import axios from 'axios';
 //https://edu-live-99hc.onrender.com/api/v1
 //http://localhost:5000/api/v1
 
-// Default to the Live Server for Production!
-let backendUrl = 'https://edu-live-99hc.onrender.com/api/v1';
+// Default to the API URL from environment variables
+let backendUrl = import.meta.env.VITE_API_URL || 'https://edu-live-vwds.onrender.com/api/v1';
 
-// Only override with localhost if we are running in Developer mode
+// Only handle dynamic IP replacement if we are in DEV mode
 if (import.meta.env.DEV) {
-  backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
-
   // Dynamically grab the host IP instead of hardcoding localhost
   // so it works when testing on a mobile phone on the same local network
   if (backendUrl.includes('localhost')) {
