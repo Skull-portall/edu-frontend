@@ -6,6 +6,57 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
+/** Reusable attachment action button with spinner */
+const ViewAttachmentBtn = ({ label, url, download: dlName, className = '' }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (loading) return;
+
+    if (!dlName) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // DOWNLOAD: show a brief spinner, then trigger the anchor
+    setLoading(true);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = dlName;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => setLoading(false), 500);
+  };
+
+  const DownloadIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+    </svg>
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className={`inline-flex items-center justify-center gap-2 font-black uppercase tracking-widest transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-xl disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
+    >
+      {loading ? (
+        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+      ) : <DownloadIcon />}
+      {loading ? 'Downloading...' : label}
+    </button>
+  );
+};
+
 const QuestionDetail = () => {
  const { id } = useParams();
  const navigate = useNavigate();
@@ -234,30 +285,49 @@ const QuestionDetail = () => {
  </p>
  </div>
 
- {question.attachment && (
- <div className="mt-10 pt-10 border-t border-gray-100">
- <div className="flex items-center gap-4">
- <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 border border-red-100">
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
- </svg>
- </div>
- <div>
- <h4 className="text-sm font-black uppercase tracking-tight text-gray-900 overflow-hidden text-ellipsis max-w-[200px] sm:max-w-md">
- {question.attachmentName || 'Supplemental Material'}
- </h4>
- <a
- href={`/api/${question.attachment}`}
- target="_blank"
- rel="noopener noreferrer"
- className="text-[10px] font-black text-red-600 uppercase tracking-[.2em] hover:underline"
- >
- Download File
- </a>
- </div>
- </div>
- </div>
- )}
+ {question.attachment && (() => {
+                    const attachUrl = question.attachment || '';
+                    // Convert old /api/ paths to properly use full or API URL if needed, or if it's already a full URL
+                    let fileUrl = attachUrl.startsWith('http') ? attachUrl : `/api/${attachUrl}`;
+                    const isCloudinary = attachUrl.includes('cloudinary.com');
+                    
+                    const fileName = question.attachmentName || attachUrl.split('/').pop().split('?')[0] || 'Supplemental_Material';
+                    const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g, '_') || 'download';
+                    
+                    let downloadUrl = fileUrl;
+                    if (isCloudinary && attachUrl.includes('/upload/')) {
+                      downloadUrl = attachUrl.replace('/upload/', `/upload/fl_attachment:${baseName}/`);
+                    }
+
+                    return (
+                      <div className="mt-10 pt-10 border-t border-gray-100">
+                        <div className="flex items-center justify-between flex-wrap gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 border border-red-100">
+                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-black uppercase tracking-tight text-gray-900 overflow-hidden text-ellipsis max-w-[200px] sm:max-w-md">
+                                {fileName}
+                              </h4>
+                              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                                Study Material
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <ViewAttachmentBtn 
+                            label="Download File" 
+                            url={downloadUrl} 
+                            download={fileName} 
+                            className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-black text-[11px]" 
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
  </div>
  </div>
 
@@ -305,11 +375,11 @@ const QuestionDetail = () => {
 
  {/* Answers List */}
  <div className="max-w-4xl mx-auto space-y-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
- <div className="flex items-center justify-between border-b-2 border-gray-100 pb-6 mb-10">
- <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+ <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gray-100 pb-6 mb-10">
+ <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight break-words">
  Community <span className="text-red-600">Answers</span>
  </h2>
- <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
+ <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest self-start sm:self-auto">
  {answers.length} Answers
  </span>
  </div>
@@ -319,11 +389,11 @@ const QuestionDetail = () => {
  {answers.sort((a, b) => b.isAccepted - a.isAccepted).map((answer) => (
  <div
  key={answer._id}
- className={`relative group bg-white rounded-3xl p-8 sm:p-10 border-2 transition-all hover:shadow-2xl hover:shadow-gray-200/50 ${answer.isAccepted ? 'border-emerald-500 shadow-xl shadow-emerald-500/10' : 'border-gray-50'
+ className={`relative group bg-white rounded-3xl p-6 sm:p-10 border-2 transition-all hover:shadow-2xl hover:shadow-gray-200/50 ${answer.isAccepted ? 'border-emerald-500 shadow-xl shadow-emerald-500/10 mt-6 sm:mt-0' : 'border-gray-50'
  }`}
  >
  {answer.isAccepted && (
- <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20">
+ <div className="absolute top-0 right-4 sm:right-0 -translate-y-1/2 sm:translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20 whitespace-nowrap">
  Accepted Answer
  </div>
  )}
@@ -434,21 +504,29 @@ const QuestionDetail = () => {
  <p className="whitespace-pre-wrap">"{answer.body}"</p>
  </div>
 
- {answer.attachment && (
- <div className="mt-6">
- <a
- href={`/api/${answer.attachment}`}
- target="_blank"
- rel="noopener noreferrer"
- className="inline-flex items-center gap-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline bg-blue-50 px-4 py-2 rounded-xl"
- >
- <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.414a6 6 0 108.486 8.486L20.5 13" />
- </svg>
- Attachment
- </a>
- </div>
- )}
+ {answer.attachment && (() => {
+                              const attachUrl = answer.attachment || '';
+                              let fileUrl = attachUrl.startsWith('http') ? attachUrl : `/api/${attachUrl}`;
+                              const isCloudinary = attachUrl.includes('cloudinary.com');
+                              const fileName = attachUrl.split('/').pop().split('?')[0] || 'Attachment';
+                              const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g, '_') || 'download';
+                              
+                              let downloadUrl = fileUrl;
+                              if (isCloudinary && attachUrl.includes('/upload/')) {
+                                downloadUrl = attachUrl.replace('/upload/', `/upload/fl_attachment:${baseName}/`);
+                              }
+
+                              return (
+                                <div className="mt-6">
+                                  <ViewAttachmentBtn 
+                                    label="Download Attachment" 
+                                    url={downloadUrl} 
+                                    download={fileName} 
+                                    className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] hover:bg-blue-100" 
+                                  />
+                                </div>
+                              );
+                            })()}
  </div>
  </div>
  </div>

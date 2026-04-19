@@ -59,6 +59,8 @@ const CampusHubOrderChat = () => {
   const [localMessages, setLocalMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [connected, setConnected] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('all'); // 'all', 'purchasing', 'providing'
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -85,6 +87,14 @@ const CampusHubOrderChat = () => {
     enabled: !!orderId,
     // No refetchInterval — WebSocket handles real-time
     staleTime: 30000,
+  });
+
+  const { data: myOrders = [] } = useQuery({
+    queryKey: ['campusHubOrders'],
+    queryFn: async () => {
+      const res = await campusHubAPI.getMyOrders();
+      return res.data.data?.orders || res.data.data || [];
+    },
   });
 
   // Sync fetched messages into local state (without duplicates)
@@ -156,6 +166,8 @@ const CampusHubOrderChat = () => {
         content: textToSend,
         attachment: attachmentUrl,
         attachmentType,
+        // Always send the original filename so the recipient sees "MyResume.pdf" not the Cloudinary ID
+        attachmentName: fileToSend ? fileToSend.name : undefined,
       });
     },
     onSuccess: (res) => {
@@ -213,7 +225,12 @@ const CampusHubOrderChat = () => {
     sendMutation.mutate({ textToSend, fileToSend }, {
       onSuccess: (res) => {
         const real = res.data.data;
-        setLocalMessages(prev => prev.map(m => m._id === tempId ? real : m));
+        setLocalMessages(prev => {
+          if (prev.some(m => m._id === real._id)) {
+            return prev.filter(m => m._id !== tempId);
+          }
+          return prev.map(m => m._id === tempId ? real : m);
+        });
       },
       onError: () => {
         setLocalMessages(prev => prev.filter(m => m._id !== tempId));
@@ -266,32 +283,134 @@ const CampusHubOrderChat = () => {
   const grouped = groupMessagesByDate(localMessages);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-gray-50 overflow-hidden">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 shadow-sm flex-shrink-0 z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
-          {/* Back */}
-          <button
-            onClick={() => navigate('/campus-hub/orders')}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors flex-shrink-0"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg>
-          </button>
+    <div className="fixed inset-0 z-[100] flex bg-[#f0f2f5] overflow-hidden w-full h-[100dvh]">
+      
+      {/* ── Desktop Sidebar (Hidden on mobile) ─────────────────────────────── */}
+      <div className="hidden md:flex flex-col w-full max-w-[360px] lg:max-w-[400px] border-r border-gray-200 bg-white flex-shrink-0 z-30 pt-safe" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <div className="h-14 sm:h-[60px] px-4 bg-[#f0f2f5] border-b border-gray-200 flex justify-between items-center flex-shrink-0">
+           <h2 className="font-extrabold text-gray-900 text-lg">Chats</h2>
+           <button onClick={() => navigate('/campus-hub/orders')} className="text-gray-500 hover:text-gray-900 transition-colors" title="Close chat">
+             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+           </button>
+        </div>
+        <div className="p-3 border-b border-gray-100 bg-white flex-shrink-0">
+          <div className="bg-gray-50 border border-gray-200 rounded-xl flex items-center px-3 py-2.5 focus-within:ring-2 focus-within:ring-red-500/20 focus-within:border-red-300 transition-all mb-3">
+            <svg className="w-5 h-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <input 
+              type="text" 
+              placeholder="Search by name or service..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-none outline-none text-sm text-gray-900 placeholder-gray-400 w-full"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setFilterType('all')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${filterType === 'all' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>All Chats</button>
+            <button onClick={() => setFilterType('purchasing')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${filterType === 'purchasing' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Purchases</button>
+            <button onClick={() => setFilterType('providing')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${filterType === 'providing' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Sales</button>
+          </div>
+        </div>
 
-          {/* Avatars */}
-          <div className="flex -space-x-3 flex-shrink-0">
-            <div className="relative z-10 cursor-pointer" onClick={() => navigate(`/profile/${meUser?._id || meUser?.id}`)}>
-              {meUser?.profilePicture
-                ? <img src={getImageUrl(meUser.profilePicture)} alt="" className="w-11 h-11 rounded-full object-cover ring-[3px] ring-white shadow-sm" />
-                : <div className="w-11 h-11 rounded-full bg-gradient-to-br from-red-400 to-rose-600 flex items-center justify-center text-white font-black text-base ring-[3px] ring-white shadow-sm">{meUser?.name?.charAt(0) || '?'}</div>
-              }
+        <div className="flex-1 overflow-y-auto w-full p-3 space-y-2.5 bg-gray-50/30">
+          {myOrders.length === 0 ? (
+            <div className="text-center p-6 mt-10">
+              <p className="text-gray-400 font-medium">No recent chats.</p>
             </div>
-            <div className="relative z-20 cursor-pointer" onClick={() => navigate(`/profile/${counterparty?._id || counterparty?.id}`)}>
-              {counterparty?.profilePicture
-                ? <img src={getImageUrl(counterparty.profilePicture)} alt="" className="w-11 h-11 rounded-full object-cover ring-[3px] ring-white shadow-sm" />
-                : <div className="w-11 h-11 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-700 font-black text-base ring-[3px] ring-white shadow-sm">{counterparty?.name?.charAt(0) || '?'}</div>
-              }
-            </div>
+          ) : (() => {
+            const lowQ = searchQuery.toLowerCase();
+            const filteredOrders = myOrders.filter(o => {
+              const oIsProvider = (o.provider?._id || o.provider?.id) === (user?._id || user?.id);
+              if (filterType === 'purchasing' && oIsProvider) return false;
+              if (filterType === 'providing' && !oIsProvider) return false;
+
+              if (!searchQuery.trim()) return true;
+              const qProv = String(o.provider?.name || '').toLowerCase();
+              const qStud = String(o.student?.name || '').toLowerCase();
+              const qServ = String(o.service?.title || '').toLowerCase();
+              return qProv.includes(lowQ) || qStud.includes(lowQ) || qServ.includes(lowQ);
+            });
+
+            if (filteredOrders.length === 0) {
+              return (
+                <div className="text-center p-6 mt-6">
+                  <p className="text-gray-500 font-medium text-sm">No chats match your search.</p>
+                </div>
+              );
+            }
+
+            return filteredOrders.map(o => {
+               // The provider is whoever the provider field is, student is whoever ordered
+               const oIsProvider = (o.provider?._id || o.provider?.id) === (user?._id || user?.id);
+               const oCounterparty = oIsProvider ? o.student : o.provider;
+               const isSelected = String(o._id) === String(orderId);
+               const statusStyle = STATUS_CONFIG[o.status] || STATUS_CONFIG.pending;
+               
+               return (
+                 <div key={o._id} onClick={() => navigate(`/campus-hub/orders/${o._id}/chat`)} 
+                      className={`relative flex items-center gap-3.5 px-3.5 py-3.5 rounded-[1.25rem] cursor-pointer transition-all duration-200 border ${isSelected ? 'bg-white border-red-200 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.15)] ring-1 ring-red-500/20 z-10' : 'bg-white border-gray-100/80 shadow-sm hover:shadow-md hover:border-red-100 hover:-translate-y-0.5'}`}>
+                    
+                    {/* Unread / Status Indicator Dot */}
+                    <div className={`absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 rounded-full border-2 border-white shadow-sm ${statusStyle.dot} ${isSelected ? 'animate-pulse' : ''} ${o.unreadCount > 0 ? 'bg-red-500 w-4 h-4 text-[8px] text-white flex items-center justify-center' : ''}`}>
+                      {o.unreadCount > 0 && o.unreadCount}
+                    </div>
+
+                    {/* Avatar */}
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center text-red-600 font-black border-2 border-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
+                      {o.service?.images && o.service.images.length > 0 ? <img src={getImageUrl(o.service.images[0])} className="w-full h-full object-cover"/> : (o.service?.title?.charAt(0) || '?')}
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                       <div className="flex justify-between items-baseline">
+                          <h3 className={`font-bold truncate text-[14.5px] ${isSelected ? 'text-red-600' : 'text-gray-900'}`}>{o.service?.title || 'Service'}</h3>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ml-2 ${isSelected ? 'text-red-400' : 'text-gray-400'}`}>
+                            {new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          </span>
+                       </div>
+                       <p className="text-[13px] text-gray-500 truncate font-medium flex items-center gap-1.5">
+                         <span className="text-gray-600 font-semibold truncate max-w-[100px]">{oCounterparty?.name?.split(' ')[0]}</span>
+                         <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                         <span className={statusStyle.text}>{statusStyle.label}</span>
+                       </p>
+                    </div>
+                 </div>
+               )
+            });
+          })()}
+        </div>
+      </div>
+
+      {/* ── Chat Container ─────────────────────────────────────────────────── */}
+      <div className="flex-1 flex flex-col bg-[#efeae2] relative min-w-0">
+        
+        {/* ── Background Wallpaper ────────────────────────────────────────────── */}
+        <div 
+          className="absolute inset-0 pointer-events-none z-0" 
+          style={{
+            backgroundImage: `url('/images/logo.svg')`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '100px 100px',
+            opacity: 0.05
+          }}
+        />
+
+        {/* ── Header ─────────────────────────────────────────────────────────── */}
+        <div className="relative bg-[#f0f2f5] border-b border-gray-200 flex-shrink-0 z-20 pt-safe" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+          <div className="px-3 sm:px-4 py-2 sm:py-2.5 flex items-center gap-3 h-14 sm:h-[60px]">
+            
+            {/* Back (visible only on mobile) */}
+            <button
+              onClick={() => navigate('/campus-hub/orders')}
+              className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors flex-shrink-0"
+              title="Back"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+
+          {/* Avatar */}
+          <div className="flex-shrink-0 cursor-pointer" onClick={() => setShowOrderDetails(true)}>
+             <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center text-red-600 font-black border-2 border-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
+               {order.service?.images && order.service.images.length > 0 ? <img src={getImageUrl(order.service.images[0])} alt="" className="w-full h-full object-cover"/> : (order.service?.title?.charAt(0) || '?')}
+             </div>
           </div>
 
           {/* Title & subtitle */}
@@ -368,22 +487,23 @@ const CampusHubOrderChat = () => {
       </div>
 
       {/* ── Messages area ──────────────────────────────────────────────────── */}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 py-6 max-w-4xl w-full mx-auto space-y-1">
-        {messagesLoading && localMessages.length === 0 ? (
-          <div className="flex justify-center items-center h-full"><Loader /></div>
-        ) : localMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-20">
-            <div className="w-20 h-20 bg-white rounded-3xl shadow-sm border border-gray-100 flex items-center justify-center">
-              <svg className="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+      <div ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto w-full">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 py-6 space-y-1 w-full">
+          {messagesLoading && localMessages.length === 0 ? (
+            <div className="flex justify-center items-center h-full min-h-[300px]"><Loader /></div>
+          ) : localMessages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[300px] h-full text-center gap-4 py-20">
+              <div className="w-20 h-20 bg-white rounded-3xl shadow-sm border border-gray-100 flex items-center justify-center">
+                <svg className="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+              </div>
+              <div>
+                <h3 className="font-extrabold text-gray-900 text-xl mb-1">Start the conversation</h3>
+                <p className="text-gray-400 font-medium text-sm max-w-xs">Introduce yourself and discuss the service requirements with {counterparty?.name?.split(' ')[0] || 'the other party'}.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-extrabold text-gray-900 text-xl mb-1">Start the conversation</h3>
-              <p className="text-gray-400 font-medium text-sm max-w-xs">Introduce yourself and discuss the service requirements with {counterparty?.name?.split(' ')[0] || 'the other party'}.</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {grouped.map((item) => {
+          ) : (
+            <>
+              {grouped.map((item) => {
               if (item.type === 'divider') {
                 return (
                   <div key={item.key} className="flex items-center gap-3 py-4">
@@ -437,36 +557,104 @@ const CampusHubOrderChat = () => {
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            <a
-                              href={msg.attachment}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`flex items-center gap-3 p-3 rounded-xl border ${isMe ? 'border-white/20 bg-black/10 text-white hover:bg-black/20' : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'} transition-all`}
-                            >
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isMe ? 'bg-white/20' : 'bg-white shadow-sm border border-gray-200'}`}>
-                                <svg className={`w-5 h-5 ${isMe ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                          ) : (() => {
+                            const originalUrl = msg.attachment || '';
+                            const isBlob = originalUrl.startsWith('blob:');
+
+                            // Derive the best URL to open/download.
+                            // We use Cloudinary's fl_attachment:name transformation which makes
+                            // Cloudinary set Content-Disposition: attachment; filename="..." on the CDN
+                            // response, so browsers save the file with the real name regardless of origin.
+                            const storedName = msg.attachmentName || '';
+                            // Strip extension from filename for the Cloudinary param (it re-adds the ext)
+                            const baseName = storedName.replace(/\.[^/.]+$/, '') || 'download';
+                            // Encode for URL (replace spaces with underscores, strip special chars)
+                            const safeBase = baseName.replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+                            let openUrl = originalUrl;
+                            let downloadUrl = originalUrl;
+
+                            if (!isBlob && originalUrl.includes('cloudinary.com')) {
+                              // Insert fl_attachment:safeName into the Cloudinary URL
+                              const attachParam = `fl_attachment:${safeBase}`;
+                              if (originalUrl.includes('/upload/')) {
+                                downloadUrl = originalUrl.replace('/upload/', `/upload/${attachParam}/`);
+                                // For old /image/upload/ PDFs, also use fl_attachment on openUrl
+                                if (originalUrl.includes('/image/upload/')) {
+                                  openUrl = originalUrl.replace('/upload/', `/upload/${attachParam}/`);
+                                }
+                              }
+                            }
+
+                            const ext = storedName
+                              ? storedName.split('.').pop().toLowerCase()
+                              : originalUrl.split('.').pop().split('?')[0].toLowerCase();
+                            const isPdf = ext === 'pdf';
+                            const fileName = isBlob
+                              ? (msg.attachmentName || 'Attachment')
+                              : (msg.attachmentName ||
+                                 decodeURIComponent(originalUrl.split('/').pop().split('?')[0]) ||
+                                 'Download File');
+
+                            return (
+                              <div className={`flex items-center gap-3 p-3 rounded-xl border ${isMe ? 'border-white/20 bg-black/10 text-white' : 'border-gray-200 bg-gray-50 text-gray-700'}`}>
+                                {/* File icon */}
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isMe ? 'bg-white/20' : 'bg-white shadow-sm border border-gray-200'}`}>
+                                  {isPdf ? (
+                                    <svg className={`w-5 h-5 ${isMe ? 'text-white' : 'text-red-500'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/><path d="M8.5 16a.5.5 0 010-1h.01a.5.5 0 010 1H8.5zm0-2a.5.5 0 010-1h.01a.5.5 0 010 1H8.5zm3 2a.5.5 0 010-1h.01a.5.5 0 010 1H11.5zm0-2a.5.5 0 010-1h.01a.5.5 0 010 1H11.5zM14.5 16h-1v-2h1c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-1v-1h1c.83 0 1.5.67 1.5 1.5S15.33 16 14.5 16z"/></svg>
+                                  ) : (
+                                    <svg className={`w-5 h-5 ${isMe ? 'text-white' : 'text-gray-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                  )}
+                                </div>
+
+                                {/* Name & type */}
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-bold truncate ${isMe ? 'text-white' : 'text-gray-800'}`}>{fileName}</p>
+                                  <p className={`text-[11px] uppercase font-semibold ${isMe ? 'text-white/60' : 'text-gray-400'}`}>
+                                    {isBlob ? 'Uploading…' : (ext || 'file')}
+                                  </p>
+                                </div>
+
+                                {/* Action buttons — hidden if still a blob */}
+                                {!isBlob && (
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <a
+                                      href={openUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="Open"
+                                      className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isMe ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white border border-gray-200 hover:bg-gray-100 text-gray-600'}`}
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                    </a>
+                                    <a
+                                      href={downloadUrl}
+                                      download={fileName}
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="Download"
+                                      className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${isMe ? 'bg-white/20 hover:bg-white/30 text-white' : 'bg-white border border-gray-200 hover:bg-gray-100 text-gray-600'}`}
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    </a>
+                                  </div>
+                                )}
                               </div>
-                              <span className="text-sm font-bold truncate">{msg.attachmentName || 'Download File'}</span>
-                            </a>
-                          )}
+                            );
+                          })()}
                         </div>
                       )}
 
                       {/* Text */}
                       {msg.content && <p className="break-words whitespace-pre-wrap leading-relaxed text-[14.5px]">{msg.content}</p>}
-
-                      {/* Uploading indicator */}
-                      {msg._isOptimistic && (
-                        <div className="absolute bottom-2 right-3">
-                          <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Timestamp */}
-                    <span className={`text-[10px] font-bold tracking-wider uppercase px-1 ${isMe ? 'text-gray-400' : 'text-gray-400'}`}>
+                    {/* Timestamp & Status */}
+                    <span className={`flex items-center gap-1 text-[10px] font-bold tracking-wider uppercase px-1 text-gray-400`}>
                       {formatTime(msg.createdAt)}
+                      {msg._isOptimistic && (
+                        <svg className="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      )}
                     </span>
                   </div>
                 </div>
@@ -490,11 +678,12 @@ const CampusHubOrderChat = () => {
             <div ref={messagesEndRef} className="h-2" />
           </>
         )}
+        </div>
       </div>
 
       {/* ── Input area ─────────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 bg-white border-t border-gray-100 shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.04)] z-20">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+      <div className="relative flex-shrink-0 bg-[#f0f2f5] border-t border-gray-200 z-20 pb-safe" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-3">
           {/* File preview */}
           {file && (
             <div className="mb-3 flex items-center gap-3 p-2.5 bg-gray-50 border border-gray-200 rounded-2xl relative max-w-xs">
@@ -535,7 +724,7 @@ const CampusHubOrderChat = () => {
             </button>
 
             {/* Text input */}
-            <div className="flex-1 bg-gray-50 border-2 border-gray-100 focus-within:border-red-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-red-100/50 rounded-[1.25rem] transition-all">
+            <div className="flex-1 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -645,6 +834,9 @@ const CampusHubOrderChat = () => {
           <img src={previewImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+      {/* End Chat Container */}
+      </div>
+
     </div>
   );
 };

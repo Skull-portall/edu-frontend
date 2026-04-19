@@ -9,10 +9,10 @@ import { useQuery } from '@tanstack/react-query';
 import { campusHubAPI, notificationsAPI } from '../../services/api';
 
 const Layout = () => {
- const { user, logout, checkAuth } = useAuth();
- useCampusHubNotifications(user);
- usePushNotifications(user);
- const navigate = useNavigate();
+  const { user, logout, checkAuth } = useAuth();
+  useCampusHubNotifications(user);
+  usePushNotifications(user);
+  const navigate = useNavigate();
  const location = useLocation();
  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -553,6 +553,7 @@ const Layout = () => {
  <Outlet />
  </main>
 
+ {(!user) && (
  <footer className="bg-gray-900 text-gray-300 py-12 mt-12">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
@@ -602,6 +603,7 @@ const Layout = () => {
  </div>
  </div>
  </footer>
+ )}
  </div >
  );
 };

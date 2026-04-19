@@ -1,9 +1,66 @@
 import Loader from '../../components/common/Loader';
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { notesAPI } from '../../services/api';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+
+/** Reusable attachment action button with spinner */
+const ViewAttachmentBtn = ({ label, icon, url, download: dlName, className = '' }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (loading) return;
+
+    if (!dlName) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // DOWNLOAD: show a brief spinner, then trigger the anchor
+    setLoading(true);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = dlName;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => setLoading(false), 500);
+  };
+
+  const EyeIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+    </svg>
+  );
+  const DownloadIcon = () => (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+    </svg>
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-xl text-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
+    >
+      {loading ? (
+        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+      ) : icon === 'eye' ? <EyeIcon /> : <DownloadIcon />}
+      {loading ? 'Loading...' : label}
+    </button>
+  );
+};
 
 const NoteDetail = () => {
  const { id } = useParams();
@@ -109,65 +166,45 @@ const NoteDetail = () => {
  </div>
  </div>
 
- {note.attachment && (
- <div className="bg-gray-900 rounded-3xl p-8 sm:p-10 text-white shadow-2xl relative overflow-hidden group">
- <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-red-600/20 transition-all duration-500"></div>
+ {note.attachment && (() => {
+    const attachUrl = note.attachment;
+    const isCloudinary = attachUrl.includes('cloudinary.com');
+    const fileName = note.attachmentName || attachUrl.split('/').pop().split('?')[0] || 'attachment';
+    const baseName = fileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g, '_') || 'download';
+    const ext = fileName.split('.').pop().toLowerCase();
+    const isPdf = ext === 'pdf';
 
- <div className="relative z-10">
- <div className="flex items-center gap-4 mb-6">
- <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/20">
- <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
- <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
- </svg>
- </div>
- <div>
- <h3 className="text-xl font-black uppercase tracking-tight">Attached File</h3>
- <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Study Material</p>
- </div>
- </div>
+    // Build download URL — always use fl_attachment:filename so CDN sets Content-Disposition
+    const downloadUrl = isCloudinary && attachUrl.includes('/upload/')
+      ? attachUrl.replace('/upload/', `/upload/fl_attachment:${baseName}/`)
+      : attachUrl;
 
- <button
- onClick={() => {
- const download = async () => {
- try {
- let fileUrl = note.attachment;
- if (!fileUrl.startsWith('http')) {
- const cleanPath = fileUrl.replace(/\\/g, '/');
- const { default: api } = await import('../../services/api');
- const { API_BASE_URL } = await import('../../services/api');
- const rootURL = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
- fileUrl = `${rootURL}/${cleanPath.startsWith('/') ? cleanPath.slice(1) : cleanPath}`;
- }
+    return (
+      <div className="bg-gray-900 rounded-3xl p-8 sm:p-10 text-white shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-red-600/20 transition-all duration-500"></div>
 
- if (note.attachment.startsWith('http')) {
- window.open(note.attachment, '_blank');
- return;
- }
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${isPdf ? 'bg-red-600 shadow-red-600/20' : 'bg-blue-600 shadow-blue-600/20'}`}>
+              {isPdf ? (
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5z"/></svg>
+              ) : (
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+              )}
+            </div>
+            <div>
+              <h3 className="text-xl font-black uppercase tracking-tight">Attached File</h3>
+              <p className="text-gray-400 text-sm font-bold truncate max-w-[200px]">{fileName}</p>
+            </div>
+          </div>
 
- const { default: api } = await import('../../services/api');
- const response = await api.get(fileUrl, { responseType: 'blob' });
- const url = window.URL.createObjectURL(new Blob([response.data]));
- const link = document.createElement('a');
- link.href = url;
- link.setAttribute('download', note.attachment.split(/[\\/]/).pop() || note.attachmentName || 'download');
- document.body.appendChild(link);
- link.click();
- link.remove();
- window.URL.revokeObjectURL(url);
- } catch (error) {
- console.error('Download failed:', error);
- toast.error('Failed to download file');
- }
- };
- download();
- }}
- className="inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 bg-white text-gray-900 rounded-2xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl text-sm cursor-pointer"
- >
- Download {note.attachmentName || 'File'}
- </button>
- </div>
- </div>
- )}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <ViewAttachmentBtn label="Download File" icon="download" url={downloadUrl} download={fileName} className="w-full bg-white text-gray-900 hover:bg-white hover:text-gray-900" />
+          </div>
+        </div>
+      </div>
+    );
+  })()}
  </div>
 
  {/* Sidebar */}
