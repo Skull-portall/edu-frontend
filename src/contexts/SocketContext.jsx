@@ -65,10 +65,19 @@ export const SocketProvider = ({ children }) => {
   const VITE_SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
   let socketUrl = VITE_SOCKET_URL || 'https://edu-live-vwds.onrender.com';
 
+  // --- PRODUCTION FAIL-SAFE ---
+  const isProductionDomain = window.location.hostname.includes('edulive.com.ng');
+  if (isProductionDomain && socketUrl.includes('localhost')) {
+    console.warn('[Socket] Production domain detected but VITE_SOCKET_URL is pointing to localhost. Forcing live backend.');
+    socketUrl = 'https://edu-live-vwds.onrender.com';
+  }
+
   // Only handle dynamic IP replacement if we are in DEV mode AND using a localhost URL
   if (import.meta.env.DEV && socketUrl.includes('localhost')) {
     socketUrl = `http://${window.location.hostname}:5000`;
   }
+
+  console.log(`[Socket] Resolved Socket URL: ${socketUrl}`);
 
  const newSocket = io(socketUrl, {
  auth: { token },

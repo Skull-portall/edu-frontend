@@ -6,12 +6,22 @@ import axios from 'axios';
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 let backendUrl = VITE_API_URL || 'https://edu-live-vwds.onrender.com/api/v1';
 
+// --- PRODUCTION FAIL-SAFE ---
+// If we are on the production domain but the URL is still localhost, force the live URL
+const isProductionDomain = window.location.hostname.includes('edulive.com.ng');
+if (isProductionDomain && backendUrl.includes('localhost')) {
+  console.warn('[API] Production domain detected but VITE_API_URL is pointing to localhost. Forcing live backend.');
+  backendUrl = 'https://edu-live-vwds.onrender.com/api/v1';
+}
+
 // Only handle dynamic IP replacement if we are in DEV mode AND using a localhost URL
 if (import.meta.env.DEV && backendUrl.includes('localhost')) {
   // Dynamically grab the host IP instead of hardcoding localhost
   // so it works when testing on a mobile phone on the same local network
   backendUrl = `http://${window.location.hostname}:5000/api/v1`;
 }
+
+console.log(`[API] Resolved Backend URL: ${backendUrl}`);
 
 export const API_BASE_URL = backendUrl;
 
