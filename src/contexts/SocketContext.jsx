@@ -61,10 +61,14 @@ export const SocketProvider = ({ children }) => {
  return;
  }
 
- // Use base URL without /api/v1 for socket
- const socketUrl = import.meta.env.DEV
- ? `http://${window.location.hostname}:5000`
- : (import.meta.env.VITE_SOCKET_URL || 'https://edu-live-vwds.onrender.com');
+  // Use base URL without /api/v1 for socket
+  const VITE_SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+  let socketUrl = VITE_SOCKET_URL || 'https://edu-live-vwds.onrender.com';
+
+  // Only handle dynamic IP replacement if we are in DEV mode AND using a localhost URL
+  if (import.meta.env.DEV && socketUrl.includes('localhost')) {
+    socketUrl = `http://${window.location.hostname}:5000`;
+  }
 
  const newSocket = io(socketUrl, {
  auth: { token },
