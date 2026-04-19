@@ -64,7 +64,7 @@ export const SocketProvider = ({ children }) => {
  // Use base URL without /api/v1 for socket
  const socketUrl = import.meta.env.DEV
  ? `http://${window.location.hostname}:5000`
- : (import.meta.env.VITE_SOCKET_URL || 'https://edu-live-99hc.onrender.com');
+ : (import.meta.env.VITE_SOCKET_URL || 'https://edu-live-vwds.onrender.com');
 
  const newSocket = io(socketUrl, {
  auth: { token },
