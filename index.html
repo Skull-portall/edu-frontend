@@ -1,52 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
- <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- ── Primary Meta ─────────────────────────────────── -->
+    <title>eDu Live – Campus Learning Hub</title>
+    <meta
+      name="description"
+      content="Your all-in-one campus platform for questions, notes, past papers, communities, and campus services."
+    />
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="application-name" content="eDu Live" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="eDu Live" />
+    <meta name="msapplication-TileColor" content="#dc2626" />
+    <meta name="msapplication-tap-highlight" content="no" />
 
- <!-- ── Primary Meta ─────────────────────────────────── -->
- <title>eDu Live – Campus Learning Hub</title>
- <meta name="description"
- content="Your all-in-one campus platform for questions, notes, past papers, communities, and campus services." />
- <meta name="theme-color" content="#dc2626" />
- <meta name="application-name" content="eDu Live" />
- <meta name="mobile-web-app-capable" content="yes" />
- <meta name="apple-mobile-web-app-capable" content="yes" />
- <meta name="apple-mobile-web-app-status-bar-style" content="default" />
- <meta name="apple-mobile-web-app-title" content="eDu Live" />
- <meta name="msapplication-TileColor" content="#dc2626" />
- <meta name="msapplication-tap-highlight" content="no" />
+    <!-- ── PWA Manifest ──────────────────────────────────── -->
+    <link rel="manifest" href="/manifest.json" />
 
- <!-- ── PWA Manifest ──────────────────────────────────── -->
- <link rel="manifest" href="/manifest.json" />
+    <!-- ── Favicon & Icons ──────────────────────────────── -->
+    <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
+    <link rel="apple-touch-icon" href="/images/logo.svg" />
+    <link rel="shortcut icon" href="/images/logo.svg" />
 
- <!-- ── Favicon & Icons ──────────────────────────────── -->
- <link rel="icon" type="image/svg+xml" href="/images/logo.svg" />
- <link rel="apple-touch-icon" href="/images/logo.svg" />
- <link rel="shortcut icon" href="/images/logo.svg" />
+    <!-- ── Fonts ─────────────────────────────────────────── -->
+    <link rel="preconnect" href="https://fonts.bunny.net" />
+    <link
+      href="https://fonts.bunny.net/css?family=inter:400,500,600,700"
+      rel="stylesheet"
+    />
 
- <!-- ── Fonts ─────────────────────────────────────────── -->
- <link rel="preconnect" href="https://fonts.bunny.net" />
- <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700" rel="stylesheet" />
+    <!-- ── Open Graph ────────────────────────────────────── -->
+    <meta property="og:title" content="eDu Live – Campus Learning Hub" />
+    <meta
+      property="og:description"
+      content="Questions, notes, past papers, communities, and campus services — all in one place."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://edulive.com.ng" />
+    <meta property="og:image" content="/images/logo.svg" />
 
- <!-- ── Open Graph ────────────────────────────────────── -->
- <meta property="og:title" content="eDu Live – Campus Learning Hub" />
- <meta property="og:description"
- content="Questions, notes, past papers, communities, and campus services — all in one place." />
- <meta property="og:type" content="website" />
- <meta property="og:url" content="https://edulive.com.ng" />
- <meta property="og:image" content="/images/logo.svg" />
+    <!-- ── Twitter Card ──────────────────────────────────── -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="eDu Live" />
+    <meta
+      name="twitter:description"
+      content="Your campus hub for learning and services."
+    />
+  </head>
 
- <!-- ── Twitter Card ──────────────────────────────────── -->
- <meta name="twitter:card" content="summary" />
- <meta name="twitter:title" content="eDu Live" />
- <meta name="twitter:description" content="Your campus hub for learning and services." />
-</head>
-
-<body class="bg-gray-50 antialiased">
- <div id="root"></div>
- <script type="module" src="/src/main.jsx"></script>
-</body>
-
+  <body class="bg-gray-50 antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
