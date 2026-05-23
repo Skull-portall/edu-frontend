@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { metaAPI } from "../../services/api";
-import { emailService } from "../../services/emailService";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -46,7 +45,6 @@ const Register = () => {
       }
     };
     fetchMetaData();
-    emailService.init();
   }, []);
 
   const handleChange = (e) => {
@@ -103,7 +101,6 @@ const Register = () => {
 
     const result = await register(formData);
     if (result.success) {
-      emailService.sendWelcomeEmail(formData.email, formData.name);
       navigate("/onboardingFeedback");
     } else {
       if (result.errors) {

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authAPI } from "../../services/api";
-import { sendOTPEmail } from "../../services/emailService";
 import toast from "react-hot-toast";
 
 const ForgotPassword = () => {
@@ -22,25 +21,9 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      // Request OTP from backend
-      const response = await authAPI.forgotPassword({ email });
-      const otpCode = response.data.otp;
-
-      // Send OTP via EmailJS
-      if (otpCode) {
-        const emailResult = await sendOTPEmail(email, otpCode);
-
-        if (emailResult.success) {
-          toast.success("OTP sent to your email address!");
-        } else {
-          toast.error("Failed to send email. Please check console for OTP.");
-          // Fallback: show OTP in console for development
-          console.log("🔐 OTP Code:", otpCode);
-          toast.success(`Development Mode - OTP: ${otpCode}`, {
-            duration: 10000,
-          });
-        }
-      }
+      // Request OTP from backend (which now automatically sends the email via Resend)
+      await authAPI.forgotPassword({ email });
+      toast.success("OTP sent to your email address!");
 
       setStep(2);
     } catch (err) {
