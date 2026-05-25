@@ -76,7 +76,19 @@ const CampusHub = () => {
           >
             <div className="relative flex-1 group">
               <div className="absolute inset-y-0 left-0 pl-4 sm:pl-6 flex items-center pointer-events-none text-gray-400 group-focus-within:text-red-500 transition-colors">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <svg
+                  className="w-5 h-5 sm:w-6 sm:h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  ></path>
+                </svg>
               </div>
               <input
                 type="text"
@@ -86,17 +98,29 @@ const CampusHub = () => {
                 className="w-full pl-12 sm:pl-16 pr-4 sm:pr-6 py-3.5 sm:py-4.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-red-200 transition-all shadow-sm text-base sm:text-lg font-medium"
               />
             </div>
-            
+
             <div className="flex gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${showFilters ? 'bg-gray-900 text-white border-gray-900 shadow-xl' : 'bg-white text-gray-700 border-gray-100 hover:bg-gray-50 shadow-sm'}`}
+                className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${showFilters ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white text-gray-700 border-gray-100 hover:bg-gray-50 shadow-sm"}`}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                  ></path>
+                </svg>
                 Filters
               </button>
-              
+
               <button
                 type="submit"
                 className="flex-[2] sm:flex-none px-6 sm:px-10 py-3.5 sm:py-4.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-2xl shadow-xl shadow-red-500/30 hover:shadow-red-500/50 transition-all transform hover:-translate-y-1 active:translate-y-0"
@@ -107,10 +131,14 @@ const CampusHub = () => {
           </form>
 
           {/* Expanded Filters */}
-          <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showFilters ? 'max-h-[500px] mt-8 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div
+            className={`overflow-hidden transition-all duration-500 ease-in-out ${showFilters ? "max-h-[500px] mt-8 opacity-100" : "max-h-0 opacity-0"}`}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-gray-50">
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Price Range (₦)</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Price Range (₦)
+                </label>
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
@@ -131,7 +159,9 @@ const CampusHub = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Sort Results By</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+                  Sort Results By
+                </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
@@ -162,7 +192,9 @@ const CampusHub = () => {
           </div>
 
           <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 flex-shrink-0">Categories:</span>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 flex-shrink-0">
+              Categories:
+            </span>
             <div className="flex items-center gap-3 min-w-max">
               {categories.map((category) => (
                 <button

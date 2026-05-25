@@ -11,10 +11,10 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
     "@hookform/resolvers": "^3.3.2",
     "@tanstack/react-query": "^5.90.18",
     "axios": "^1.6.2",
+    "framer-motion": "^12.40.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.48.2",

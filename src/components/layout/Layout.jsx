@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCampusHubNotifications } from "../../hooks/useCampusHubNotifications";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
@@ -924,7 +925,17 @@ const Layout = () => {
       ></div>
 
       <main className="pt-2 min-h-screen pb-32 md:pb-12 bg-gray-50 ">
-        <Outlet />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {!user && (

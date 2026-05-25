@@ -1,5 +1,6 @@
 import Loader from "../../components/common/Loader";
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import api, {
@@ -201,7 +202,13 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 lg:mb-8 max-w-4xl">
-        <div className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          whileHover={{ y: -4, boxShadow: "0 10px 30px -5px rgba(0,0,0,0.1)" }}
+          className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm transition-colors duration-300 card-hover"
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-gray-600 text-sm lg:text-base font-medium">
               Your Questions
@@ -226,11 +233,14 @@ const Dashboard = () => {
           <div className="text-sm lg:text-base text-gray-500 mt-2">
             Questions Asked
           </div>
-        </div>
+        </motion.div>
 
-        <div
-          className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 card-hover animate-scale-in"
-          style={{ animationDelay: "0.1s" }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
+          whileHover={{ y: -4, boxShadow: "0 10px 30px -5px rgba(0,0,0,0.1)" }}
+          className="bg-white rounded-xl p-5 sm:p-6 lg:p-8 border border-gray-200 shadow-sm transition-colors duration-300 card-hover"
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-gray-600 text-sm lg:text-base font-medium">
@@ -256,7 +266,7 @@ const Dashboard = () => {
           <div className="text-sm lg:text-base text-gray-500 mt-2">
             Answers Provided
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Latest from Campus Hub */}
@@ -446,14 +456,35 @@ const Dashboard = () => {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Questions Card */}
-          <Link
-            to="/questions"
-            className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-red-300 transition-all duration-300 card-hover transform hover:-translate-y-1"
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.0 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+            <Link
+              to="/questions"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-red-300 transition-colors duration-200 card-hover block"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                  <svg
+                    className="w-6 h-6 lg:w-7 lg:h-7 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    ></path>
+                  </svg>
+                </div>
                 <svg
-                  className="w-6 h-6 lg:w-7 lg:h-7 text-red-600"
+                  className="w-5 h-5 text-gray-400 group-hover:text-red-600 transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -462,42 +493,52 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    d="M9 5l7 7-7 7"
                   ></path>
                 </svg>
               </div>
-              <svg
-                className="w-5 h-5 text-gray-400 group-hover:text-red-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-red-600 transition-colors">
-              Questions
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Browse and answer questions from the community
-            </p>
-            <div className="text-xs text-gray-500 font-medium">View All →</div>
-          </Link>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-red-600 transition-colors">
+                Questions
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Browse and answer questions from the community
+              </p>
+              <div className="text-xs text-gray-500 font-medium">
+                View All →
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Notes Card */}
-          <Link
-            to="/notes"
-            className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-300 card-hover transform hover:-translate-y-1"
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.07 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+            <Link
+              to="/notes"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-colors duration-200 card-hover block"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                  <svg
+                    className="w-6 h-6 lg:w-7 lg:h-7 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    ></path>
+                  </svg>
+                </div>
                 <svg
-                  className="w-6 h-6 lg:w-7 lg:h-7 text-blue-600"
+                  className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -506,42 +547,52 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    d="M9 5l7 7-7 7"
                   ></path>
                 </svg>
               </div>
-              <svg
-                className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-              Notes
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Access and share study notes
-            </p>
-            <div className="text-xs text-gray-500 font-medium">View All →</div>
-          </Link>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                Notes
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Access and share study notes
+              </p>
+              <div className="text-xs text-gray-500 font-medium">
+                View All →
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Pass Tests Card */}
-          <Link
-            to="/pass-tests"
-            className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-green-300 transition-all duration-300 card-hover transform hover:-translate-y-1"
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.14 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+            <Link
+              to="/pass-tests"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-green-300 transition-colors duration-200 card-hover block"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                  <svg
+                    className="w-6 h-6 lg:w-7 lg:h-7 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    ></path>
+                  </svg>
+                </div>
                 <svg
-                  className="w-6 h-6 lg:w-7 lg:h-7 text-green-600"
+                  className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -550,42 +601,52 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    d="M9 5l7 7-7 7"
                   ></path>
                 </svg>
               </div>
-              <svg
-                className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-              Past Papers
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Access previous exams and assignments
-            </p>
-            <div className="text-xs text-gray-500 font-medium">View All →</div>
-          </Link>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
+                Past Papers
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Access previous exams and assignments
+              </p>
+              <div className="text-xs text-gray-500 font-medium">
+                View All →
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Communities Card */}
-          <Link
-            to="/communities"
-            className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-purple-300 transition-all duration-300 card-hover transform hover:-translate-y-1"
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.21 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+            <Link
+              to="/communities"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-purple-300 transition-colors duration-200 card-hover block"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                  <svg
+                    className="w-6 h-6 lg:w-7 lg:h-7 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    ></path>
+                  </svg>
+                </div>
                 <svg
-                  className="w-6 h-6 lg:w-7 lg:h-7 text-purple-600"
+                  className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -594,42 +655,52 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    d="M9 5l7 7-7 7"
                   ></path>
                 </svg>
               </div>
-              <svg
-                className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
-              Communities
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Join discussions and connect with peers
-            </p>
-            <div className="text-xs text-gray-500 font-medium">View All →</div>
-          </Link>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                Communities
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Join discussions and connect with peers
+              </p>
+              <div className="text-xs text-gray-500 font-medium">
+                View All →
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Campus Hub Card */}
-          <Link
-            to="/campus-hub"
-            className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-300 card-hover transform hover:-translate-y-1"
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.28 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+            <Link
+              to="/campus-hub"
+              className="group bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-colors duration-200 card-hover block"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors">
+                  <svg
+                    className="w-6 h-6 lg:w-7 lg:h-7 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    ></path>
+                  </svg>
+                </div>
                 <svg
-                  className="w-6 h-6 lg:w-7 lg:h-7 text-indigo-600"
+                  className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -638,32 +709,19 @@ const Dashboard = () => {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    d="M9 5l7 7-7 7"
                   ></path>
                 </svg>
               </div>
-              <svg
-                className="w-5 h-5 text-gray-400 group-hover:text-indigo-600 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                ></path>
-              </svg>
-            </div>
-            <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
-              Campus Hub
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Request services, apply as provider, or manage orders
-            </p>
-            <div className="text-xs text-gray-500 font-medium">Explore →</div>
-          </Link>
+              <h3 className="text-lg lg:text-xl font-bold text-gray-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                Campus Hub
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Request services, apply as provider, or manage orders
+              </p>
+              <div className="text-xs text-gray-500 font-medium">Explore →</div>
+            </Link>
+          </motion.div>
         </div>
       </div>
 
