@@ -4,74 +4,94 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { communitiesAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { timeAgo } from "../../utils/timeAgo";
 
-const ICONS = {
-  Users: (
-    <svg
-      className="w-8 h-8"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
+// ─── Single Community Card ──────────────────────────────────────────────────
+const CommunityCard = ({ community, onClick }) => {
+  const memberCount =
+    community.members_count || community.members?.length || 0;
+  const creatorName = community.user?.name || "Student Leader";
+
+  return (
+    <article
+      onClick={onClick}
+      className="group bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-red-100 transition-all duration-200 cursor-pointer flex flex-col justify-between"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"
-      />
-    </svg>
-  ),
-  Book: (
-    <svg
-      className="w-8 h-8"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-      />
-    </svg>
-  ),
-  Code: (
-    <svg
-      className="w-8 h-8"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-      />
-    </svg>
-  ),
-  Chat: (
-    <svg
-      className="w-8 h-8"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-      />
-    </svg>
-  ),
+      <div>
+        {/* Top Badges & Member Count */}
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-100">
+            Study Group
+          </span>
+
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full">
+            <svg
+              className="w-3 h-3 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            {memberCount} member{memberCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* Community Name */}
+        <h2 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-1 mb-1.5 group-hover:text-red-600 transition-colors">
+          {community.name}
+        </h2>
+
+        {/* Description */}
+        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-3">
+          {community.description ||
+            "Join this student community to discuss coursework, study sessions, and campus events."}
+        </p>
+      </div>
+
+      {/* Footer Info */}
+      <div className="pt-2.5 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 flex-wrap gap-2">
+        <div className="flex items-center gap-1.5">
+          {community.user?.profilePicture ? (
+            <img
+              src={community.user.profilePicture}
+              alt=""
+              className="w-4 h-4 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[8px] font-bold">
+              {creatorName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="font-medium text-gray-600 truncate max-w-[120px] sm:max-w-[150px]">
+            {creatorName}
+          </span>
+          {community.createdAt && (
+            <>
+              <span>•</span>
+              <span>{timeAgo(community.createdAt)}</span>
+            </>
+          )}
+        </div>
+
+        <span className="text-[10px] font-bold text-red-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+          View &rarr;
+        </span>
+      </div>
+    </article>
+  );
 };
 
+// ─── Main Component ─────────────────────────────────────────────────────────
 const CommunitiesList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentSearch = searchParams.get("search") || "";
   const [search, setSearch] = useState(currentSearch);
 
@@ -86,130 +106,131 @@ const CommunitiesList = () => {
     keepPreviousData: true,
   });
 
-  const handleSearch = (e) => {
-    e.preventDefault();
+  const handleSearchSubmit = (e) => {
+    e?.preventDefault();
     const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    navigate(`/communities?${params.toString()}`);
+    if (search.trim()) params.set("search", search.trim());
+    setSearchParams(params);
+  };
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setSearchParams({});
   };
 
   if (loading && !communities.length) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Loader />
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-      {/* Header Section */}
-      <div className="mb-16 animate-fade-in text-center lg:text-left flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
-        <div>
-          <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 tracking-tight uppercase">
-            Communities
-          </h1>
-          <p className="text-gray-500 font-medium max-w-xl">
-            Join groups with fellow students. Collaborative learning makes
-            studying easier and more fun.
-          </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative">
+      {/* ── Compact Header & Search Bar ── */}
+      <div className="mb-4">
+        {/* Compact Title Row */}
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-3">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase leading-none">
+              Student <span className="text-red-600">Communities</span>
+            </h1>
+            <span className="hidden sm:inline text-xs text-gray-400 font-normal">
+              — Connect, study, and collaborate in peer groups
+            </span>
+          </div>
         </div>
 
-        {/* Global Action */}
-        <div className="shrink-0">
-          {user && (
-            <Link
-              to="/communities/create"
-              className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all text-sm"
+        {/* Compact Pill Search Bar */}
+        <div className="bg-white p-1 rounded-full shadow-sm border border-gray-200 flex items-center max-w-3xl">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex-1 relative flex items-center"
+          >
+            <svg
+              className="absolute left-4 w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                strokeWidth="3"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                ></path>
-              </svg>
-              Create Community
-            </Link>
-          )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search communities, departments, clubs, or study circles..."
+              className="w-full bg-transparent border-none py-2 sm:py-2.5 pl-11 pr-3 text-xs sm:text-sm font-medium text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none"
+            />
+          </form>
+          <button
+            onClick={handleSearchSubmit}
+            className="px-5 py-1.5 sm:py-2 bg-red-600 text-white rounded-full font-bold uppercase tracking-wider hover:bg-red-700 transition-all text-[11px] shrink-0 active:scale-95 shadow-sm"
+          >
+            Search
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-        {/* Sidebar Filters */}
-        <div className="lg:col-span-1 space-y-8 animate-slide-up">
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-100/50">
-            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
-              Discovery
+      {/* ── Main Layout: Sidebar & Content ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        {/* Left Column: Quick Info Widget */}
+        <aside className="lg:col-span-1 space-y-4">
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">
+              Community Stats
             </h3>
-            <form onSubmit={handleSearch} className="space-y-4">
-              <div className="relative group">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Find a community..."
-                  className="w-full bg-gray-50 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-400"
-                />
-                <svg
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-red-500 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <button
-                type="submit"
-                className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-black transition-all shadow-lg shadow-gray-900/20"
-              >
-                Search
-              </button>
+            <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-600">Total Circles</span>
+              <span className="font-mono text-sm font-black text-gray-900">
+                {communities.length}
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-3 leading-relaxed">
+              Study groups and departmental communities help you find course mates, share updates, and revise together.
+            </p>
+          </div>
+        </aside>
+
+        {/* Right Column: Community Cards Grid */}
+        <main className="lg:col-span-3">
+          {/* Subheader summary */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs text-gray-500 font-medium">
+              Showing <span className="font-bold text-gray-900">{communities.length}</span> communit{communities.length !== 1 ? "ies" : "y"}
               {currentSearch && (
-                <Link
-                  to="/communities"
-                  onClick={() => setSearch("")}
-                  className="block w-full text-center py-4 bg-gray-100 text-gray-500 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all"
-                >
-                  Clear Results
-                </Link>
+                <span> matching "<span className="font-bold text-gray-900">{currentSearch}</span>"</span>
               )}
-            </form>
+            </div>
+
+            {currentSearch && (
+              <button
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-red-600 hover:text-red-700 underline"
+              >
+                Clear search
+              </button>
+            )}
           </div>
 
-          <div className="bg-gradient-to-br from-red-600 to-rose-600 rounded-3xl p-8 text-white shadow-2xl shadow-red-600/20 text-center">
-            <h3 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70">
-              Communities
-            </h3>
-            <div className="text-4xl font-black mb-1">{communities.length}</div>
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-6">
-              Total Communities
-            </p>
-            <p className="text-xs font-medium opacity-80 leading-relaxed italic border-t border-white/10 pt-6">
-              "Communities help us learn better together."
-            </p>
-          </div>
-        </div>
-
-        {/* Community Grid */}
-        <div className="lg:col-span-3">
-          {communities.length === 0 ? (
-            <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 animate-fade-in">
-              <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
+          {/* Grid */}
+          {communities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {communities.map((community) => (
+                <CommunityCard
+                  key={community._id}
+                  community={community}
+                  onClick={() => navigate(`/communities/${community._id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 sm:p-12 text-center shadow-sm my-4">
+              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
                 <svg
-                  className="w-12 h-12"
+                  className="w-7 h-7"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -222,114 +243,71 @@ const CommunitiesList = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">
+              <h3 className="text-base font-black text-gray-900 uppercase tracking-tight mb-1">
                 No Communities Found
               </h3>
-              <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">
-                Try searching for something else or create the first community.
+              <p className="text-gray-500 font-medium mb-6 max-w-sm mx-auto text-xs">
+                {currentSearch
+                  ? "No communities matched your search query. Try different keywords."
+                  : "No communities have been created yet. Be the first to start a study circle!"}
               </p>
-              {user && (
-                <Link
-                  to="/communities/create"
-                  className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transition-all text-sm"
-                >
-                  Create First Community
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div
-              className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-slide-up"
-              style={{ animationDelay: "0.1s" }}
-            >
-              {communities.map((community, index) => (
-                <article
-                  key={community._id}
-                  onClick={() => navigate(`/communities/${community._id}`)}
-                  className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col items-start"
-                >
-                  <div className="flex items-center justify-between w-full mb-8">
-                    <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all transform group-hover:rotate-6">
-                      <svg
-                        className="w-8 h-8"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2.5"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"
-                        />
-                      </svg>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-                      <span className="text-[10px] font-black text-gray-900 font-mono tracking-tighter">
-                        {community.members_count ||
-                          community.members?.length ||
-                          0}
-                      </span>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        Members
-                      </span>
-                    </div>
-                  </div>
-
-                  <h2 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-red-600 transition-colors uppercase tracking-tight line-clamp-1">
-                    {community.name}
-                  </h2>
-                  <p className="text-gray-500 font-medium line-clamp-2 leading-relaxed mb-10 italic flex-1">
-                    "
-                    {community.description ||
-                      "Focus, collaboration, and academic growth through shared efforts."}
-                    "
-                  </p>
-
-                  <div className="flex items-center gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
-                      {community.user?.profilePicture ? (
-                        <img
-                          src={community.user.profilePicture}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
-                          {community.user?.name?.charAt(0) || "U"}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
-                        Moderator
-                      </span>
-                      <span className="block text-xs font-black text-gray-900 uppercase truncate max-w-[120px]">
-                        {community.user?.name || "STUDENT"}
-                      </span>
-                    </div>
-                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                      <svg
-                        className="w-5 h-5 text-red-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="3"
-                          d="M13 7l5 5m0 0l-5 5m5-5H6"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </article>
-              ))}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                {currentSearch && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs uppercase tracking-wider hover:bg-gray-50 transition-all"
+                  >
+                    Clear Search
+                  </button>
+                )}
+                {user ? (
+                  <Link
+                    to="/communities/create"
+                    className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-md shadow-gray-900/10"
+                  >
+                    Create Community
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-1.5 bg-red-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-md shadow-red-600/20"
+                  >
+                    Login to Join
+                  </Link>
+                )}
+              </div>
             </div>
           )}
-        </div>
+        </main>
       </div>
+
+      {/* ── Floating "Create Community" Button ── */}
+      {user && (
+        <Link
+          to="/communities/create"
+          className="fixed bottom-24 sm:bottom-8 right-5 sm:right-8 bg-gray-900 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-2xl flex items-center gap-2.5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 z-40 group border border-white/20"
+          aria-label="Create Community"
+        >
+          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <svg
+              className="w-3.5 h-3.5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </div>
+          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">
+            Create Community
+          </span>
+        </Link>
+      )}
     </div>
   );
 };

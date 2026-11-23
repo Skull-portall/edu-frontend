@@ -1,8 +1,7 @@
-import Loader from "../../components/common/Loader";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { communitiesAPI } from "../../services/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const CommunityCreate = () => {
@@ -39,16 +38,20 @@ const CommunityCreate = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.name.trim()) {
+      toast.error("Please provide a community name");
+      return;
+    }
     createMutation.mutate(formData);
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-      {/* Navigation */}
-      <div className="mb-12 animate-fade-in text-center lg:text-left">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+      {/* ── Top Bar: Back Link ── */}
+      <div className="mb-4">
         <Link
           to="/communities"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-red-600 font-black uppercase tracking-widest text-[10px] mb-6 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-red-600 uppercase tracking-wider transition-colors"
         >
           <svg
             className="w-4 h-4"
@@ -59,135 +62,128 @@ const CommunityCreate = () => {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="3"
+              strokeWidth="2.5"
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
           Back to Communities
         </Link>
-        <h1 className="text-4xl lg:text-6xl font-black text-gray-900 leading-tight uppercase tracking-tight">
+      </div>
+
+      {/* ── Compact Header ── */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight uppercase leading-tight">
           Create <span className="text-red-600">Community</span>
         </h1>
-        <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-4 italic">
-          "CREATE A SPACE FOR SHARED LEARNING."
+        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+          Start a study circle, departmental group, or project collaboration hub.
         </p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-12 animate-slide-up"
-      >
-        {/* Main Form Content */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl shadow-gray-200/50 border border-gray-100 space-y-8">
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                Community Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="e.g. Quantum Physics 101"
-                className="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-lg font-bold text-gray-900 focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300"
-              />
-            </div>
+      {/* ── Main Form ── */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Main Inputs (2 cols on desktop) */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white rounded-2xl p-5 sm:p-6 border border-gray-100 shadow-sm space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  Community Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="e.g. Computer Science 2026, Quantum Physics Group"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-gray-400"
+                />
+              </div>
 
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows="4"
-                placeholder="What is this community about? Define the scope..."
-                className="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-gray-700 font-medium focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300 italic"
-              />
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="4"
+                  placeholder="What is this community about? Who should join?"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-gray-400"
+                />
+              </div>
 
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">
-                Mission / Purpose
-              </label>
-              <textarea
-                name="purpose"
-                value={formData.purpose}
-                onChange={handleChange}
-                rows="4"
-                placeholder="What should members expect to achieve here?"
-                className="w-full bg-gray-50 border-none rounded-2xl px-6 py-5 text-gray-700 font-medium focus:ring-2 focus:ring-red-500 transition-all placeholder-gray-300 italic"
-              />
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                  Mission or Learning Goal
+                </label>
+                <textarea
+                  name="purpose"
+                  value={formData.purpose}
+                  onChange={handleChange}
+                  rows="3"
+                  placeholder="What should members expect to achieve or collaborate on?"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all placeholder-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Guidance (1 col on desktop) */}
+          <div className="space-y-4">
+            <div className="bg-gray-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
+              <h3 className="text-xs font-black text-red-500 uppercase tracking-wider">
+                Community Tips
+              </h3>
+              <ul className="space-y-2.5 text-xs text-gray-300">
+                <li className="flex gap-2">
+                  <span className="text-red-500 font-bold">1.</span>
+                  <span>Use clear, descriptive titles so peers can discover your circle easily.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-red-500 font-bold">2.</span>
+                  <span>Encourage active question asking, sharing resources, and notes.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-red-500 font-bold">3.</span>
+                  <span>Keep discussions supportive and focused on academic growth.</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
 
-        {/* Sidebar Guidance */}
-        <div className="lg:col-span-1 space-y-8">
-          <div className="bg-gray-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/20 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-            <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-6">
-              Community Guidelines
-            </h3>
-            <ul className="space-y-4">
-              <li className="flex gap-3 text-xs font-medium text-gray-300 leading-relaxed">
-                <span className="text-red-500 font-black">01</span> Keep names
-                clear and academic.
-              </li>
-              <li className="flex gap-3 text-xs font-medium text-gray-300 leading-relaxed">
-                <span className="text-red-500 font-black">02</span> Define a
-                clear mission to attract the right contributors.
-              </li>
-              <li className="flex gap-3 text-xs font-medium text-gray-300 leading-relaxed">
-                <span className="text-red-500 font-black">03</span> Active
-                participation keeps the community alive.
-              </li>
-            </ul>
-          </div>
-
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl">
-            <button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="w-full bg-red-600 text-white py-3.5 rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition-all transform hover:-translate-y-1 active:scale-95 disabled:opacity-50 shadow-xl shadow-red-600/20 mb-4 text-sm cursor-pointer flex items-center justify-center gap-2"
-            >
-              {createMutation.isPending ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Loading...
-                </>
-              ) : (
-                "Create Community"
-              )}
-            </button>
+        {/* ── Form Actions Bar ── */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center justify-between flex-wrap gap-3">
+          <p className="text-[11px] text-gray-400">
+            Communities are publicly open for all students to discover and join.
+          </p>
+          <div className="flex items-center gap-2">
             <Link
               to="/communities"
-              className="block w-full text-center py-4 text-gray-400 font-black uppercase tracking-widest text-[10px] hover:text-gray-900 transition-colors"
+              className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-wider"
             >
               Cancel
             </Link>
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-md shadow-red-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            >
+              {createMutation.isPending ? (
+                <>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>Creating...</span>
+                </>
+              ) : (
+                <span>Create Community</span>
+              )}
+            </button>
           </div>
         </div>
       </form>

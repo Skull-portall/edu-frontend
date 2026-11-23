@@ -4,38 +4,173 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { passTestsAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { timeAgo } from "../../utils/timeAgo";
 import toast from "react-hot-toast";
 
+// ─── Suggested Subject Filter Chips ─────────────────────────────────────────
+const SUBJECTS = [
+  "All",
+  "Psychology",
+  "Math",
+  "Biology",
+  "Physics",
+  "Chemistry",
+  "English",
+  "History",
+  "Economics",
+  "Computer Science",
+];
+
+// ─── Single Past Paper Card ─────────────────────────────────────────────────
+const PaperCard = ({ test, onClick, user, onAction, actionPending, actionId }) => {
+  const authorName = test.user?.name || "Student";
+  const course = test.courseName || null;
+  const isTest = test.type === "test";
+  const contentText =
+    test.content?.replace(/<[^>]*>/g, "").substring(0, 140) || "";
+
+  return (
+    <article
+      onClick={onClick}
+      className="group bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-red-100 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+    >
+      <div>
+        {/* Top Badges */}
+        <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                isTest
+                  ? "bg-red-50 text-red-600 border border-red-100"
+                  : "bg-blue-50 text-blue-600 border border-blue-100"
+              }`}
+            >
+              {isTest ? "Test / Exam" : "Assignment"}
+            </span>
+            {course && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-100 text-gray-700 group-hover:bg-red-50 group-hover:text-red-700 transition-colors">
+                {course}
+              </span>
+            )}
+          </div>
+
+          {/* Admin Moderation Controls if unapproved */}
+          {user?.isAdmin && !test.isApproved && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => onAction(e, test._id, "approve")}
+                disabled={actionPending && actionId === test._id}
+                className="p-1 rounded bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white transition-colors"
+                title="Approve"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => onAction(e, test._id, "reject")}
+                disabled={actionPending && actionId === test._id}
+                className="p-1 rounded bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors"
+                title="Reject"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Paper Title */}
+        <h2 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2 mb-1.5 group-hover:text-red-600 transition-colors">
+          {test.title}
+        </h2>
+
+        {/* Excerpt */}
+        {contentText && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 sm:line-clamp-3 mb-3">
+            {contentText}...
+          </p>
+        )}
+      </div>
+
+      {/* Footer Info */}
+      <div className="pt-2.5 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 flex-wrap gap-2">
+        <div className="flex items-center gap-1.5">
+          {test.user?.profilePicture ? (
+            <img
+              src={test.user.profilePicture}
+              alt=""
+              className="w-4 h-4 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-4 h-4 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[8px] font-bold">
+              {authorName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="font-medium text-gray-600 truncate max-w-[120px] sm:max-w-[150px]">
+            {authorName}
+          </span>
+          <span>•</span>
+          <span>{timeAgo(test.createdAt)}</span>
+        </div>
+
+        {test.attachment && (
+          <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded">
+            <svg
+              className="w-3 h-3 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
+            </svg>
+            Paper File
+          </span>
+        )}
+      </div>
+    </article>
+  );
+};
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 const PassTestsList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const currentSearch = searchParams.get("search") || "";
   const currentType = searchParams.get("type") || "";
   const currentStatus = searchParams.get("status") || "approved";
 
   const [search, setSearch] = useState(currentSearch);
+  const [activeSubject, setActiveSubject] = useState("All");
   const [actionId, setActionId] = useState(null);
 
   // Fetch Tests
   const { data: tests = [], isLoading: loading } = useQuery({
     queryKey: [
       "passTests",
-      { search: currentSearch, type: currentType, status: currentStatus },
+      { search: currentSearch, type: currentType, status: currentStatus, subject: activeSubject },
     ],
     queryFn: async () => {
       const params = { status: currentStatus };
       if (currentSearch) params.search = currentSearch;
       if (currentType) params.type = currentType;
+      if (activeSubject !== "All") params.courseName = activeSubject;
       const response = await passTestsAPI.getAll(params);
       return response.data.data || [];
     },
     keepPreviousData: true,
   });
 
-  // Action Mutation
+  // Action Mutation (Approve / Reject)
   const mutation = useMutation({
     mutationFn: ({ id, action }) =>
       action === "approve" ? passTestsAPI.approve(id) : passTestsAPI.reject(id),
@@ -44,9 +179,7 @@ const PassTestsList = () => {
       queryClient.invalidateQueries(["passTests"]);
       toast.success(
         `Paper ${variables.action === "approve" ? "approved" : "rejected"} successfully!`,
-        {
-          position: "top-center",
-        },
+        { position: "top-center" }
       );
     },
     onError: (error) => {
@@ -69,306 +202,282 @@ const PassTestsList = () => {
       if (value) params.set(key, value);
       else params.delete(key);
     });
-    navigate(`/pass-tests?${params.toString()}`);
+    setSearchParams(params);
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    updateFilters({ search });
+  const handleSearchSubmit = (e) => {
+    e?.preventDefault();
+    updateFilters({ search: search.trim() });
+  };
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setActiveSubject("All");
+    setSearchParams({});
   };
 
   if (loading && !tests.length) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Loader />
-      </div>
-    );
+    return <Loader />;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-      <div className="mb-16 animate-fade-in">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-12">
-          <div>
-            <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 tracking-tight uppercase">
-              Past <span className="text-red-600">Papers</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative">
+      {/* ── Compact Header & Search Bar ── */}
+      <div className="mb-4">
+        {/* Compact Title Row */}
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-3">
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase leading-none">
+              Past <span className="text-red-600">Papers & Tests</span>
             </h1>
-            <p className="text-gray-500 font-medium max-w-xl">
-              Access previous exams, tests, and assignments from the community
-              library.
-            </p>
+            <span className="hidden sm:inline text-xs text-gray-400 font-normal">
+              — Access previous exams, tests & assignments
+            </span>
+          </div>
+        </div>
+
+        {/* Compact Pill Search Bar */}
+        <div className="bg-white p-1 rounded-full shadow-sm border border-gray-200 flex items-center max-w-3xl">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex-1 relative flex items-center"
+          >
+            <svg
+              className="absolute left-4 w-4 h-4 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by course name, year, or exam title..."
+              className="w-full bg-transparent border-none py-2 sm:py-2.5 pl-11 pr-3 text-xs sm:text-sm font-medium text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none"
+            />
+          </form>
+          <button
+            onClick={handleSearchSubmit}
+            className="px-5 py-1.5 sm:py-2 bg-red-600 text-white rounded-full font-bold uppercase tracking-wider hover:bg-red-700 transition-all text-[11px] shrink-0 active:scale-95 shadow-sm"
+          >
+            Search
+          </button>
+        </div>
+      </div>
+
+      {/* ── Main Layout: Sidebar & Content ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        {/* Left Column: Type & Subject Filters */}
+        <aside className="lg:col-span-1 space-y-4">
+          {/* Paper Type Filter (Test vs Assignment) */}
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2.5">
+              Category
+            </h3>
+            <div className="flex flex-row lg:flex-col gap-1.5 flex-wrap">
+              {[
+                { id: "", label: "All Papers" },
+                { id: "test", label: "Exams & Tests" },
+                { id: "assignment", label: "Assignments" },
+              ].map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => updateFilters({ type: type.id })}
+                  className={`flex-1 lg:w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    currentType === type.id
+                      ? "bg-gray-900 text-white shadow-sm"
+                      : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <span>{type.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="shrink-0">
-            {user && (
-              <Link
-                to="/pass-tests/create"
-                className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 hover:shadow-gray-900/30 transform hover:-translate-y-1 active:scale-95 transition-all text-sm"
+          {/* Subjects Box */}
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-2.5">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Subjects
+              </h3>
+              {activeSubject !== "All" && (
+                <button
+                  onClick={() => setActiveSubject("All")}
+                  className="text-[9px] font-bold text-red-600 hover:underline uppercase"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Scroll */}
+            <div className="flex lg:hidden gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+              {SUBJECTS.map((sub) => (
+                <button
+                  key={sub}
+                  onClick={() => setActiveSubject(sub)}
+                  className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                    activeSubject === sub
+                      ? "bg-red-600 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop List */}
+            <div className="hidden lg:flex flex-col gap-1 max-h-[380px] overflow-y-auto pr-1">
+              {SUBJECTS.map((sub) => (
+                <button
+                  key={sub}
+                  onClick={() => setActiveSubject(sub)}
+                  className={`text-left px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-between ${
+                    activeSubject === sub
+                      ? "bg-red-50 text-red-600 font-extrabold"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  <span>{sub}</span>
+                  {activeSubject === sub && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* Right Column: Papers Feed */}
+        <main className="lg:col-span-3">
+          {/* Subheader summary */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs text-gray-500 font-medium">
+              Showing <span className="font-bold text-gray-900">{tests.length}</span> paper{tests.length !== 1 ? "s" : ""}
+              {activeSubject !== "All" && (
+                <span> in <span className="font-bold text-red-600">{activeSubject}</span></span>
+              )}
+              {currentSearch && (
+                <span> matching "<span className="font-bold text-gray-900">{currentSearch}</span>"</span>
+              )}
+            </div>
+
+            {(activeSubject !== "All" || currentSearch || currentType) && (
+              <button
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-red-600 hover:text-red-700 underline"
               >
+                Clear filters
+              </button>
+            )}
+          </div>
+
+          {/* Papers Grid */}
+          {tests.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {tests.map((test) => (
+                <PaperCard
+                  key={test._id}
+                  test={test}
+                  user={user}
+                  onAction={handleAction}
+                  actionPending={mutation.isPending}
+                  actionId={actionId}
+                  onClick={() => navigate(`/pass-tests/${test._id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 sm:p-12 text-center shadow-sm my-4">
+              <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
                 <svg
-                  className="w-5 h-5"
+                  className="w-7 h-7"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  strokeWidth="3"
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M12 4v16m8-8H4"
-                  ></path>
+                    strokeWidth="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
                 </svg>
-                Upload Paper
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Global Control Interface */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 bg-white p-2 rounded-[2rem] shadow-2xl shadow-gray-200/50 border border-gray-100 flex flex-col sm:flex-row gap-2">
-            <form
-              onSubmit={handleSearch}
-              className="flex-1 relative flex items-center"
-            >
-              <svg
-                className="absolute left-6 w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by course name, year, or exam type..."
-                className="w-full bg-transparent border-none py-4 pl-16 pr-8 text-lg font-bold text-gray-900 placeholder-gray-400 focus:ring-0"
-              />
-            </form>
-            <button
-              onClick={handleSearch}
-              className="px-6 py-2.5 bg-red-600 text-white rounded-[1.2rem] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20 active:scale-95 text-[10px]"
-            >
-              Search Papers
-            </button>
-          </div>
-
-          {/* Quick Filters */}
-          <div className="bg-gray-100 p-2 rounded-[2rem] flex items-center gap-2">
-            {[
-              { id: "", label: "All" },
-              { id: "test", label: "Tests" },
-              { id: "assignment", label: "Assignments" },
-            ].map((type) => (
-              <button
-                key={type.id}
-                onClick={() => updateFilters({ type: type.id })}
-                className={`px-8 py-5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${
-                  currentType === type.id
-                    ? "bg-gray-900 text-white shadow-xl"
-                    : "text-gray-400 hover:text-gray-600 hover:bg-white/50"
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="animate-slide-up">
-        {tests.length === 0 ? (
-          <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100 animate-fade-in">
-            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 text-gray-300">
-              <svg
-                className="w-12 h-12"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight mb-4">
-              No Papers Found
-            </h3>
-            <p className="text-gray-500 font-medium mb-10 max-w-sm mx-auto">
-              No past papers match your search. Try different keywords.
-            </p>
-            <button
-              onClick={() => navigate("/pass-tests")}
-              className="inline-flex items-center gap-3 bg-gray-900 text-white px-6 py-3.5 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-gray-900/10 text-sm"
-            >
-              Clear Filters
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {tests.map((test, index) => (
-              <article
-                key={test._id}
-                onClick={() => navigate(`/pass-tests/${test._id}`)}
-                className="group bg-white rounded-3xl border border-gray-100 p-6 sm:p-8 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:shadow-red-600/5 transition-all duration-500 transform hover:-translate-y-2 cursor-pointer flex flex-col"
-              >
-                <div className="flex items-start justify-between mb-8">
-                  <span
-                    className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border italic shadow-sm transition-all group-hover:scale-105 ${
-                      test.type === "test"
-                        ? "bg-red-50 text-red-700 border-red-100"
-                        : "bg-emerald-50 text-emerald-700 border-emerald-100"
-                    }`}
+              </div>
+              <h3 className="text-base font-black text-gray-900 uppercase tracking-tight mb-1">
+                No Papers Found
+              </h3>
+              <p className="text-gray-500 font-medium mb-6 max-w-sm mx-auto text-xs">
+                {currentSearch || activeSubject !== "All" || currentType
+                  ? "No papers match your search criteria. Try clearing some filters."
+                  : "No past papers have been submitted for this category yet."}
+              </p>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                {(currentSearch || activeSubject !== "All" || currentType) && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs uppercase tracking-wider hover:bg-gray-50 transition-all"
                   >
-                    {test.type}
-                  </span>
-
-                  {user?.isAdmin && !test.isApproved && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={(e) => handleAction(e, test._id, "approve")}
-                        disabled={mutation.isPending && actionId === test._id}
-                        className={`p-3 bg-emerald-50 text-emerald-600 rounded-xl transition-all shadow-sm ${mutation.isPending && actionId === test._id ? "opacity-50 cursor-not-allowed" : "hover:bg-emerald-600 hover:text-white"}`}
-                      >
-                        {mutation.isPending &&
-                        actionId === test._id &&
-                        mutation.variables?.action === "approve" ? (
-                          <svg
-                            className="w-4 h-4 animate-spin"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            strokeWidth="3"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                      <button
-                        onClick={(e) => handleAction(e, test._id, "reject")}
-                        disabled={mutation.isPending && actionId === test._id}
-                        className={`p-3 bg-red-50 text-red-600 rounded-xl transition-all shadow-sm ${mutation.isPending && actionId === test._id ? "opacity-50 cursor-not-allowed" : "hover:bg-red-600 hover:text-white"}`}
-                      >
-                        {mutation.isPending &&
-                        actionId === test._id &&
-                        mutation.variables?.action === "reject" ? (
-                          <svg
-                            className="w-4 h-4 animate-spin"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            strokeWidth="3"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <h2 className="text-2xl font-black text-gray-900 mb-4 group-hover:text-red-600 transition-colors uppercase tracking-tight line-clamp-2 leading-tight">
-                  {test.title}
-                </h2>
-                <p className="text-gray-500 font-medium line-clamp-3 leading-relaxed mb-10 italic flex-1">
-                  "{test.content?.replace(/<[^>]*>/g, "").substring(0, 150)}..."
-                </p>
-
-                <div className="flex items-center gap-4 pt-6 border-t border-gray-50 w-full mt-auto">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg ring-2 ring-gray-100">
-                    {test.user?.profilePicture ? (
-                      <img
-                        src={test.user.profilePicture}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-[10px] font-black">
-                        {test.user?.name?.charAt(0) || "U"}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <span className="block text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
-                      Submitted by
-                    </span>
-                    <span className="block text-xs font-black text-gray-900 uppercase truncate max-w-[120px]">
-                      {test.user?.name || "STUDENT"}
-                    </span>
-                  </div>
-                  {test.courseName && (
-                    <div className="ml-auto">
-                      <div className="bg-gray-950 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl group-hover:bg-red-600 transition-colors italic">
-                        {test.courseName}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
+                    Clear Filters
+                  </button>
+                )}
+                {user ? (
+                  <Link
+                    to="/pass-tests/create"
+                    className="inline-flex items-center gap-1.5 bg-gray-900 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-md shadow-gray-900/10"
+                  >
+                    Upload Paper
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-1.5 bg-red-600 text-white px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-md shadow-red-600/20"
+                  >
+                    Login to Upload
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
       </div>
+
+      {/* ── Floating "Upload Paper" Button ── */}
+      {user && (
+        <Link
+          to="/pass-tests/create"
+          className="fixed bottom-24 sm:bottom-8 right-5 sm:right-8 bg-gray-900 hover:bg-red-600 text-white px-5 py-3.5 rounded-full shadow-2xl flex items-center gap-2.5 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 z-40 group border border-white/20"
+          aria-label="Upload Paper"
+        >
+          <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+            <svg
+              className="w-3.5 h-3.5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth="3"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </div>
+          <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">
+            Upload Paper
+          </span>
+        </Link>
+      )}
     </div>
   );
 };
