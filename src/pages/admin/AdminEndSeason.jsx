@@ -99,51 +99,50 @@ const AdminEndSeason = () => {
 
   if (metaLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
         <Loader />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
-        {/* Header Section */}
-        <header className="mb-6 sm:mb-8 lg:mb-10 animate-fade-in">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 sm:gap-4 mb-3">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    ></path>
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
-                    Semester Update
-                  </h1>
-                  <p className="text-sm sm:text-base text-gray-600 mt-1.5 leading-relaxed">
-                    Promote students to the next semester level
-                  </p>
-                </div>
-              </div>
+    <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        {/* ── Breadcrumb & Top Bar ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Link
+                to="/admin"
+                className="text-xs font-bold text-gray-500 hover:text-red-600 transition"
+              >
+                Admin
+              </Link>
+              <span className="text-gray-300 text-xs">/</span>
+              <span className="text-xs font-bold text-red-600">
+                Semester Rollover
+              </span>
             </div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900">
+                Academic <span className="text-red-600">Rollover</span>
+              </h1>
+              <span className="px-2 py-0.5 bg-red-600 text-white rounded text-[10px] font-black uppercase tracking-wider">
+                End Season
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 font-medium">
+              Promote enrolled students to their next semester level
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
             <Link
               to="/admin"
-              className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 sm:px-7 sm:py-3.5 rounded-xl hover:from-red-700 hover:to-red-800 shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 text-sm sm:text-base font-bold whitespace-nowrap w-full sm:w-auto"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full font-bold text-xs uppercase tracking-wider transition cursor-pointer"
             >
               <svg
-                className="w-5 h-5"
+                className="w-3.5 h-3.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -151,233 +150,126 @@ const AdminEndSeason = () => {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                   d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                ></path>
+                />
               </svg>
-              <span className="hidden sm:inline">Back to Dashboard</span>
-              <span className="sm:hidden">Back</span>
+              Admin Dashboard
             </Link>
-          </div>
-        </header>
-
-        {/* Info Alert Card */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-xl shadow-sm p-5 sm:p-6 mb-6 sm:mb-8 animate-slide-in">
-          <div className="flex items-start gap-4">
-            <div className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 bg-blue-500 rounded-lg shadow-sm flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                ></path>
-              </svg>
-            </div>
-            <div className="flex-1 min-w-0 pt-0.5">
-              <h3 className="text-sm sm:text-base font-bold text-blue-900 mb-2">
-                Important Notice
-              </h3>
-              <p className="text-sm text-blue-800 leading-relaxed">
-                This action will promote all students from the selected campus
-                and department to the next semester level. Students already in
-                the highest semester will be automatically skipped.
-                <strong className="text-blue-900 font-semibold">
-                  {" "}
-                  This action cannot be undone.
-                </strong>
-              </p>
-            </div>
           </div>
         </div>
 
-        {/* Promotion Form Card */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-6 sm:mb-8">
-          {/* Form Header */}
-          <div className="bg-gradient-to-r from-red-600 to-rose-600 px-6 py-4 sm:px-8 sm:py-5">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">
-                  Semester Promotion Form
-                </h2>
-                <p className="text-red-50 text-sm mt-0.5">
-                  Select campus and department to proceed
-                </p>
-              </div>
-            </div>
+        {/* ── Notice Callout ─────────────────────────────── */}
+        <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 sm:p-4 mb-6 flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
           </div>
+          <div>
+            <h3 className="text-xs font-bold text-amber-900 mb-0.5">
+              Irreversible Batch Operation
+            </h3>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              This action increments the semester level of all active students in the selected department by one.
+              Students currently in the highest final semester will be retained.
+            </p>
+          </div>
+        </div>
 
-          {/* Form Body */}
-          <form
-            onSubmit={handleSubmit}
-            className="p-6 sm:p-8 lg:p-10 space-y-8"
-          >
-            {/* Campus Selection */}
-            <div className="mb-6">
-              <label
-                htmlFor="campus_id"
-                className="flex items-center gap-2 mb-3 text-base font-semibold text-gray-800"
-              >
-                <svg
-                  className="w-5 h-5 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+        {/* ── Promotion Form ─────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 sm:p-6 mb-8">
+          <h2 className="text-sm font-bold text-gray-900 mb-1">
+            Select Academic Scope
+          </h2>
+          <p className="text-xs text-gray-400 mb-4">
+            Filter by campus and department to preview the enrolled student counts before triggering promotion.
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Campus <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="campus_id"
+                  name="campus_id"
+                  value={formData.campus_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, campus_id: e.target.value })
+                  }
+                  required
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  ></path>
-                </svg>
-                <span>
-                  Select Campus <span className="text-red-600">*</span>
-                </span>
-              </label>
-              <select
-                id="campus_id"
-                name="campus_id"
-                value={formData.campus_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, campus_id: e.target.value })
-                }
-                required
-                className="block w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-gray-400"
-              >
-                <option value="">-- Select Campus --</option>
-                {campuses.map((campus) => (
-                  <option key={campus._id} value={campus._id}>
-                    {campus.name} ({campus.code})
-                  </option>
-                ))}
-              </select>
+                  <option value="">-- Choose Campus --</option>
+                  {campuses.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.name} ({c.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Department <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="department_id"
+                  name="department_id"
+                  value={formData.department_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, department_id: e.target.value })
+                  }
+                  required
+                  className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
+                >
+                  <option value="">-- Choose Department --</option>
+                  {departments.map((d) => (
+                    <option key={d._id} value={d._id}>
+                      {d.name} ({d.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* Department Selection */}
-            <div className="mb-6">
-              <label
-                htmlFor="department_id"
-                className="flex items-center gap-2 mb-3 text-base font-semibold text-gray-800"
-              >
-                <svg
-                  className="w-5 h-5 text-red-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                  ></path>
-                </svg>
-                <span>
-                  Select Department <span className="text-red-600">*</span>
-                </span>
-              </label>
-              <select
-                id="department_id"
-                name="department_id"
-                value={formData.department_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, department_id: e.target.value })
-                }
-                required
-                className="block w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-gray-400"
-              >
-                <option value="">-- Select Department --</option>
-                {departments.map((dept) => (
-                  <option key={dept._id} value={dept._id}>
-                    {dept.name} ({dept.code})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Preview Section */}
+            {/* Ready Confirmation Banner */}
             {showPreview && selectedCampus && selectedDepartment && (
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 sm:p-6 border-2 border-green-200 shadow-sm animate-fade-in">
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 bg-green-500 rounded-lg shadow-sm flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      ></path>
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0 pt-0.5">
-                    <h4 className="text-sm sm:text-base font-bold text-green-900 mb-2">
-                      Ready to Proceed
-                    </h4>
-                    <p className="text-sm text-green-800 mb-2 leading-relaxed">
-                      All students from{" "}
-                      <span className="font-semibold">
-                        {selectedCampus.name}
-                      </span>{" "}
-                      -
-                      <span className="font-semibold">
-                        {" "}
-                        {selectedDepartment.name}
-                      </span>{" "}
-                      will be promoted to the next semester level.
-                    </p>
-                    <p className="text-xs text-green-700 italic">
-                      Note: Students already in the highest semester will be
-                      automatically skipped.
-                    </p>
-                  </div>
+              <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 animate-in fade-in">
+                <div>
+                  <h4 className="text-xs font-bold text-emerald-900">
+                    Ready for Semester Progression
+                  </h4>
+                  <p className="text-xs text-emerald-700 mt-0.5">
+                    Target:{" "}
+                    <span className="font-bold">{selectedCampus.name}</span> ·{" "}
+                    <span className="font-bold">{selectedDepartment.name}</span>
+                  </p>
                 </div>
+                <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold">
+                  Scope Verified
+                </span>
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-6 sm:pt-8 border-t-2 border-gray-100">
+            <div className="pt-2 border-t border-gray-100 flex items-center justify-end gap-2">
               <Link
                 to="/admin"
-                className="inline-flex items-center justify-center px-6 py-3 text-base font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 w-full sm:w-auto gap-2"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  ></path>
-                </svg>
-                <span>Cancel</span>
+                Cancel
               </Link>
               <button
                 type="submit"
@@ -386,138 +278,75 @@ const AdminEndSeason = () => {
                   !formData.campus_id ||
                   !formData.department_id
                 }
-                className="inline-flex items-center justify-center px-12 py-4 sm:px-16 sm:py-5 text-base sm:text-lg font-bold text-white bg-gradient-to-r from-red-600 via-red-600 to-rose-600 rounded-xl hover:from-red-700 hover:via-red-700 hover:to-rose-700 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 hover:scale-[1.03] active:translate-y-0 active:scale-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none w-full sm:w-auto gap-3"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
               >
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  ></path>
-                </svg>
-                <span>
-                  {promoteMutation.isPending
-                    ? "Promoting..."
-                    : "Promote All Students"}
-                </span>
+                {promoteMutation.isPending ? "Promoting..." : "Promote Eligible Students"}
               </button>
             </div>
           </form>
         </div>
 
-        {/* Current Semester Structure */}
-        <section className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-          {/* Section Header */}
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 sm:px-8 sm:py-5">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                  ></path>
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">
-                  Current Semester Structure
-                </h2>
-                <p className="text-indigo-100 text-sm mt-0.5">
-                  View all available semester levels
-                </p>
-              </div>
-            </div>
+        {/* ── Current Semester Structure & Student Breakdown ─────────────────────────────── */}
+        <div>
+          <div className="mb-3">
+            <h2 className="text-sm font-black uppercase tracking-wider text-gray-900">
+              Semester Levels & Enrollments
+            </h2>
+            <p className="text-xs text-gray-500 font-medium">
+              Active student counts across registered semester tiers
+            </p>
           </div>
 
-          {/* Semester Cards Grid */}
-          <div className="p-6 sm:p-8">
-            {countsLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading student counts...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-                {uniqueSemesters.map((semester) => (
-                  <div
-                    key={semester._id}
-                    className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border-2 border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 relative"
-                  >
+          {countsLoading ? (
+            <div className="py-12 flex justify-center">
+              <Loader />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {uniqueSemesters.map((semester) => (
+                <div
+                  key={semester._id}
+                  className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs relative flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-black uppercase tracking-wider text-gray-900">
+                      Semester {semester.number}
+                    </span>
                     {semester.number < maxSemester ? (
-                      <div className="absolute top-3 right-3 z-10 w-8 h-8 bg-green-100 rounded-full shadow-sm flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-green-600"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M13 7l5 5m0 0l-5 5m5-5H6"
-                          ></path>
-                        </svg>
-                      </div>
+                      <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] font-bold">
+                        →
+                      </span>
                     ) : (
-                      <div className="absolute top-3 right-3 z-10">
-                        <span className="inline-flex items-center justify-center px-2.5 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full shadow-sm">
-                          FINAL
-                        </span>
-                      </div>
+                      <span className="px-1.5 py-0.2 rounded bg-purple-100 text-purple-700 text-[9px] font-black uppercase">
+                        Final
+                      </span>
                     )}
-                    <div className="mb-3">
-                      <p className="font-bold text-gray-900 text-lg sm:text-xl">
-                        Semester {semester.number}
-                      </p>
-                      {semester.name &&
-                        semester.name !== `Semester ${semester.number}` && (
-                          <p className="text-sm text-gray-500 font-medium mt-1">
-                            {semester.name}
-                          </p>
-                        )}
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <p className="text-xs text-gray-600 font-medium flex items-center gap-1.5">
-                        <svg
-                          className="w-4 h-4 text-indigo-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                          ></path>
-                        </svg>
-                        <span>
-                          {studentCounts[semester._id] !== undefined
-                            ? `${studentCounts[semester._id]} student${studentCounts[semester._id] !== 1 ? "s" : ""}`
-                            : "Select campus & department"}
-                        </span>
-                      </p>
-                    </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+
+                  {semester.name &&
+                    semester.name !== `Semester ${semester.number}` && (
+                      <p className="text-[11px] text-gray-400 font-medium truncate mb-2">
+                        {semester.name}
+                      </p>
+                    )}
+
+                  <div className="pt-2 border-t border-gray-50">
+                    <span className="text-xs font-bold text-gray-900">
+                      {studentCounts[semester._id] !== undefined
+                        ? `${studentCounts[semester._id]} enrolled`
+                        : "—"}
+                    </span>
+                    <span className="text-[10px] text-gray-400 block">
+                      {studentCounts[semester._id] !== undefined
+                        ? "Active in scope"
+                        : "Select scope to count"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

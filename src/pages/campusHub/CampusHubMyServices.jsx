@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { campusHubAPI } from "../../services/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Loader from "../../components/common/Loader";
@@ -8,8 +8,17 @@ import CampusHubHeader from "../../components/campusHub/CampusHubHeader";
 import { getImageUrl } from "../../utils/imageUrl";
 import { uploadToCloudinary } from "../../utils/cloudinary";
 
+const POPULAR_CATEGORIES = [
+  "Design & Creative",
+  "Tutoring & Academic",
+  "Tech & Coding",
+  "Writing & Translation",
+  "Photography",
+  "Delivery & Errands",
+  "Other",
+];
+
 const CampusHubMyServices = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
@@ -22,6 +31,8 @@ const CampusHubMyServices = () => {
   const [createImages, setCreateImages] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: services = [], isLoading } = useQuery({
     queryKey: ["campusHubMyServices"],
@@ -44,7 +55,7 @@ const CampusHubMyServices = () => {
         status: "active",
       });
       setCreateImages([]);
-      toast.success("Service created! 🚀");
+      toast.success("Service published successfully! 🚀");
     },
     onError: (err) =>
       toast.error(err.response?.data?.message || "Failed to create service"),
@@ -74,7 +85,7 @@ const CampusHubMyServices = () => {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.description.trim()) {
-      toast.error("Title and description required.");
+      toast.error("Title and description are required.");
       return;
     }
     if (createImages.length < 1 || createImages.length > 3) {
@@ -118,109 +129,57 @@ const CampusHubMyServices = () => {
     });
   };
 
+  const closeModal = () => {
+    setShowCreate(false);
+    setEditing(null);
+    setCreateImages([]);
+    setForm({
+      title: "",
+      description: "",
+      category: "",
+      price: "",
+      status: "active",
+    });
+  };
+
+  const removeSelectedImage = (indexToRemove) => {
+    setCreateImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const filteredServices = useMemo(() => {
+    return services.filter((svc) => {
+      const matchesStatus =
+        statusFilter === "all" || svc.status === statusFilter;
+      const matchesSearch =
+        !searchQuery.trim() ||
+        svc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        svc.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        svc.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [services, statusFilter, searchQuery]);
+
   if (isLoading) return <Loader />;
 
   const activeCount = services.filter((s) => s.status === "active").length;
+  const totalValue = services.reduce((acc, s) => acc + Number(s.price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12">
+    <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
         <CampusHubHeader activePage="services" />
 
-        {/* ── Stats Overview ─────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col justify-between h-44 group hover:-translate-y-1 transition-all duration-300">
-            <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-inner group-hover:scale-110 transition-transform">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
-                Total Listings
-              </p>
-              <h3 className="text-4xl font-black text-gray-900 tracking-tight">
-                {services.length}
-              </h3>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col justify-between h-44 group hover:-translate-y-1 transition-all duration-300">
-            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner group-hover:scale-110 transition-transform">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
-                Active Services
-              </p>
-              <h3 className="text-4xl font-black text-gray-900 tracking-tight">
-                {activeCount}
-              </h3>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-[2.5rem] p-8 shadow-2xl shadow-gray-900/20 text-white flex flex-col justify-between h-44 group hover:-translate-y-1 transition-all duration-300">
-            <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-red-500 backdrop-blur-md shadow-inner group-hover:scale-110 transition-transform">
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"
-                ></path>
-              </svg>
-            </div>
-            <div>
-              <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1">
-                Market Reach
-              </p>
-              <h3 className="text-4xl font-black tracking-tight">
-                ₦
-                {Number(
-                  services.reduce((acc, s) => acc + Number(s.price), 0),
-                ).toLocaleString()}
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Action Bar ─────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-12">
+        {/* ── Page Header & Stats Bar ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
+            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900">
               My <span className="text-red-600">Services</span>
             </h1>
-            <p className="text-gray-500 font-bold">
-              Showcase your skills to the campus community.
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
+              Manage your campus service listings, pricing, and visibility
             </p>
           </div>
+
           <button
             onClick={() => {
               setShowCreate(true);
@@ -234,11 +193,31 @@ const CampusHubMyServices = () => {
                 status: "active",
               });
             }}
-            className="group px-8 py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.15em] shadow-xl shadow-red-500/20 hover:shadow-red-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center gap-3"
+            className="inline-flex items-center gap-2 self-start sm:self-auto px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition active:scale-95 cursor-pointer"
           >
-            <div className="w-6 h-6 bg-white/20 rounded-lg flex items-center justify-center group-hover:rotate-90 transition-transform duration-500">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Service
+          </button>
+        </div>
+
+        {/* ── Compact 3-Column Stats ─────────────────────────────── */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-gray-100 shadow-xs flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0">
               <svg
-                className="w-4 h-4"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -246,270 +225,220 @@ const CampusHubMyServices = () => {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="3"
-                  d="M12 4v16m8-8H4"
-                ></path>
+                  strokeWidth="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
               </svg>
             </div>
-            Add New Service
-          </button>
-        </div>
-
-        {/* ── Form Modal/Section ─────────────────────────────── */}
-        {(showCreate || editing) && (
-          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            <div
-              className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm animate-in fade-in duration-300"
-              onClick={() => {
-                setShowCreate(false);
-                setEditing(null);
-              }}
-            />
-            <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20">
-              <div className="h-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-600"></div>
-              <div className="p-8 sm:p-12">
-                <div className="flex justify-between items-center mb-10">
-                  <div>
-                    <h2 className="text-3xl font-black text-gray-900 tracking-tight">
-                      {editing ? "Edit Service" : "New Service"}
-                    </h2>
-                    <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mt-1">
-                      Professional Portfolio Item
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowCreate(false);
-                      setEditing(null);
-                    }}
-                    className="w-12 h-12 bg-gray-50 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all duration-300 flex items-center justify-center shadow-inner"
-                  >
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        d="M6 18L18 6M6 6l12 12"
-                      ></path>
-                    </svg>
-                  </button>
-                </div>
-
-                <form
-                  onSubmit={editing ? handleUpdate : handleCreate}
-                  className="space-y-8"
-                >
-                  <div className="space-y-6">
-                    <div className="group">
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                        Service Title
-                      </label>
-                      <input
-                        value={form.title}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, title: e.target.value }))
-                        }
-                        placeholder="What are you offering?"
-                        className="w-full px-6 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:border-red-200 font-bold text-gray-900 transition-all placeholder-gray-300 shadow-inner"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                        Detailed Description
-                      </label>
-                      <textarea
-                        value={form.description}
-                        onChange={(e) =>
-                          setForm((f) => ({
-                            ...f,
-                            description: e.target.value,
-                          }))
-                        }
-                        rows={4}
-                        placeholder="Describe your service in detail..."
-                        className="w-full px-6 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:border-red-200 font-medium text-gray-800 transition-all placeholder-gray-300 shadow-inner resize-none"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                          Category
-                        </label>
-                        <input
-                          value={form.category}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, category: e.target.value }))
-                          }
-                          placeholder="e.g. Design, Tutoring"
-                          className="w-full px-6 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:border-red-200 font-bold text-gray-900 transition-all placeholder-gray-300 shadow-inner"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                          Price (₦)
-                        </label>
-                        <input
-                          type="number"
-                          value={form.price}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, price: e.target.value }))
-                          }
-                          placeholder="0.00"
-                          className="w-full px-6 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:border-red-200 font-bold text-gray-900 transition-all placeholder-gray-300 shadow-inner"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    {!editing && (
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                          Showcase Images (1-3)
-                        </label>
-                        <div className="relative border-2 border-dashed border-gray-100 rounded-[2rem] px-8 py-10 hover:border-red-400 hover:bg-red-50/30 transition-all duration-300 group text-center cursor-pointer shadow-inner">
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={(e) =>
-                              setCreateImages(
-                                Array.from(e.target.files).slice(0, 3),
-                              )
-                            }
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          />
-                          <div className="flex flex-col items-center gap-3">
-                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-red-500 shadow-lg group-hover:scale-110 transition-transform">
-                              <svg
-                                className="w-8 h-8"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="M12 4v16m8-8H4"
-                                ></path>
-                              </svg>
-                            </div>
-                            <p className="font-black text-gray-700 text-sm">
-                              Upload Service Media
-                            </p>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                              PNG, JPG or WEBP · MAX 5MB
-                            </p>
-                          </div>
-                        </div>
-                        {createImages.length > 0 && (
-                          <div className="mt-4 flex gap-3 overflow-x-auto p-2 scrollbar-hide">
-                            {Array.from(createImages).map((file, idx) => (
-                              <div
-                                key={idx}
-                                className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-white shadow-lg flex-shrink-0"
-                              >
-                                <img
-                                  src={URL.createObjectURL(file)}
-                                  className="w-full h-full object-cover"
-                                  alt=""
-                                />
-                                <div className="absolute inset-0 bg-red-600/10" />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {editing && (
-                      <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">
-                          Visibility Status
-                        </label>
-                        <select
-                          value={form.status}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, status: e.target.value }))
-                          }
-                          className="w-full px-6 py-4 bg-gray-50/50 border border-gray-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-red-500/5 focus:border-red-200 font-bold text-gray-900 transition-all shadow-inner appearance-none"
-                        >
-                          <option value="active">Active (Public)</option>
-                          <option value="inactive">Inactive (Private)</option>
-                        </select>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <button
-                      type="submit"
-                      disabled={
-                        isUploading ||
-                        createMutation.isPending ||
-                        updateMutation.isPending
-                      }
-                      className="flex-1 py-5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-900/20 hover:bg-black transition-all disabled:opacity-50"
-                    >
-                      {isUploading
-                        ? "Uploading..."
-                        : editing
-                          ? "Save Changes"
-                          : "Publish Service"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowCreate(false);
-                        setEditing(null);
-                      }}
-                      className="px-8 py-5 bg-gray-50 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                Listings
+              </p>
+              <p className="text-base sm:text-xl font-black text-gray-900 leading-tight">
+                {services.length}
+              </p>
             </div>
           </div>
-        )}
 
-        {/* ── Service List ─────────────────────────────── */}
-        <div className="space-y-8">
-          {services.map((svc) => (
-            <div
-              key={svc._id}
-              className="group bg-white rounded-[3rem] border border-gray-100 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_60px_-15px_rgba(239,68,68,0.12)] hover:border-red-100 transition-all duration-500 overflow-hidden flex flex-col md:flex-row"
+          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-gray-100 shadow-xs flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                Active
+              </p>
+              <p className="text-base sm:text-xl font-black text-emerald-600 leading-tight">
+                {activeCount}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-gray-100 shadow-xs flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gray-900 text-white flex items-center justify-center shrink-0">
+              <span className="font-black text-xs">₦</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-gray-400 truncate">
+                Total Reach
+              </p>
+              <p className="text-base sm:text-xl font-black text-gray-900 truncate leading-tight">
+                ₦{totalValue.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Search & Filter Row ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-5">
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1.5 p-1 bg-gray-100 rounded-full self-start">
+            {[
+              { id: "all", label: "All" },
+              { id: "active", label: `Active (${activeCount})` },
+              {
+                id: "inactive",
+                label: `Inactive (${services.length - activeCount})`,
+              },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id)}
+                className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+                  statusFilter === tab.id
+                    ? "bg-white text-gray-900 shadow-xs"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Quick Search */}
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search my services..."
+              className="w-full pl-8 pr-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-800 focus:outline-none focus:border-red-500 shadow-xs"
+            />
+            <svg
+              className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              {/* Image Section */}
-              <div className="w-full md:w-80 h-64 md:h-auto relative overflow-hidden flex-shrink-0">
-                {svc.images?.length > 0 ? (
-                  <>
-                    <img
-                      src={getImageUrl(svc.images[0])}
-                      alt={svc.title}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    {svc.images.length > 1 && (
-                      <div className="absolute bottom-6 left-6 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl text-white text-[10px] font-black uppercase tracking-widest border border-white/20">
-                        +{svc.images.length - 1} Images
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Services Grid ─────────────────────────────── */}
+        {filteredServices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredServices.map((svc) => (
+              <div
+                key={svc._id}
+                className="group bg-white rounded-xl border border-gray-100 p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+              >
+                <div className="flex gap-3.5">
+                  {/* Thumbnail */}
+                  <Link
+                    to={`/campus-hub/service/${svc._id}`}
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 shrink-0 relative block"
+                  >
+                    {svc.images?.length > 0 ? (
+                      <img
+                        src={getImageUrl(svc.images[0])}
+                        alt={svc.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <svg
+                          className="w-8 h-8"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
                       </div>
                     )}
-                  </>
-                ) : (
-                  <div className="absolute inset-0 bg-gray-50 flex items-center justify-center text-gray-200">
+                    {svc.images?.length > 1 && (
+                      <span className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-xs text-[9px] font-bold text-white px-1.5 py-0.5 rounded">
+                        +{svc.images.length - 1}
+                      </span>
+                    )}
+                  </Link>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-bold uppercase tracking-wider truncate">
+                        {svc.category || "General"}
+                      </span>
+                      <span className="text-sm font-black text-red-600 shrink-0">
+                        ₦{Number(svc.price).toLocaleString()}
+                      </span>
+                    </div>
+
+                    <Link
+                      to={`/campus-hub/service/${svc._id}`}
+                      className="block font-bold text-sm text-gray-900 group-hover:text-red-600 transition-colors line-clamp-1 mb-1"
+                    >
+                      {svc.title}
+                    </Link>
+
+                    <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed mb-2">
+                      {svc.description}
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          svc.status === "active"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200/50"
+                            : "bg-gray-100 text-gray-500 border border-gray-200"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            svc.status === "active"
+                              ? "bg-emerald-500"
+                              : "bg-gray-400"
+                          }`}
+                        />
+                        {svc.status === "active" ? "Active" : "Inactive"}
+                      </span>
+                      <span className="text-[10px] font-mono text-gray-400">
+                        #{svc._id?.slice(-5).toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Controls */}
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <Link
+                    to={`/campus-hub/service/${svc._id}`}
+                    className="text-xs font-bold text-gray-500 hover:text-red-600 flex items-center gap-1"
+                  >
+                    View Listing
                     <svg
-                      className="w-16 h-16"
+                      className="w-3.5 h-3.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -517,64 +446,34 @@ const CampusHubMyServices = () => {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      ></path>
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Content Section */}
-              <div className="p-8 sm:p-10 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between gap-4 mb-6">
-                    <span className="px-4 py-2 bg-gray-50 text-gray-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-gray-100">
-                      {svc.category || "General"}
-                    </span>
-                    <span className="text-3xl font-black text-red-600 tracking-tighter">
-                      ₦{Number(svc.price).toLocaleString()}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 mb-4 group-hover:text-red-600 transition-colors tracking-tight leading-tight">
-                    {svc.title}
-                  </h2>
-                  <p className="text-gray-500 font-medium text-base mb-8 line-clamp-2 leading-relaxed">
-                    {svc.description}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-6 pt-8 border-t border-gray-50">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border ${svc.status === "active" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-gray-50 text-gray-400 border-gray-100"}`}
-                    >
-                      <span
-                        className={`w-2 h-2 rounded-full ${svc.status === "active" ? "bg-emerald-500 animate-pulse" : "bg-gray-300"}`}
+                        strokeWidth="2"
+                        d="M9 5l7 7-7 7"
                       />
-                      {svc.status}
-                    </div>
-                    <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
-                      ID: #{svc._id?.slice(-6).toUpperCase()}
-                    </div>
-                  </div>
+                    </svg>
+                  </Link>
 
-                  <div className="flex gap-3">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => startEdit(svc)}
-                      className="px-6 py-3.5 bg-white border border-gray-100 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-300"
+                      className="px-3 py-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 transition cursor-pointer"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => {
-                        if (window.confirm("Delete this service?"))
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete this service listing?",
+                          )
+                        ) {
                           deleteMutation.mutate(svc._id);
+                        }
                       }}
-                      className="w-12 h-12 bg-white border border-red-50 text-red-300 hover:text-red-600 hover:bg-red-50 rounded-2xl flex items-center justify-center transition-all duration-300"
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                      title="Delete service"
                     >
                       <svg
-                        className="w-5 h-5"
+                        className="w-4 h-4"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -582,23 +481,21 @@ const CampusHubMyServices = () => {
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth="2.5"
+                          strokeWidth="2"
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        ></path>
+                        />
                       </svg>
                     </button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        {services.length === 0 && !showCreate && !editing && (
-          <div className="text-center py-32 bg-white rounded-[3rem] border border-dashed border-gray-200 mt-8 shadow-inner">
-            <div className="w-24 h-24 bg-gray-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+            <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
               <svg
-                className="w-12 h-12 text-gray-300"
+                className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -606,26 +503,335 @@ const CampusHubMyServices = () => {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth="1.5"
+                  strokeWidth="2"
                   d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                ></path>
+                />
               </svg>
             </div>
-            <h3 className="text-3xl font-black text-gray-900 mb-2">
-              No Services Yet
+            <h3 className="text-base font-bold text-gray-900 mb-1">
+              {searchQuery || statusFilter !== "all"
+                ? "No matching services found"
+                : "No services created yet"}
             </h3>
-            <p className="text-gray-400 font-bold max-w-sm mx-auto mb-10">
-              Start your journey as a provider by creating your first service
-              listing.
+            <p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
+              {searchQuery || statusFilter !== "all"
+                ? "Try adjusting your search query or status filter."
+                : "Start offering your skills to peers on campus by creating your first listing."}
             </p>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-900/20 hover:bg-black hover:-translate-y-1 transition-all"
-            >
-              Create First Listing
-            </button>
+            {searchQuery || statusFilter !== "all" ? (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                }}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-bold text-gray-700 transition"
+              >
+                Reset Filters
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowCreate(true)}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition"
+              >
+                Create First Service
+              </button>
+            )}
           </div>
         )}
+
+        {/* ── Create / Edit Modal ─────────────────────────────── */}
+        {(showCreate || editing) && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div
+              className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+              onClick={closeModal}
+            />
+
+            <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 my-8">
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {editing ? "Edit Service" : "Create New Service"}
+                  </h3>
+                  <p className="text-[11px] text-gray-500 font-medium">
+                    {editing
+                      ? "Update your service details and pricing"
+                      : "Add your skills and pricing to the campus marketplace"}
+                  </p>
+                </div>
+                <button
+                  onClick={closeModal}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Form */}
+              <form
+                onSubmit={editing ? handleUpdate : handleCreate}
+                className="p-5 space-y-4 max-h-[80vh] overflow-y-auto"
+              >
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Service Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, title: e.target.value }))
+                    }
+                    placeholder="e.g. Professional Resume & CV Redesign"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Detailed Description <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, description: e.target.value }))
+                    }
+                    rows={3}
+                    placeholder="Describe what you provide, your process, turnaround time, etc."
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, category: e.target.value }))
+                      }
+                      placeholder="e.g. Design, Tutoring"
+                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Starting Price (₦) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={form.price}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, price: e.target.value }))
+                      }
+                      placeholder="0.00"
+                      min="0"
+                      className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-red-500"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Category Chips */}
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">
+                    Suggested Categories:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {POPULAR_CATEGORIES.map((cat) => (
+                      <button
+                        type="button"
+                        key={cat}
+                        onClick={() => setForm((f) => ({ ...f, category: cat }))}
+                        className={`px-2.5 py-1 text-[11px] font-bold rounded-full transition cursor-pointer ${
+                          form.category === cat
+                            ? "bg-red-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {editing && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Visibility Status
+                    </label>
+                    <select
+                      value={form.status}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, status: e.target.value }))
+                      }
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
+                    >
+                      <option value="active">Active (Visible in Marketplace)</option>
+                      <option value="inactive">Inactive (Hidden)</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Image Upload for New Services */}
+                {!editing && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      Showcase Images (1 to 3 images){" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-red-400 hover:bg-red-50/20 transition cursor-pointer">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files).slice(0, 3);
+                          setCreateImages(files);
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="flex flex-col items-center">
+                        <svg
+                          className="w-7 h-7 text-gray-400 mb-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <p className="text-xs font-bold text-gray-700">
+                          Click to select photos
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-medium">
+                          PNG, JPG, or WEBP up to 5MB each
+                        </p>
+                      </div>
+                    </div>
+
+                    {createImages.length > 0 && (
+                      <div className="mt-2 flex gap-2 overflow-x-auto py-1">
+                        {createImages.map((file, idx) => (
+                          <div
+                            key={idx}
+                            className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 shrink-0 group"
+                          >
+                            <img
+                              src={URL.createObjectURL(file)}
+                              className="w-full h-full object-cover"
+                              alt=""
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeSelectedImage(idx)}
+                              className="absolute top-1 right-1 w-5 h-5 bg-black/70 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] transition"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Form Actions */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-gray-500 hover:bg-gray-100 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      isUploading ||
+                      createMutation.isPending ||
+                      updateMutation.isPending
+                    }
+                    className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  >
+                    {isUploading ? (
+                      <>
+                        <svg
+                          className="w-3.5 h-3.5 animate-spin"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        <span>Uploading...</span>
+                      </>
+                    ) : editing ? (
+                      "Save Changes"
+                    ) : (
+                      "Publish Service"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── Mobile Floating Action Button ─────────────────────────────── */}
+        <button
+          onClick={() => {
+            setShowCreate(true);
+            setEditing(null);
+            setCreateImages([]);
+            setForm({
+              title: "",
+              description: "",
+              category: "",
+              price: "",
+              status: "active",
+            });
+          }}
+          className="sm:hidden fixed bottom-24 right-5 z-40 bg-red-600 hover:bg-red-700 text-white p-3.5 rounded-full shadow-lg transition active:scale-90 flex items-center justify-center cursor-pointer"
+          title="Add New Service"
+          aria-label="Add New Service"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.5"
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   );

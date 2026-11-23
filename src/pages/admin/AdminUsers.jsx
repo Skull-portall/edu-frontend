@@ -134,582 +134,403 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
-      {/* Header Section */}
-      <div className="mb-6 lg:mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-                Manage Users
+    <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        {/* ── Breadcrumb & Top Bar ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Link
+                to="/admin"
+                className="text-xs font-bold text-gray-500 hover:text-red-600 transition"
+              >
+                Admin
+              </Link>
+              <span className="text-gray-300 text-xs">/</span>
+              <span className="text-xs font-bold text-red-600">Users</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900">
+                User <span className="text-red-600">Directory</span>
               </h1>
               {newUsersCount > 0 && (
-                <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-bold leading-none text-white bg-red-600 rounded-full animate-pulse shadow-lg border-2 border-red-700">
-                  {newUsersCount > 99 ? "99+" : newUsersCount}
+                <span className="px-2 py-0.5 bg-red-600 text-white rounded-full text-[10px] font-bold">
+                  +{newUsersCount} New
                 </span>
               )}
             </div>
-            <p className="text-sm sm:text-base text-gray-600">
-              View, suspend, or delete users
-              {newUsersCount > 0 && (
-                <span className="text-red-600 font-semibold">
-                  {" "}
-                  • {newUsersCount} new registration
-                  {newUsersCount > 1 ? "s" : ""} this week
-                </span>
-              )}
+            <p className="text-xs text-gray-500 font-medium">
+              Manage accounts, verify profiles, and control platform access
             </p>
           </div>
-          <Link
-            to="/admin"
-            className="inline-flex items-center space-x-2 bg-red-600 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg hover:bg-red-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold text-sm sm:text-base shadow-md whitespace-nowrap"
-          >
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              ></path>
-            </svg>
-            <span>Back to Dashboard</span>
-          </Link>
-        </div>
-      </div>
 
-      {/* Bulk Semester Promotion Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-sm border border-blue-200 p-6 mb-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full font-bold text-xs uppercase tracking-wider transition cursor-pointer"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Admin Dashboard
+            </Link>
+          </div>
+        </div>
+
+        {/* ── Bulk Promotion Banner ─────────────────────────────── */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-3.5 sm:p-4 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Bulk Semester Promotion
-            </h2>
-            <p className="text-sm text-gray-600">
-              Promote all users to the next semester who have been registered
-              for 3+ months
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-xs text-blue-900">
+                Bulk Semester Progression
+              </span>
+              <span className="px-2 py-0.2 bg-blue-100 text-blue-800 rounded text-[9px] font-bold uppercase">
+                Academic Rollover
+              </span>
+            </div>
+            <p className="text-[11px] text-blue-700 mt-0.5">
+              Promote all registered users enrolled 3+ months to their next academic level.
             </p>
           </div>
+
           <button
             onClick={handlePromoteSemester}
             disabled={promoteMutation.isPending}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 hover:scale-105 transition-all duration-200 font-semibold inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs uppercase tracking-wider transition shrink-0 disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
           >
-            {promoteMutation.isPending ? (
-              "Loading..."
-            ) : (
-              <>
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M13 7l5 5m0 0l-5 5m5-5H6"
-                  ></path>
-                </svg>
-                Promote Eligible Users
-              </>
-            )}
+            {promoteMutation.isPending ? "Promoting..." : "Promote Eligible"}
           </button>
         </div>
-      </div>
 
-      {/* Search and Filter Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-          className="grid grid-cols-1 md:grid-cols-5 gap-4"
-        >
-          <div>
-            <label
-              htmlFor="search"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Search
-            </label>
-            <input
-              type="text"
-              id="search"
-              name="search"
-              value={filters.search}
-              onChange={handleFilterChange}
-              placeholder="Name or Email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="campus_id"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Campus
-            </label>
-            <select
-              id="campus_id"
-              name="campus_id"
-              value={filters.campus_id}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500"
-            >
-              <option value="">All Campuses</option>
-              {campuses.map((campus) => (
-                <option key={campus._id} value={campus._id}>
-                  {campus.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="department_id"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Department
-            </label>
-            <select
-              id="department_id"
-              name="department_id"
-              value={filters.department_id}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500"
-            >
-              <option value="">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept._id} value={dept._id}>
-                  {dept.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="semester_id"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Semester
-            </label>
-            <select
-              id="semester_id"
-              name="semester_id"
-              value={filters.semester_id}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500"
-            >
-              <option value="">All Semesters</option>
-              {semesters.map((sem) => (
-                <option key={sem._id} value={sem._id}>
-                  Semester {sem.number}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor="status"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-red-500 focus:border-red-500"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
-          </div>
-          <div className="md:col-span-5 flex justify-end space-x-2">
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="bg-gray-200 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-300"
-            >
-              Clear Filters
-            </button>
-          </div>
-        </form>
-      </div>
+        {/* ── Filter Bar ─────────────────────────────── */}
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-xs mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
+            <div>
+              <input
+                type="text"
+                name="search"
+                value={filters.search}
+                onChange={handleFilterChange}
+                placeholder="Search name or email..."
+                className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:bg-white focus:outline-none focus:border-red-500"
+              />
+            </div>
 
-      {/* Users Table */}
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    User
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Phone/WhatsApp
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Campus
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Department
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Semester
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Stats
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Status
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.length === 0 ? (
+            <div>
+              <select
+                name="campus_id"
+                value={filters.campus_id}
+                onChange={handleFilterChange}
+                className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
+              >
+                <option value="">All Campuses</option>
+                {campuses.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <select
+                name="department_id"
+                value={filters.department_id}
+                onChange={handleFilterChange}
+                className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
+              >
+                <option value="">All Departments</option>
+                {departments.map((d) => (
+                  <option key={d._id} value={d._id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <select
+                name="semester_id"
+                value={filters.semester_id}
+                onChange={handleFilterChange}
+                className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
+              >
+                <option value="">All Semesters</option>
+                {semesters.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    Semester {s.number}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2">
+              <select
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+                className="flex-1 px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
+              >
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+
+              {(filters.search ||
+                filters.campus_id ||
+                filters.department_id ||
+                filters.semester_id ||
+                filters.status) && (
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-bold transition cursor-pointer"
+                  title="Clear filters"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Users Table ─────────────────────────────── */}
+        {loading ? (
+          <Loader />
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-100 text-xs">
+                <thead className="bg-gray-50/80">
                   <tr>
-                    <td
-                      colSpan="8"
-                      className="px-6 py-4 text-center text-gray-500"
-                    >
-                      No users found.
-                    </td>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Campus / Dept
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Semester
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Activity
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-right font-bold text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  users.map((user) => (
-                    <tr
-                      key={user._id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden">
-                            {user.profilePicture ? (
-                              <img
-                                src={user.profilePicture}
-                                alt={user.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center">
-                                <span className="text-white text-sm font-semibold">
-                                  {user.name?.charAt(0).toUpperCase() || "U"}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.name}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {user.email}
-                            </div>
-                            {user.isAdmin && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 mt-1">
-                                Admin
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        {user.phoneNumber ? (
-                          <div className="flex items-center gap-2">
-                            <a
-                              href={`https://wa.me/${user.phoneNumber.replace(/[^0-9]/g, "")}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-green-600 hover:text-green-700 font-medium flex items-center gap-1 text-sm"
-                            >
-                              {user.phoneNumber}
-                              <svg
-                                className="w-4 h-4"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                              </svg>
-                            </a>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.campus?.code || "N/A"}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate max-w-[150px]">
-                          {user.campus?.name || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.department?.code || "N/A"}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate max-w-[150px]">
-                          {user.department?.name || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {user.semester
-                            ? `Semester ${user.semester.number}`
-                            : "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-3">
-                          <span>
-                            Q:{" "}
-                            <span className="font-semibold text-gray-900">
-                              {user.questionsCount || 0}
-                            </span>
-                          </span>
-                          <span>
-                            A:{" "}
-                            <span className="font-semibold text-gray-900">
-                              {user.answersCount || 0}
-                            </span>
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        {user.suspendedAt ? (
-                          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                            Suspended
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => navigate(`/admin/users/${user._id}`)}
-                            className="btn-view inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200"
-                          >
-                            <svg
-                              className="w-4 h-4 mr-1.5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                              ></path>
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                              ></path>
-                            </svg>
-                            View
-                          </button>
-                          {user.suspendedAt ? (
-                            <button
-                              onClick={() => handleReactivate(user._id)}
-                              disabled={reactivateMutation.isPending}
-                              className="btn-activate inline-flex items-center px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 hover:text-green-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-green-200"
-                            >
-                              {reactivateMutation.isPending ? (
-                                <>
-                                  <svg
-                                    className="animate-spin h-3 w-3 text-green-700 mr-1.5"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle
-                                      className="opacity-25"
-                                      cx="12"
-                                      cy="12"
-                                      r="10"
-                                      stroke="currentColor"
-                                      strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                      className="opacity-75"
-                                      fill="currentColor"
-                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                  </svg>
-                                  Loading...
-                                </>
-                              ) : (
-                                <>
-                                  <svg
-                                    className="w-4 h-4 mr-1.5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    ></path>
-                                  </svg>
-                                  Activate
-                                </>
-                              )}
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleSuspend(user._id)}
-                              disabled={suspendMutation.isPending}
-                              className="btn-suspend inline-flex items-center px-3 py-1.5 bg-yellow-50 text-yellow-700 rounded-md hover:bg-yellow-100 hover:text-yellow-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-yellow-200"
-                            >
-                              {suspendMutation.isPending ? (
-                                <>
-                                  <svg
-                                    className="animate-spin h-3 w-3 text-yellow-700 mr-1.5"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle
-                                      className="opacity-25"
-                                      cx="12"
-                                      cy="12"
-                                      r="10"
-                                      stroke="currentColor"
-                                      strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                      className="opacity-75"
-                                      fill="currentColor"
-                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                  </svg>
-                                  Loading...
-                                </>
-                              ) : (
-                                <>
-                                  <svg
-                                    className="w-4 h-4 mr-1.5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                                    ></path>
-                                  </svg>
-                                  Suspend
-                                </>
-                              )}
-                            </button>
-                          )}
-                          {user._id !== currentUser?._id && (
-                            <button
-                              onClick={() => handleDelete(user._id)}
-                              disabled={deleteMutation.isPending}
-                              className="btn-delete inline-flex items-center px-3 py-1.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 hover:text-red-800 transition-all duration-200 text-sm font-medium transform hover:scale-105 hover:shadow-sm border border-red-200"
-                            >
-                              {deleteMutation.isPending ? (
-                                <>
-                                  <svg
-                                    className="animate-spin h-3 w-3 text-red-700 mr-1.5"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <circle
-                                      className="opacity-25"
-                                      cx="12"
-                                      cy="12"
-                                      r="10"
-                                      stroke="currentColor"
-                                      strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                      className="opacity-75"
-                                      fill="currentColor"
-                                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                  </svg>
-                                  Loading...
-                                </>
-                              ) : (
-                                <>
-                                  <svg
-                                    className="w-4 h-4 mr-1.5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth="2"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    ></path>
-                                  </svg>
-                                  Delete
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {users.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="7"
+                        className="px-4 py-12 text-center text-gray-400 font-medium"
+                      >
+                        No users match the search criteria.
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+                  ) : (
+                    users.map((u) => (
+                      <tr
+                        key={u._id}
+                        className="hover:bg-gray-50/60 transition-colors"
+                      >
+                        {/* User Profile */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+                              {u.profilePicture ? (
+                                <img
+                                  src={u.profilePicture}
+                                  alt={u.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs">
+                                  {u.name?.charAt(0) || "U"}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-gray-900 truncate max-w-[140px]">
+                                  {u.name}
+                                </span>
+                                {u.isAdmin && (
+                                  <span className="px-1.5 py-0.2 bg-purple-100 text-purple-700 rounded text-[9px] font-bold">
+                                    Admin
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[11px] text-gray-400 truncate block">
+                                {u.email}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="mt-6 flex justify-center gap-2">
-          <button
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2 text-gray-700">
-            Page {page} of {pagination.pages}
-          </span>
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={page === pagination.pages}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+                        {/* Contact */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {u.phoneNumber ? (
+                            <a
+                              href={`https://wa.me/${u.phoneNumber.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-1 text-[11px]"
+                            >
+                              <span>{u.phoneNumber}</span>
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 text-[11px]">N/A</span>
+                          )}
+                        </td>
+
+                        {/* Campus / Dept */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-gray-900 font-semibold truncate max-w-[150px]">
+                            {u.department?.name || u.department?.code || "N/A"}
+                          </div>
+                          <div className="text-[10px] text-gray-400 truncate max-w-[150px]">
+                            {u.campus?.name || u.campus?.code || "Campus N/A"}
+                          </div>
+                        </td>
+
+                        {/* Semester */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-gray-700 font-medium">
+                            {u.semester ? `Sem ${u.semester.number}` : "N/A"}
+                          </span>
+                        </td>
+
+                        {/* Stats */}
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-600">
+                          <span className="font-bold text-gray-900">
+                            {u.questionsCount || 0}
+                          </span>{" "}
+                          Q ·{" "}
+                          <span className="font-bold text-gray-900">
+                            {u.answersCount || 0}
+                          </span>{" "}
+                          A
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {u.suspendedAt ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-800">
+                              Suspended
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50">
+                              Active
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-3 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => navigate(`/admin/users/${u._id}`)}
+                              className="px-2.5 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                            >
+                              View
+                            </button>
+
+                            {u.suspendedAt ? (
+                              <button
+                                onClick={() => handleReactivate(u._id)}
+                                disabled={reactivateMutation.isPending}
+                                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                              >
+                                Restore
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleSuspend(u._id)}
+                                disabled={suspendMutation.isPending}
+                                className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                              >
+                                Suspend
+                              </button>
+                            )}
+
+                            {u._id !== currentUser?._id && (
+                              <button
+                                onClick={() => handleDelete(u._id)}
+                                disabled={deleteMutation.isPending}
+                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                                title="Delete user"
+                              >
+                                <svg
+                                  className="w-3.5 h-3.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs">
+                <span className="text-gray-500 font-medium">
+                  Showing page {page} of {pagination.pages} ({pagination.total}{" "}
+                  total users)
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 1}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page === pagination.pages}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -73,7 +73,7 @@ const AdminPassTests = () => {
   const rejectMutation = useMutation({
     mutationFn: (id) => adminAPI.rejectPassTest(id),
     onSuccess: () => {
-      toast.success("Test/Assignment rejected and deleted!");
+      toast.success("Test/Assignment rejected and removed!");
       queryClient.invalidateQueries(["adminPassTests"]);
     },
     onError: (err) =>
@@ -83,7 +83,7 @@ const AdminPassTests = () => {
   const deleteMutation = useMutation({
     mutationFn: (id) => adminAPI.deletePassTest(id),
     onSuccess: () => {
-      toast.success("Test/Assignment deleted successfully!");
+      toast.success("Test/Assignment deleted permanently!");
       queryClient.invalidateQueries(["adminPassTests"]);
     },
     onError: (err) =>
@@ -125,390 +125,333 @@ const AdminPassTests = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
-      {/* Header Section */}
-      <div className="mb-6 lg:mb-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
-                Manage Past Papers
+    <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        {/* ── Breadcrumb & Top Bar ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Link
+                to="/admin"
+                className="text-xs font-bold text-gray-500 hover:text-red-600 transition"
+              >
+                Admin
+              </Link>
+              <span className="text-gray-300 text-xs">/</span>
+              <span className="text-xs font-bold text-red-600">Past Papers</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900">
+                Past Papers <span className="text-red-600">Moderation</span>
               </h1>
               {pendingPassTestsCount > 0 && (
-                <span className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-bold leading-none text-white bg-red-600 rounded-full animate-pulse shadow-lg border-2 border-red-700">
-                  {pendingPassTestsCount > 99 ? "99+" : pendingPassTestsCount}
+                <span className="px-2 py-0.5 bg-red-600 text-white rounded-full text-[10px] font-bold">
+                  {pendingPassTestsCount} Pending Review
                 </span>
               )}
             </div>
-            <p className="text-sm sm:text-base text-gray-600">
-              Approve, reject, or delete tests/assignments
-              {pendingPassTestsCount > 0 && (
-                <span className="text-red-600 font-semibold">
-                  {" "}
-                  • {pendingPassTestsCount} pending approval
-                </span>
-              )}
+            <p className="text-xs text-gray-500 font-medium">
+              Review and moderate uploaded exam past questions, class tests, and assignments
             </p>
           </div>
-          <Link
-            to="/admin"
-            className="inline-flex items-center space-x-2 bg-red-600 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg hover:bg-red-700 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold text-sm sm:text-base shadow-md whitespace-nowrap"
-          >
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+
+          <div className="flex items-center gap-2">
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-full font-bold text-xs uppercase tracking-wider transition cursor-pointer"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M10 19l-7-7m0 0l7-7m-7 7h18"
-              ></path>
-            </svg>
-            <span>Back to Dashboard</span>
-          </Link>
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
+              Admin Dashboard
+            </Link>
+          </div>
         </div>
-      </div>
 
-      {/* Filter Tabs */}
-      <div className="mb-8 animate-fade-in space-y-4">
-        <div className="flex gap-2">
-          {["all", "pending", "approved"].map((status) => (
-            <button
-              key={status}
-              onClick={() => handleFilterChange(status)}
-              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                statusFilter === status
-                  ? "bg-red-600 text-white shadow-md shadow-red-600/20"
-                  : "bg-white text-gray-500 hover:bg-gray-50 border border-gray-100"
-              }`}
+        {/* ── Filters Bar ─────────────────────────────── */}
+        <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-xs mb-5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-full self-start">
+            {["all", "pending", "approved"].map((status) => (
+              <button
+                key={status}
+                onClick={() => handleFilterChange(status)}
+                className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider transition cursor-pointer ${
+                  statusFilter === status
+                    ? "bg-white text-gray-900 shadow-xs"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+
+          {/* Metadata Dropdowns */}
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={campusFilter}
+              onChange={handleCampusChange}
+              className="px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
             >
-              {status}
-            </button>
-          ))}
+              <option value="">All Campuses</option>
+              {campuses?.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={departmentFilter}
+              onChange={handleDepartmentChange}
+              className="px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
+            >
+              <option value="">All Departments</option>
+              {departments?.map((d) => (
+                <option key={d._id} value={d._id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={semesterFilter}
+              onChange={handleSemesterChange}
+              className="px-2.5 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 focus:bg-white focus:outline-none focus:border-red-500"
+            >
+              <option value="">All Semesters</option>
+              {semesters?.map((s) => (
+                <option key={s._id} value={s._id}>
+                  Semester {s.number}
+                </option>
+              ))}
+            </select>
+
+            {(campusFilter || departmentFilter || semesterFilter) && (
+              <button
+                onClick={() => {
+                  setCampusFilter("");
+                  setDepartmentFilter("");
+                  setSemesterFilter("");
+                  setPage(1);
+                }}
+                className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-bold transition cursor-pointer"
+                title="Reset filters"
+              >
+                ✕ Reset
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Additional Filters */}
-        <div className="flex flex-wrap gap-3">
-          <select
-            value={campusFilter}
-            onChange={handleCampusChange}
-            className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
-            <option value="">All Campuses</option>
-            {campuses?.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={departmentFilter}
-            onChange={handleDepartmentChange}
-            className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
-            <option value="">All Departments</option>
-            {departments?.map((d) => (
-              <option key={d._id} value={d._id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={semesterFilter}
-            onChange={handleSemesterChange}
-            className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-          >
-            <option value="">All Semesters</option>
-            {semesters?.map((s) => (
-              <option key={s._id} value={s._id}>
-                Semester {s.number}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Pass Tests Table */}
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Title
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Type
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    User
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Semester
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Department
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Campus
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Course
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Status
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Date
-                  </th>
-                  <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {passTests.length === 0 ? (
+        {/* ── Table ─────────────────────────────── */}
+        {loading ? (
+          <Loader />
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-100 text-xs">
+                <thead className="bg-gray-50/80">
                   <tr>
-                    <td colSpan="10" className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center">
-                        <svg
-                          className="w-16 h-16 text-gray-400 mb-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          ></path>
-                        </svg>
-                        <p className="text-gray-500 text-lg font-medium">
-                          No past papers found
-                        </p>
-                        <p className="text-gray-400 text-sm mt-1">
-                          Tests/Assignments will appear here once submitted
-                        </p>
-                      </div>
-                    </td>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Title
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Author
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Course & Dept
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Semester
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left font-bold text-gray-500 uppercase tracking-wider">
+                      Date
+                    </th>
+                    <th className="px-4 py-3 text-right font-bold text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  passTests.map((test) => (
-                    <tr
-                      key={test._id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 sm:px-6 py-4">
-                        <div
-                          className="text-sm font-semibold text-gray-900 max-w-xs truncate"
-                          title={test.title}
-                        >
-                          {test.title}
-                        </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {passTests.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="8"
+                        className="px-4 py-12 text-center text-gray-400 font-medium"
+                      >
+                        No past papers or assignments found.
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 capitalize">
-                          {test.type || "test"}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <Link
-                          to={`/profile/${test.user?._id}`}
-                          className="block hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="text-sm font-medium text-gray-900 hover:text-red-600 transition-colors">
-                            {test.user?.name || "N/A"}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate max-w-[200px]">
-                            {test.user?.email || "N/A"}
-                          </div>
-                        </Link>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                          {test.user?.semester?.number || "N/A"}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {test.user?.department?.code || "N/A"}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                          {test.user?.campus?.code || "N/A"}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {test.courseName || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
-                        {test.isApproved ? (
-                          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            Approved
+                    </tr>
+                  ) : (
+                    passTests.map((test) => (
+                      <tr
+                        key={test._id}
+                        className="hover:bg-gray-50/60 transition-colors"
+                      >
+                        {/* Title & Link */}
+                        <td className="px-4 py-3">
+                          <Link
+                            to={`/pass-tests/${test._id}`}
+                            className="font-bold text-gray-900 hover:text-red-600 transition-colors line-clamp-1 max-w-xs block"
+                            title={test.title}
+                          >
+                            {test.title}
+                          </Link>
+                        </td>
+
+                        {/* Type */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                              test.type === "assignment"
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-blue-50 text-blue-700"
+                            }`}
+                          >
+                            {test.type || "test"}
                           </span>
-                        ) : (
-                          <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                            Pending
+                        </td>
+
+                        {/* Author */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="font-semibold text-gray-800 truncate max-w-[120px] block">
+                            {test.user?.name || "Anonymous"}
                           </span>
-                        )}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(test.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          {!test.isApproved && (
-                            <>
+                        </td>
+
+                        {/* Course & Department */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-bold text-[10px] uppercase">
+                            {test.courseName || "General"}
+                          </span>
+                          <span className="text-[11px] text-gray-400 ml-1.5">
+                            {test.user?.department?.code || ""}
+                          </span>
+                        </td>
+
+                        {/* Semester */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className="text-gray-700 font-medium">
+                            {test.user?.semester?.number
+                              ? `Sem ${test.user.semester.number}`
+                              : "N/A"}
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {test.isApproved ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/50">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Approved
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/50">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              Pending
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-[11px]">
+                          {new Date(test.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-3 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Link
+                              to={`/pass-tests/${test._id}`}
+                              className="px-2 py-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold transition"
+                            >
+                              Inspect
+                            </Link>
+
+                            {!test.isApproved && (
                               <button
                                 onClick={() => handleApprove(test._id)}
                                 disabled={approveMutation.isPending}
-                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-800 hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition disabled:opacity-50 cursor-pointer"
                               >
-                                {approveMutation.isPending ? (
-                                  <>
-                                    <svg
-                                      className="animate-spin h-3 w-3 mr-1.5 text-green-800"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                      ></circle>
-                                      <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                      ></path>
-                                    </svg>
-                                    Loading...
-                                  </>
-                                ) : (
-                                  "Approve"
-                                )}
+                                Approve
                               </button>
-                              <button
-                                onClick={() => handleReject(test._id)}
-                                disabled={rejectMutation.isPending}
-                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {rejectMutation.isPending ? (
-                                  <>
-                                    <svg
-                                      className="animate-spin h-3 w-3 mr-1.5 text-red-800"
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      fill="none"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                      ></circle>
-                                      <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                      ></path>
-                                    </svg>
-                                    Loading...
-                                  </>
-                                ) : (
-                                  "Reject"
-                                )}
-                              </button>
-                            </>
-                          )}
-                          <button
-                            onClick={() => handleDelete(test._id)}
-                            disabled={deleteMutation.isPending}
-                            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg bg-red-100 text-red-800 hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {deleteMutation.isPending ? (
-                              <>
-                                <svg
-                                  className="animate-spin h-3 w-3 mr-1.5 text-red-800"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                Loading...
-                              </>
-                            ) : (
-                              "Delete"
                             )}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="mt-6 lg:mt-8 flex justify-center gap-2">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2 text-gray-700">
-            Page {page} of {pagination.pages}
-          </span>
-          <button
-            onClick={() => setPage(Math.min(pagination.pages, page + 1))}
-            disabled={page === pagination.pages}
-            className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
+                            <button
+                              onClick={() =>
+                                test.isApproved
+                                  ? handleDelete(test._id)
+                                  : handleReject(test._id)
+                              }
+                              disabled={
+                                rejectMutation.isPending ||
+                                deleteMutation.isPending
+                              }
+                              className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition disabled:opacity-50 cursor-pointer"
+                            >
+                              {test.isApproved ? "Delete" : "Reject"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between text-xs">
+                <span className="text-gray-500 font-medium">
+                  Page {page} of {pagination.pages} ({pagination.total} total items)
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setPage(page - 1)}
+                    disabled={page === 1}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page === pagination.pages}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

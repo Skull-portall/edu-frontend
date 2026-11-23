@@ -27,10 +27,10 @@ const CampusHub = () => {
   });
 
   const categories = [
-    { id: "ALL", label: "ALL" },
+    { id: "ALL", label: "All" },
     ...dbCategories
       .filter((cat) => cat.toUpperCase() !== "ALL")
-      .map((cat) => ({ id: cat, label: cat.toUpperCase() })),
+      .map((cat) => ({ id: cat, label: cat })),
   ];
 
   const campusIdValue = user?.campus?._id || user?.campus;
@@ -59,113 +59,113 @@ const CampusHub = () => {
     },
   });
 
-  if (isLoading) return <Loader />;
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setActiveSearch(searchQuery.trim());
+  };
+
+  const handleResetFilters = () => {
+    setMinPrice("");
+    setMaxPrice("");
+    setSortBy("newest");
+    setActiveSearch("");
+    setSearchQuery("");
+    setActiveCategory("ALL");
+  };
+
+  if (isLoading && !services.length) return <Loader />;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 md:py-6">
-      <CampusHubHeader />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative">
+      <CampusHubHeader activePage="hub" />
 
-      <div className="mt-2 md:mt-4 mb-10">
-        <div className="rounded-[2.5rem] bg-white border border-gray-200 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] p-6 sm:p-8">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setActiveSearch(searchQuery);
-            }}
-            className="relative flex flex-col md:flex-row items-stretch md:items-center gap-4"
-          >
-            <div className="relative flex-1 group">
-              <div className="absolute inset-y-0 left-0 pl-4 sm:pl-6 flex items-center pointer-events-none text-gray-400 group-focus-within:text-red-500 transition-colors">
-                <svg
-                  className="w-5 h-5 sm:w-6 sm:h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  ></path>
-                </svg>
-              </div>
+      {/* ── Compact Search & Filter Row ── */}
+      <div className="mb-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-3xl">
+          {/* Pill Search Input */}
+          <div className="flex-1 bg-white p-1 rounded-full shadow-sm border border-gray-200 flex items-center">
+            <form onSubmit={handleSearchSubmit} className="flex-1 relative flex items-center">
+              <svg
+                className="absolute left-4 w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="What service are you looking for?"
-                className="w-full pl-12 sm:pl-16 pr-4 sm:pr-6 py-3.5 sm:py-4.5 bg-gray-50/50 border border-gray-100 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-red-200 transition-all shadow-sm text-base sm:text-lg font-medium"
+                placeholder="Search campus services, design, tutoring, delivery, laundry..."
+                className="w-full bg-transparent border-none py-2 sm:py-2.5 pl-11 pr-3 text-xs sm:text-sm font-medium text-gray-900 placeholder-gray-400 focus:ring-0 focus:outline-none"
               />
-            </div>
+            </form>
+            <button
+              onClick={handleSearchSubmit}
+              className="px-5 py-1.5 sm:py-2 bg-red-600 text-white rounded-full font-bold uppercase tracking-wider hover:bg-red-700 transition-all text-[11px] shrink-0 active:scale-95 shadow-sm"
+            >
+              Search
+            </button>
+          </div>
 
-            <div className="flex gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-4 rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${showFilters ? "bg-gray-900 text-white border-gray-900 shadow-xl" : "bg-white text-gray-700 border-gray-100 hover:bg-gray-50 shadow-sm"}`}
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2.5"
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                  ></path>
-                </svg>
-                Filters
-              </button>
-
-              <button
-                type="submit"
-                className="flex-[2] sm:flex-none px-6 sm:px-10 py-3.5 sm:py-4.5 bg-gradient-to-r from-red-600 to-rose-600 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-2xl shadow-xl shadow-red-500/30 hover:shadow-red-500/50 transition-all transform hover:-translate-y-1 active:translate-y-0"
-              >
-                Search
-              </button>
-            </div>
-          </form>
-
-          {/* Expanded Filters */}
-          <div
-            className={`overflow-hidden transition-all duration-500 ease-in-out ${showFilters ? "max-h-[500px] mt-8 opacity-100" : "max-h-0 opacity-0"}`}
+          {/* Toggle Filter Button */}
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-4 py-2 sm:py-2.5 rounded-full font-bold text-xs uppercase tracking-wider border transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+              showFilters
+                ? "bg-gray-900 text-white border-gray-900 shadow-sm"
+                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm"
+            }`}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-gray-50">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            <span>Filters</span>
+          </button>
+        </div>
+
+        {/* ── Expandable Filter Box ── */}
+        {showFilters && (
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm mt-3 max-w-3xl space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
                   Price Range (₦)
                 </label>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
                   <input
                     type="number"
                     placeholder="Min"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-red-200 transition-all"
+                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-red-500"
                   />
-                  <span className="text-gray-300 font-bold">—</span>
+                  <span className="text-gray-300 text-xs">—</span>
                   <input
                     type="number"
                     placeholder="Max"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-red-200 transition-all"
+                    className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-red-500"
                   />
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
-                  Sort Results By
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                  Sort Order
                 </label>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-red-200 transition-all appearance-none cursor-pointer"
+                  className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-red-500 cursor-pointer"
                 >
                   <option value="newest">Latest First</option>
                   <option value="price_asc">Price: Low to High</option>
@@ -176,157 +176,160 @@ const CampusHub = () => {
               <div className="flex items-end">
                 <button
                   type="button"
-                  onClick={() => {
-                    setMinPrice("");
-                    setMaxPrice("");
-                    setSortBy("newest");
-                    setActiveSearch("");
-                    setSearchQuery("");
-                  }}
-                  className="w-full py-3 text-red-600 text-xs font-black uppercase tracking-widest hover:bg-red-50 rounded-xl transition-all"
+                  onClick={handleResetFilters}
+                  className="w-full py-1.5 text-red-600 text-xs font-bold uppercase tracking-wider hover:bg-red-50 rounded-lg transition-all"
                 >
-                  Reset All Filters
+                  Reset Filters
                 </button>
               </div>
             </div>
           </div>
+        )}
 
-          <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2 flex-shrink-0">
-              Categories:
-            </span>
-            <div className="flex items-center gap-3 min-w-max">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all duration-300 ${
-                    activeCategory === category.id
-                      ? "bg-red-600 text-white shadow-lg shadow-red-500/25 transform -translate-y-0.5"
-                      : "bg-gray-50 text-gray-500 border border-transparent hover:border-gray-200 hover:bg-gray-100"
-                  }`}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* ── Category Filter Pills ── */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-2 mt-2 -mx-2 px-2">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
+                activeCategory === cat.id
+                  ? "bg-red-600 text-white shadow-sm"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-        {services.map((service) => (
-          <div
-            key={service._id}
-            onClick={() => navigate(`/campus-hub/services/${service._id}`)}
-            className="group bg-white rounded-[2rem] border border-gray-100 shadow-[0_4px_25px_-4px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_50px_-12px_rgba(220,38,38,0.2)] hover:border-red-100/60 transition-all duration-500 overflow-hidden cursor-pointer flex flex-col h-full transform hover:-translate-y-2"
+      {/* ── Subheader summary ── */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs text-gray-500 font-medium">
+          Showing <span className="font-bold text-gray-900">{services.length}</span> service{services.length !== 1 ? "s" : ""}
+          {activeCategory !== "ALL" && (
+            <span> in <span className="font-bold text-red-600">{activeCategory}</span></span>
+          )}
+          {activeSearch && (
+            <span> matching "<span className="font-bold text-gray-900">{activeSearch}</span>"</span>
+          )}
+        </div>
+
+        {(activeCategory !== "ALL" || activeSearch || minPrice || maxPrice) && (
+          <button
+            onClick={handleResetFilters}
+            className="text-xs font-bold text-red-600 hover:text-red-700 underline"
           >
-            <div className="relative aspect-[16/11] overflow-hidden">
-              {service.images && service.images.length > 0 ? (
-                <img
-                  src={getImageUrl(service.images[0])}
-                  alt={service.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-in-out"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-200 flex items-center justify-center">
-                  <svg
-                    className="w-12 h-12 text-gray-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.5"
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    ></path>
-                  </svg>
+            Clear all filters
+          </button>
+        )}
+      </div>
+
+      {/* ── Services Grid ── */}
+      {services.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {services.map((service) => (
+            <div
+              key={service._id}
+              onClick={() => navigate(`/campus-hub/services/${service._id}`)}
+              className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-red-100 transition-all duration-200 overflow-hidden cursor-pointer flex flex-col justify-between"
+            >
+              <div>
+                {/* Image Banner */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
+                  {service.images && service.images.length > 0 ? (
+                    <img
+                      src={getImageUrl(service.images[0])}
+                      alt={service.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Category Pill Tag */}
+                  <div className="absolute top-2.5 left-2.5">
+                    <span className="px-2 py-0.5 bg-black/60 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-wider rounded-md">
+                      {service.category || "Service"}
+                    </span>
+                  </div>
+
+                  {/* Price Tag */}
+                  <div className="absolute bottom-2.5 right-2.5">
+                    <div className="bg-white/95 px-2.5 py-1 rounded-lg shadow-sm border border-gray-100">
+                      <p className="text-xs font-black text-red-600 leading-none font-mono">
+                        ₦{Number(service.price).toLocaleString("en-NG")}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              <div className="absolute top-4 left-4">
-                <span className="px-3 py-1.5 bg-black/40 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-xl shadow-sm">
-                  {service.category || "General"}
-                </span>
-              </div>
-
-              <div className="absolute bottom-4 right-4">
-                <div className="bg-white/95 backdrop-blur-sm px-4 py-2 rounded-2xl shadow-xl shadow-black/10 border border-white/20">
-                  <p className="text-base font-black text-rose-600 leading-none">
-                    ₦{Number(service.price).toLocaleString("en-NG")}
+                {/* Content */}
+                <div className="p-3.5">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1 group-hover:text-red-600 transition-colors line-clamp-1 leading-snug">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                    {service.description}
                   </p>
                 </div>
               </div>
-            </div>
 
-            <div className="p-6 flex-1 flex flex-col">
-              <h3 className="text-xl font-extrabold text-gray-900 mb-2.5 group-hover:text-red-600 transition-colors line-clamp-1 leading-tight tracking-tight">
-                {service.title}
-              </h3>
-              <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed mb-6">
-                {service.description}
-              </p>
-
-              <div className="mt-auto pt-5 border-t border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="relative">
-                    {service.provider?.profilePicture ? (
-                      <img
-                        src={getImageUrl(service.provider.profilePicture)}
-                        alt=""
-                        className="w-10 h-10 rounded-xl object-cover shadow-sm border border-red-50"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-100 to-rose-200 flex items-center justify-center text-sm font-bold text-red-700 border-2 border-white shadow-sm">
-                        {service.provider?.name?.charAt(0) || "P"}
-                      </div>
-                    )}
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                  </div>
-                  <div>
-                    <span className="block text-xs font-black text-gray-900 truncate max-w-[120px]">
-                      {service.provider?.name}
-                    </span>
-                    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      Provider
-                    </span>
-                  </div>
+              {/* Provider Info Footer */}
+              <div className="px-3.5 pb-3 pt-2 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400">
+                <div className="flex items-center gap-1.5">
+                  {service.provider?.profilePicture ? (
+                    <img
+                      src={getImageUrl(service.provider.profilePicture)}
+                      alt=""
+                      className="w-5 h-5 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-[8px]">
+                      {service.provider?.name?.charAt(0) || "P"}
+                    </div>
+                  )}
+                  <span className="font-semibold text-gray-700 truncate max-w-[120px]">
+                    {service.provider?.name || "Provider"}
+                  </span>
                 </div>
+                <span className="text-[10px] font-bold text-red-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-0.5">
+                  View &rarr;
+                </span>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {services.length === 0 && (
-        <div className="text-center py-24 bg-gradient-to-b from-gray-50 to-white rounded-3xl border border-gray-100 mt-8">
-          <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-red-100/50">
-            <svg
-              className="w-12 h-12 text-red-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              ></path>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 mt-4">
+          <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
+          <h3 className="text-base font-black text-gray-900 mb-1">
             No services found
           </h3>
-          <p className="text-gray-500 max-w-md mx-auto text-lg leading-relaxed">
-            We couldn't find any services matching your current filters. Try
-            searching for something else.
+          <p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
+            No services matched your current filters. Try searching for something else or resetting your filters.
           </p>
+          {(activeCategory !== "ALL" || activeSearch || minPrice || maxPrice) && (
+            <button
+              onClick={handleResetFilters}
+              className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs uppercase tracking-wider hover:bg-gray-50 transition-all"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 };
+
 export default CampusHub;

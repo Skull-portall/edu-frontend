@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { campusHubAPI } from "../../services/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
-
 import { getImageUrl } from "../../utils/imageUrl";
 import { uploadToCloudinary } from "../../utils/cloudinary";
 
@@ -41,7 +40,7 @@ const ApplyAsProvider = () => {
     onSuccess: () => {
       setShowResubmitForm(false);
       queryClient.invalidateQueries(["campusHubMyApplication"]);
-      toast.success("Application submitted successfully! It is under review.");
+      toast.success("Application submitted successfully! It is now under review.");
     },
     onError: (err) => {
       const msg =
@@ -53,8 +52,9 @@ const ApplyAsProvider = () => {
   });
 
   useEffect(() => {
-    if (application?.status === "approved" && !showCongratsModal)
+    if (application?.status === "approved" && !showCongratsModal) {
       setShowCongratsModal(true);
+    }
   }, [application?.status, showCongratsModal]);
 
   useEffect(() => {
@@ -68,13 +68,13 @@ const ApplyAsProvider = () => {
       setSkills(application.skills || "");
       setDescription(application.description || "");
     }
-  }, [showResubmitForm, application]);
+  }, [showResubmitForm, application, user?.name]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file (JPEG, PNG, or GIF).");
+        toast.error("Please select an image file (JPEG, PNG, or WEBP).");
         return;
       }
       if (file.size > 3 * 1024 * 1024) {
@@ -89,7 +89,7 @@ const ApplyAsProvider = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file (JPEG, PNG, or GIF).");
+        toast.error("Please select an image file (JPEG, PNG, or WEBP).");
         return;
       }
       if (file.size > 3 * 1024 * 1024) {
@@ -114,7 +114,7 @@ const ApplyAsProvider = () => {
       return;
     }
     if (!providerImage && !application?.providerImage) {
-      toast.error("Please upload your photo or ID image.");
+      toast.error("Please upload your student ID or verification photo.");
       return;
     }
 
@@ -147,12 +147,13 @@ const ApplyAsProvider = () => {
     }
   };
 
+  // If already an approved provider
   if (user?.role === "provider" || user?.isProvider) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-24 h-24 bg-green-50 border-2 border-green-200 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+      <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center p-6 text-center text-gray-900">
+        <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 shadow-xs border border-emerald-100">
           <svg
-            className="w-12 h-12 text-green-600"
+            className="w-8 h-8"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -162,28 +163,37 @@ const ApplyAsProvider = () => {
               strokeLinejoin="round"
               strokeWidth="2.5"
               d="M5 13l4 4L19 7"
-            ></path>
+            />
           </svg>
         </div>
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">
-          You are already a Provider
+        <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900 mb-2">
+          You are a Verified Provider
         </h2>
-        <p className="text-gray-500 font-medium mb-8">
-          Manage your services, track orders, and grow your business from your
-          dashboard.
+        <p className="text-xs text-gray-500 font-medium max-w-sm mx-auto mb-6">
+          Your provider account is active. Manage your service listings, track incoming
+          orders, and communicate with students.
         </p>
-        <button
-          onClick={() => navigate("/campus-hub/my-services")}
-          className="inline-flex px-8 py-3.5 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold hover:shadow-lg transition-all hover:-translate-y-0.5"
-        >
-          Go to My Services
-        </button>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => navigate("/campus-hub/dashboard")}
+            className="px-5 py-2.5 bg-gray-900 hover:bg-black text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition"
+          >
+            Provider Dashboard
+          </button>
+          <button
+            onClick={() => navigate("/campus-hub/my-services")}
+            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition"
+          >
+            My Services
+          </button>
+        </div>
       </div>
     );
   }
 
   if (isLoading) return <Loader />;
 
+  // Existing application status view
   if (application && !showResubmitForm) {
     const isPending = application.status === "pending";
     const isRejected = application.status === "rejected";
@@ -193,195 +203,192 @@ const ApplyAsProvider = () => {
       : null;
 
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <div className="mb-6">
-          <button
-            onClick={() => navigate("/campus-hub")}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 hover:text-red-600 hover:border-red-200 hover:bg-red-50 rounded-xl text-sm font-bold transition-all shadow-sm"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+      <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6">
+          {/* Back button */}
+          <div className="mb-4">
+            <Link
+              to="/campus-hub"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-red-600 transition"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.5"
-                d="M15 19l-7-7 7-7"
-              ></path>
-            </svg>
-            Back to Hub
-          </button>
-        </div>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              Back to Campus Hub
+            </Link>
+          </div>
 
-        <div
-          className={`rounded-[2rem] overflow-hidden shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border bg-white ${isPending ? "border-amber-100" : isRejected ? "border-red-100" : "border-green-100"}`}
-        >
-          <div
-            className={`h-32 ${isPending ? "bg-gradient-to-r from-amber-400 to-amber-500" : isRejected ? "bg-gradient-to-r from-red-500 to-rose-600" : "bg-gradient-to-r from-green-500 to-emerald-600"}`}
-          ></div>
-          <div className="p-8 sm:p-10 pt-0 relative pb-12">
-            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-end -mt-16 sm:-mt-20 mb-8 sm:mb-10 text-center sm:text-left relative z-10">
-              <div className="relative">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt="You"
-                    className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl object-cover border-4 border-white shadow-xl bg-white"
-                  />
-                ) : (
-                  <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-3xl bg-gray-100 border-4 border-white shadow-xl flex items-center justify-center text-5xl font-black text-gray-400">
-                    {application.fullName?.charAt(0) || "?"}
+          {/* Status Card */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+            {/* Header banner */}
+            <div
+              className={`h-2 ${
+                isPending
+                  ? "bg-amber-400"
+                  : isRejected
+                    ? "bg-red-500"
+                    : "bg-emerald-500"
+              }`}
+            />
+
+            <div className="p-5 sm:p-6">
+              {/* Profile & Status header */}
+              <div className="flex items-start sm:items-center gap-4 mb-6">
+                <div className="relative shrink-0">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt="Provider verification"
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400 border border-gray-200">
+                      {application.fullName?.charAt(0) || "?"}
+                    </div>
+                  )}
+                  <span
+                    className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] ${
+                      isPending
+                        ? "bg-amber-500"
+                        : isRejected
+                          ? "bg-red-500"
+                          : "bg-emerald-500"
+                    }`}
+                  >
+                    {isPending ? "⏳" : isRejected ? "✕" : "✓"}
+                  </span>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        isPending
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : isRejected
+                            ? "bg-red-50 text-red-700 border border-red-200"
+                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      }`}
+                    >
+                      {application.status}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      #{application._id?.slice(-6).toUpperCase()}
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-black text-gray-900 truncate">
+                    {application.fullName}
+                  </h2>
+                  <p className="text-xs font-bold text-red-600 truncate">
+                    {application.serviceName}
+                  </p>
+                </div>
+              </div>
+
+              {/* Application Details Summary */}
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 mb-6">
+                <div className="grid grid-cols-2 gap-3 text-xs mb-3">
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Student ID
+                    </span>
+                    <span className="font-semibold text-gray-800">
+                      {application.studentId || "—"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Address / Hostel
+                    </span>
+                    <span className="font-semibold text-gray-800">
+                      {application.address || "—"}
+                    </span>
+                  </div>
+                </div>
+
+                {application.skills && (
+                  <div className="text-xs pt-2 border-t border-gray-200/60">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">
+                      Skills
+                    </span>
+                    <p className="text-gray-700 font-medium">
+                      {application.skills}
+                    </p>
                   </div>
                 )}
-                <div
-                  className={`absolute -bottom-2 -right-2 w-10 h-10 rounded-full border-4 border-white flex items-center justify-center shadow-lg ${isPending ? "bg-amber-500 text-white" : isRejected ? "bg-red-500 text-white" : "bg-green-500 text-white"}`}
-                >
-                  {isPending && (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      ></path>
-                    </svg>
-                  )}
-                  {isRejected && (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        d="M6 18L18 6M6 6l12 12"
-                      ></path>
-                    </svg>
-                  )}
-                  {isApproved && (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="3"
-                        d="M5 13l4 4L19 7"
-                      ></path>
-                    </svg>
-                  )}
-                </div>
               </div>
 
-              <div className="flex-1 mt-4 sm:mt-0">
-                <span
-                  className={`inline-block px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest mb-3 ${isPending ? "bg-amber-100 text-amber-800" : isRejected ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"}`}
-                >
-                  Status: {application.status}
-                </span>
-                <h2 className="text-3xl font-extrabold text-gray-900 leading-tight mb-1">
-                  {application.fullName}
-                </h2>
-                <p className="font-bold text-gray-500">
-                  {application.serviceName}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-8 max-w-2xl mx-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
-                    Student ID
-                  </p>
-                  <p className="font-bold text-gray-900">
-                    {application.studentId || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
-                    Address
-                  </p>
-                  <p className="font-bold text-gray-900">
-                    {application.address || "—"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="max-w-2xl mx-auto text-center sm:text-left">
+              {/* Status Notice & Actions */}
               {isPending && (
-                <div className="bg-amber-50 border border-amber-200 p-6 rounded-2xl text-center">
-                  <p className="text-lg font-bold text-amber-900 mb-2">
-                    Application Under Review
-                  </p>
-                  <p className="text-amber-700 font-medium mb-6">
-                    Our admins are currently reviewing your application. You
-                    will be notified once a decision has been made.
+                <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-xl text-center">
+                  <h4 className="text-xs font-bold text-amber-900 mb-1">
+                    Application Under Verification
+                  </h4>
+                  <p className="text-xs text-amber-700 leading-relaxed max-w-md mx-auto mb-4">
+                    Campus moderators are reviewing your credentials. You will be
+                    notified as soon as your account is approved.
                   </p>
                   <button
-                    onClick={() => navigate("/")}
-                    className="px-8 py-3 bg-white border border-amber-300 text-amber-800 rounded-xl font-bold hover:bg-amber-100 transition-colors shadow-sm"
+                    onClick={() => navigate("/campus-hub")}
+                    className="px-4 py-2 bg-white border border-amber-300 text-amber-800 rounded-full font-bold text-xs transition hover:bg-amber-100"
                   >
-                    Back to Feed
+                    Browse Campus Hub
                   </button>
                 </div>
               )}
+
               {isRejected && (
-                <div className="bg-red-50 border border-red-200 p-6 rounded-2xl text-center">
-                  <p className="text-lg font-bold text-red-900 mb-2">
+                <div className="p-4 bg-red-50/70 border border-red-200 rounded-xl text-center">
+                  <h4 className="text-xs font-bold text-red-900 mb-1">
                     Application Declined
-                  </p>
-                  <p className="text-red-700 font-medium mb-4">
-                    Unfortunately, your application was not approved at this
-                    time.
+                  </h4>
+                  <p className="text-xs text-red-700 leading-relaxed max-w-md mx-auto mb-3">
+                    Your provider application was not accepted by the
+                    administrators.
                   </p>
                   {application.rejectionReason && (
-                    <div className="bg-white border border-red-100 p-4 rounded-xl mb-6 text-left inline-block max-w-full w-full">
-                      <p className="text-xs font-bold text-red-400 uppercase tracking-widest mb-1">
-                        Reason
-                      </p>
-                      <p className="font-bold text-gray-900">
+                    <div className="bg-white border border-red-100 p-3 rounded-lg text-left mb-4">
+                      <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider block mb-0.5">
+                        Admin Feedback:
+                      </span>
+                      <p className="text-xs font-medium text-gray-800">
                         {application.rejectionReason}
                       </p>
                     </div>
                   )}
                   <button
                     onClick={() => setShowResubmitForm(true)}
-                    className="px-8 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition"
                   >
                     Re-submit Application
                   </button>
                 </div>
               )}
+
               {isApproved && (
-                <div className="bg-green-50 border border-green-200 p-6 rounded-2xl text-center">
-                  <p className="text-lg font-bold text-green-900 mb-2">
-                    You're In!
-                  </p>
-                  <p className="text-green-700 font-medium mb-6">
-                    Your application is approved. You can now setup your
-                    services and start earning.
+                <div className="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl text-center">
+                  <h4 className="text-xs font-bold text-emerald-900 mb-1">
+                    Application Approved! 🎉
+                  </h4>
+                  <p className="text-xs text-emerald-700 leading-relaxed max-w-md mx-auto mb-4">
+                    You can now create listings, receive student requests, and
+                    manage your services.
                   </p>
                   <button
                     onClick={() => navigate("/campus-hub/my-services")}
-                    className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition"
                   >
-                    Go to Dashboard
+                    Go to My Services
                   </button>
                 </div>
               )}
@@ -389,19 +396,19 @@ const ApplyAsProvider = () => {
           </div>
         </div>
 
-        {/* Congratulations modal */}
+        {/* Modal on approval */}
         {showCongratsModal && isApproved && (
           <div
-            className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
             onClick={() => setShowCongratsModal(false)}
           >
             <div
-              className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-10 text-center transform scale-100 animate-[fadeIn_0.2s_ease-out]"
+              className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center animate-in zoom-in-95"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-24 h-24 mx-auto mb-6 rounded-[2rem] bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center shadow-inner border border-green-100">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <svg
-                  className="w-12 h-12 text-green-600"
+                  className="w-8 h-8"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -411,29 +418,29 @@ const ApplyAsProvider = () => {
                     strokeLinejoin="round"
                     strokeWidth="2.5"
                     d="M5 13l4 4L19 7"
-                  ></path>
+                  />
                 </svg>
               </div>
-              <h3 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
+              <h3 className="text-base font-bold text-gray-900 mb-1">
                 Congratulations!
               </h3>
-              <p className="text-gray-500 font-medium mb-8 text-lg">
-                You are now a verified service provider. Setup your profile and
-                start offering your services to the campus community.
+              <p className="text-xs text-gray-500 mb-5 leading-relaxed">
+                You are now a verified service provider. Setup your listings and
+                start offering your services to fellow students.
               </p>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <button
                   onClick={() => {
                     setShowCongratsModal(false);
                     navigate("/campus-hub/my-services");
                   }}
-                  className="w-full px-6 py-3.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all text-lg"
+                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition"
                 >
-                  Start Earning
+                  Start Adding Services
                 </button>
                 <button
                   onClick={() => setShowCongratsModal(false)}
-                  className="w-full px-6 py-3.5 bg-gray-50 text-gray-600 rounded-xl font-bold hover:bg-gray-100 transition-colors"
+                  className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs transition"
                 >
                   Dismiss
                 </button>
@@ -445,70 +452,96 @@ const ApplyAsProvider = () => {
     );
   }
 
+  // Application / Re-submission Form
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16">
-      <div className="mb-8">
-        <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight leading-tight">
-          Apply to be a{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-rose-600">
-            Provider
-          </span>
-        </h1>
-        <p className="text-lg text-gray-600 font-medium max-w-2xl">
-          Join the E-DU Hub marketplace. Provide your details so we can verify
-          your identity and keep the community secure.
-        </p>
-      </div>
+    <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        {/* Back Link */}
+        <div className="mb-4">
+          <Link
+            to="/campus-hub"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-red-600 transition"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Campus Hub
+          </Link>
+        </div>
 
-      {(applyMutation.isPending || isUploading) && (
-        <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center z-50">
-          <div className="w-20 h-20 bg-red-50 rounded-[2rem] flex items-center justify-center mb-6 border border-red-100 shadow-inner">
-            <div className="w-8 h-8 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
-          </div>
-          <p className="text-xl font-bold text-gray-900 text-center max-w-xs shadow-[0_0_20px_white]">
-            {isUploading
-              ? "Securely uploading your identity documents..."
-              : "Submitting your application..."}
+        {/* Page Title */}
+        <div className="mb-5">
+          <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900">
+            Apply as a <span className="text-red-600">Provider</span>
+          </h1>
+          <p className="text-xs text-gray-500 font-medium mt-0.5">
+            Join the campus marketplace to offer your skills and earn money on campus.
           </p>
         </div>
-      )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-[2.5rem] border border-gray-100 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] overflow-hidden relative"
-      >
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-red-50 to-rose-50 rounded-bl-full -z-10 mix-blend-multiply pointer-events-none blur-3xl"></div>
-        <div className="p-8 md:p-10 space-y-8">
-          {/* Identity Section */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-extrabold text-gray-900 border-b border-gray-100 pb-3">
-              1. Personal Identity
-            </h3>
+        {/* Overlay spinner */}
+        {(applyMutation.isPending || isUploading) && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex flex-col items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center max-w-xs text-center">
+              <div className="w-8 h-8 border-3 border-red-200 border-t-red-600 rounded-full animate-spin mb-3" />
+              <p className="text-xs font-bold text-gray-800">
+                {isUploading
+                  ? "Uploading verification photos..."
+                  : "Submitting application..."}
+              </p>
+            </div>
+          </div>
+        )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-2xl border border-gray-100 shadow-xs p-5 sm:p-6 space-y-6"
+        >
+          {/* Section 1: Personal Identity */}
+          <div className="space-y-4">
+            <div className="border-b border-gray-100 pb-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
+                1. Personal Verification
+              </h3>
+              <p className="text-[11px] text-gray-400 font-medium">
+                Your legal identity and student credentials
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Legal Full Name <span className="text-red-500">*</span>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Full Legal Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-400 font-medium text-gray-900 transition-all placeholder-gray-400"
-                  placeholder="As it appears on your ID"
+                  className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
+                  placeholder="As shown on your ID"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Student ID Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
-                  className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-400 font-medium text-gray-900 transition-all placeholder-gray-400"
+                  className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
                   placeholder="e.g. 20/CG/12345"
                   required
                 />
@@ -516,218 +549,202 @@ const ApplyAsProvider = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Current Address <span className="text-red-500">*</span>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Campus Address / Hostel <span className="text-red-500">*</span>
               </label>
-              <textarea
+              <input
+                type="text"
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                rows={2}
-                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-400 font-medium text-gray-900 transition-all placeholder-gray-400 resize-none"
-                placeholder="Hostel, off-campus, or contact address"
+                className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
+                placeholder="e.g. Hall 4, Room B12, or off-campus street"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Photo / Student ID Card <span className="text-red-500">*</span>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Student ID or Selfie Photo <span className="text-red-500">*</span>
               </label>
-              <p className="text-sm text-gray-500 mb-3">
-                Upload a clear selfie or your student ID (JPEG/PNG, max 3MB).
-              </p>
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className={`w-full relative border-2 border-dashed rounded-2xl px-6 py-6 transition-all group text-center cursor-pointer ${providerImage ? "border-green-400 bg-green-50/50" : "border-gray-300 hover:border-red-400 hover:bg-red-50/30"}`}
+                className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition ${
+                  providerImage
+                    ? "border-emerald-400 bg-emerald-50/30"
+                    : "border-gray-200 hover:border-red-400 hover:bg-red-50/20"
+                }`}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/gif"
+                  accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
                 />
 
                 {providerImage ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm border border-green-200">
-                      <img
-                        src={URL.createObjectURL(providerImage)}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                  <div className="flex items-center justify-center gap-3">
+                    <img
+                      src={URL.createObjectURL(providerImage)}
+                      alt="Preview"
+                      className="w-12 h-12 rounded-lg object-cover border border-emerald-300"
+                    />
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-emerald-800 truncate max-w-[180px]">
+                        {providerImage.name}
+                      </p>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider hover:text-red-600 transition">
+                        Click to change photo
+                      </span>
                     </div>
-                    <p className="font-bold text-green-700">Image selected</p>
-                    <p className="text-sm font-medium text-green-600/70 truncate max-w-[200px]">
-                      {providerImage.name}
-                    </p>
-                    <p className="text-xs font-bold text-gray-500 mt-1 uppercase tracking-widest hover:text-red-600 transition-colors">
-                      Click to change
-                    </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center space-y-3 pointer-events-none">
-                    <div className="w-14 h-14 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all">
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2.5"
-                          d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
-                        ></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-700">
-                        Click to upload your ID
-                      </p>
-                      <p className="text-sm font-medium text-gray-400 mt-1">
-                        JPEG, PNG up to 3MB
-                      </p>
-                    </div>
+                  <div className="flex flex-col items-center">
+                    <svg
+                      className="w-6 h-6 text-gray-400 mb-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
+                      />
+                    </svg>
+                    <p className="text-xs font-bold text-gray-700">
+                      Upload verification photo
+                    </p>
+                    <p className="text-[10px] text-gray-400">
+                      JPEG, PNG or WEBP up to 3MB
+                    </p>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="my-8 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-
-          {/* Service Section */}
-          <div className="space-y-6">
-            <h3 className="text-xl font-extrabold text-gray-900 border-b border-gray-100 pb-3">
-              2. Service Details
-            </h3>
+          {/* Section 2: Service Details */}
+          <div className="space-y-4 pt-2">
+            <div className="border-b border-gray-100 pb-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-gray-900">
+                2. Service Offerings
+              </h3>
+              <p className="text-[11px] text-gray-400 font-medium">
+                Information on what you will be offering to peers
+              </p>
+            </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-xs font-bold text-gray-700 mb-1">
                 Primary Service Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={serviceName}
                 onChange={(e) => setServiceName(e.target.value)}
-                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-400 font-medium text-gray-900 transition-all placeholder-gray-400"
-                placeholder="e.g. Professional Note-taking, Math Tutoring"
+                className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
+                placeholder="e.g. Graphics Design, Python Tutoring, Hair Braiding"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Skills & Qualifications <span className="text-red-500">*</span>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Skills & Relevant Experience <span className="text-red-500">*</span>
               </label>
-              <textarea
+              <input
+                type="text"
                 value={skills}
                 onChange={(e) => setSkills(e.target.value)}
-                rows={2}
-                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-400 font-medium text-gray-900 transition-all placeholder-gray-400 resize-none"
-                placeholder="List your relevant skills, e.g. Fluent in French, A+ in Advanced Math..."
+                className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:bg-white focus:outline-none focus:border-red-500"
+                placeholder="e.g. Figma, Canva, Adobe Suite, 3 years tutoring"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Service Portfolio Description{" "}
-                <span className="text-red-500">*</span>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Service Pitch & Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-                className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-400 font-medium text-gray-900 transition-all placeholder-gray-400 resize-none"
-                placeholder="Pitch yourself. Describe the full range of services you offer, your experience, and why students should hire you..."
+                rows={3}
+                className="w-full px-3.5 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:bg-white focus:outline-none focus:border-red-500 resize-none"
+                placeholder="Explain why students should hire you, turnaround times, past work, etc."
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Portfolio Sample{" "}
-                <span className="text-gray-400 font-medium">(Optional)</span>
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Work Sample <span className="text-gray-400 font-normal">(Optional)</span>
               </label>
-              <p className="text-sm text-gray-500 mb-3">
-                Upload a sample of your work (e.g. design draft, note sample).
-                It helps admin verify your credibility quickly.
-              </p>
               <div
                 onClick={() => sampleInputRef.current?.click()}
-                className={`w-full relative border-2 border-dashed rounded-2xl px-6 py-6 transition-all group text-center cursor-pointer ${serviceSampleImage ? "border-green-400 bg-green-50/50" : "border-gray-300 hover:border-red-400 hover:bg-red-50/30"}`}
+                className={`border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition ${
+                  serviceSampleImage
+                    ? "border-emerald-400 bg-emerald-50/30"
+                    : "border-gray-200 hover:border-red-400 hover:bg-red-50/20"
+                }`}
               >
                 <input
                   ref={sampleInputRef}
                   type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/gif"
+                  accept="image/*"
                   onChange={handleServiceSampleChange}
                   className="hidden"
                 />
 
                 {serviceSampleImage ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-16 h-16 rounded-xl overflow-hidden shadow-sm border border-green-200">
-                      <img
-                        src={URL.createObjectURL(serviceSampleImage)}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                  <div className="flex items-center justify-center gap-3">
+                    <img
+                      src={URL.createObjectURL(serviceSampleImage)}
+                      alt="Sample"
+                      className="w-10 h-10 rounded-lg object-cover border border-emerald-300"
+                    />
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-emerald-800 truncate max-w-[180px]">
+                        {serviceSampleImage.name}
+                      </p>
+                      <span className="text-[10px] text-gray-400 hover:text-red-600 transition">
+                        Change sample
+                      </span>
                     </div>
-                    <p className="font-bold text-green-700">Sample attached</p>
-                    <p className="text-sm font-medium text-green-600/70 truncate max-w-[200px]">
-                      {serviceSampleImage.name}
-                    </p>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center space-y-3 pointer-events-none">
-                    <div className="w-14 h-14 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:-rotate-3 transition-all group-hover:bg-red-50 group-hover:text-red-500">
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2.5"
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        ></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-700">
-                        Attach a sample image
-                      </p>
-                    </div>
-                  </div>
+                  <p className="text-xs text-gray-500 font-medium">
+                    Click to attach a portfolio sample image (flyer, note, screenshot)
+                  </p>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="pt-6 mt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-4">
-            <button
-              type="submit"
-              disabled={applyMutation.isPending || isUploading}
-              className="w-full sm:flex-1 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all text-lg disabled:opacity-50 disabled:transform-none"
-            >
-              Submit Application
-            </button>
+          {/* Form Actions */}
+          <div className="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
             <button
               type="button"
-              onClick={() => navigate("/campus-hub")}
-              className="w-full sm:w-auto px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+              onClick={() => {
+                if (showResubmitForm) setShowResubmitForm(false);
+                else navigate("/campus-hub");
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition cursor-pointer"
             >
               Cancel
             </button>
+            <button
+              type="submit"
+              disabled={applyMutation.isPending || isUploading}
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer"
+            >
+              Submit Application
+            </button>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

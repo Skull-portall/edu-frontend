@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { campusHubAPI } from "../../services/api";
@@ -7,11 +7,27 @@ import { getImageUrl } from "../../utils/imageUrl";
 import { useQuery } from "@tanstack/react-query";
 import Loader from "../../components/common/Loader";
 
-const statusColors = {
-  pending: "bg-yellow-100 text-yellow-800",
-  in_progress: "bg-amber-100 text-amber-800",
-  completed: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-800",
+const statusConfig = {
+  pending: {
+    label: "Pending",
+    badge: "bg-amber-50 text-amber-700 border-amber-200",
+    dot: "bg-amber-500",
+  },
+  in_progress: {
+    label: "In Progress",
+    badge: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-500",
+  },
+  completed: {
+    label: "Completed",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  cancelled: {
+    label: "Cancelled",
+    badge: "bg-gray-100 text-gray-600 border-gray-200",
+    dot: "bg-gray-400",
+  },
 };
 
 const CampusHubOrders = () => {
@@ -19,10 +35,9 @@ const CampusHubOrders = () => {
   const navigate = useNavigate();
 
   const isProvider = user?.role === "provider" || user?.isProvider;
-  const [activeTab, setActiveTab] = React.useState(
-    isProvider ? "received" : "placed",
-  );
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [activeTab, setActiveTab] = useState(isProvider ? "received" : "placed");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: orders = [], isLoading } = useQuery({
     queryKey: ["campusHubOrders"],
@@ -33,92 +48,148 @@ const CampusHubOrders = () => {
     enabled: !!user,
   });
 
+  const ordersReceived = useMemo(() => {
+    return orders.filter(
+      (o) => o.provider?._id === user?._id || o.provider?.id === user?.id,
+    );
+  }, [orders, user]);
+
+  const ordersPlaced = useMemo(() => {
+    return orders.filter(
+      (o) => o.student?._id === user?._id || o.student?.id === user?.id,
+    );
+  }, [orders, user]);
+
+  const displayOrders = useMemo(() => {
+    return isProvider
+      ? activeTab === "received"
+        ? ordersReceived
+        : ordersPlaced
+      : ordersPlaced;
+  }, [isProvider, activeTab, ordersReceived, ordersPlaced]);
+
+  const filteredOrders = useMemo(() => {
+    return displayOrders.filter((order) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
+        order.service?.title?.toLowerCase().includes(q) ||
+        order.student?.name?.toLowerCase().includes(q) ||
+        order.provider?.name?.toLowerCase().includes(q);
+
+      const matchesStatus =
+        statusFilter === "all" || order.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [displayOrders, searchQuery, statusFilter]);
+
   if (isLoading) return <Loader />;
 
-  const ordersReceived = orders.filter(
-    (o) => o.provider?._id === user?._id || o.provider?.id === user?.id,
-  );
-  const ordersPlaced = orders.filter(
-    (o) => o.student?._id === user?._id || o.student?.id === user?.id,
-  );
-
-  const displayOrders = isProvider
-    ? activeTab === "received"
-      ? ordersReceived
-      : ordersPlaced
-    : ordersPlaced;
-
-  const filteredOrders = displayOrders.filter((order) => {
-    const q = searchQuery.toLowerCase();
-    if (!q) return true;
-    const title = order.service?.title?.toLowerCase() || "";
-    const studentName = order.student?.name?.toLowerCase() || "";
-    const providerName = order.provider?.name?.toLowerCase() || "";
-    return (
-      title.includes(q) || studentName.includes(q) || providerName.includes(q)
-    );
-  });
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-      <CampusHubHeader activePage="orders" />
+    <div className="min-h-screen bg-[#fafafa] pb-24 text-gray-900">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        <CampusHubHeader activePage="orders" />
 
-      {/* Header & Search Section */}
-      <div className="mb-8 md:mb-12 flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8">
-        <div className="space-y-4 sm:space-y-6 flex-1">
+        {/* ── Page Header ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight mb-2">
+            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900">
               My <span className="text-red-600">Orders</span>
             </h1>
-            <p className="text-gray-500 font-bold">
-              Track and manage your marketplace activities
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
+              Track requests, communicate with peers, and fulfill service orders
             </p>
           </div>
 
-          {isProvider ? (
-            <div className="inline-flex p-1 sm:p-1.5 bg-gray-100/50 backdrop-blur-md rounded-2xl sm:rounded-[1.5rem] border border-gray-200/50 shadow-inner max-w-full overflow-x-auto no-scrollbar">
-              <button
-                onClick={() => setActiveTab("received")}
-                className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-[1.1rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${
-                  activeTab === "received"
-                    ? "bg-white text-gray-900 shadow-xl shadow-black/5 transform -translate-y-0.5"
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                Orders Received
-                <span
-                  className={`ml-1.5 sm:ml-2 px-1.5 sm:px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] ${activeTab === "received" ? "bg-red-50 text-red-600" : "bg-gray-200 text-gray-500"}`}
-                >
-                  {ordersReceived.length}
-                </span>
-              </button>
-              <button
-                onClick={() => setActiveTab("placed")}
-                className={`px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-[1.1rem] text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${
-                  activeTab === "placed"
-                    ? "bg-white text-gray-900 shadow-xl shadow-black/5 transform -translate-y-0.5"
-                    : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                My Purchases
-                <span
-                  className={`ml-1.5 sm:ml-2 px-1.5 sm:px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] ${activeTab === "placed" ? "bg-red-50 text-red-600" : "bg-gray-200 text-gray-500"}`}
-                >
-                  {ordersPlaced.length}
-                </span>
-              </button>
-            </div>
-          ) : (
-            <div className="inline-flex px-5 py-2.5 bg-blue-50/50 rounded-2xl border border-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest">
-              🛍️ Shopping History
-            </div>
-          )}
+          {/* Quick Hub Navigation */}
+          <Link
+            to="/campus-hub"
+            className="inline-flex items-center gap-1.5 self-start sm:self-auto text-xs font-bold text-gray-600 hover:text-red-600 transition"
+          >
+            <span>Explore Services</span>
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
         </div>
 
-        <div className="relative w-full max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-gray-400">
+        {/* ── Role Tab Switcher & Search Bar ─────────────────────────────── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+          {/* Main Role Tabs */}
+          <div className="flex items-center gap-2">
+            {isProvider ? (
+              <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-full">
+                <button
+                  onClick={() => setActiveTab("received")}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === "received"
+                      ? "bg-white text-gray-900 shadow-xs"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  <span>Orders Received</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      activeTab === "received"
+                        ? "bg-red-50 text-red-600"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {ordersReceived.length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab("placed")}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === "placed"
+                      ? "bg-white text-gray-900 shadow-xs"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  <span>My Purchases</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      activeTab === "placed"
+                        ? "bg-red-50 text-red-600"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {ordersPlaced.length}
+                  </span>
+                </button>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full text-xs font-bold text-gray-700">
+                <span>🛍️ My Purchases</span>
+                <span className="px-1.5 py-0.2 bg-white text-gray-900 rounded-full text-[10px] shadow-xs">
+                  {ordersPlaced.length}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Search Input */}
+          <div className="relative w-full md:w-64">
+            <input
+              type="text"
+              placeholder="Search by title or person..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-8 pr-7 py-1.5 bg-white border border-gray-200 rounded-full text-xs font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-red-500 shadow-xs"
+            />
             <svg
-              className="w-5 h-5"
+              className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -128,206 +199,250 @@ const CampusHubOrders = () => {
                 strokeLinejoin="round"
                 strokeWidth="2.5"
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              ></path>
+              />
             </svg>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+              >
+                ✕
+              </button>
+            )}
           </div>
-          <input
-            type="text"
-            placeholder="Search orders..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-3xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-red-500/5 focus:border-red-200 transition-all shadow-sm"
-          />
         </div>
-      </div>
 
-      {/* Orders Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        {filteredOrders.map((order) => {
-          const isMyService =
-            order.provider?._id === user?._id ||
-            order.provider?.id === user?.id;
-          const counterparty = isMyService ? order.student : order.provider;
-          const status = order.status || "pending";
-          const hasUnread = order.unreadCount > 0;
-
-          const statusTheme = {
-            pending:
-              "from-amber-400 to-orange-400 shadow-amber-500/20 text-amber-700 bg-amber-50 border-amber-100",
-            in_progress:
-              "from-emerald-400 to-teal-400 shadow-emerald-500/20 text-emerald-700 bg-emerald-50 border-emerald-100",
-            completed:
-              "from-blue-400 to-indigo-400 shadow-blue-500/20 text-blue-700 bg-blue-50 border-blue-100",
-            cancelled:
-              "from-gray-400 to-gray-500 shadow-gray-500/20 text-gray-700 bg-gray-50 border-gray-100",
-          };
-
-          return (
-            <div
-              key={order._id}
-              onClick={() => navigate(`/campus-hub/orders/${order._id}/chat`)}
-              className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_50px_-12px_rgba(220,38,38,0.15)] hover:border-red-100/60 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col h-full transform hover:-translate-y-2"
+        {/* ── Status Filter Chips ─────────────────────────────── */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none mb-5">
+          {[
+            { id: "all", label: "All Statuses" },
+            { id: "pending", label: "Pending" },
+            { id: "in_progress", label: "In Progress" },
+            { id: "completed", label: "Completed" },
+            { id: "cancelled", label: "Cancelled" },
+          ].map((chip) => (
+            <button
+              key={chip.id}
+              onClick={() => setStatusFilter(chip.id)}
+              className={`px-3 py-1 rounded-full text-xs font-bold transition shrink-0 cursor-pointer ${
+                statusFilter === chip.id
+                  ? "bg-gray-900 text-white"
+                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+              }`}
             >
-              {/* Card Header/Banner */}
-              <div className="relative aspect-[16/9] overflow-hidden bg-gray-50">
-                {order.service?.images?.[0] ? (
-                  <img
-                    src={getImageUrl(order.service.images[0])}
-                    alt=""
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-200">
-                    <svg
-                      className="w-16 h-16"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                      ></path>
-                    </svg>
-                  </div>
-                )}
+              {chip.label}
+            </button>
+          ))}
+        </div>
 
-                {/* Status Overlay */}
-                <div className="absolute top-4 right-4">
-                  <div
-                    className={`px-4 py-1.5 rounded-full backdrop-blur-md bg-white/90 border shadow-lg flex items-center gap-2 ${statusTheme[status].split(" ")[3]} ${statusTheme[status].split(" ")[4]}`}
-                  >
-                    <div
-                      className={`w-2 h-2 rounded-full animate-pulse ${statusTheme[status].split(" ")[0]}`}
-                    ></div>
-                    <span className="text-[10px] font-black uppercase tracking-widest">
-                      {status.replace("_", " ")}
-                    </span>
-                  </div>
-                </div>
+        {/* ── Orders Grid ─────────────────────────────── */}
+        {filteredOrders.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredOrders.map((order) => {
+              const isMyService =
+                order.provider?._id === user?._id ||
+                order.provider?.id === user?.id;
+              const counterparty = isMyService ? order.student : order.provider;
+              const status = order.status || "pending";
+              const conf = statusConfig[status] || statusConfig.pending;
+              const hasUnread = order.unreadCount > 0;
 
-                {/* Unread Alert */}
-                {hasUnread && (
-                  <div className="absolute top-4 left-4">
-                    <div className="bg-red-600 text-white px-3 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl animate-bounce">
-                      {order.unreadCount} New
-                    </div>
-                  </div>
-                )}
-
-                {/* Role Tag */}
-                <div className="absolute bottom-4 left-4">
-                  <span
-                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest backdrop-blur-md border border-white/20 shadow-sm ${isMyService ? "bg-red-600/80 text-white" : "bg-gray-900/80 text-white"}`}
-                  >
-                    {isMyService ? "Sale" : "Purchase"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Card Content */}
-              <div className="p-7 flex-1 flex flex-col">
-                <h3 className="text-xl font-extrabold text-gray-900 mb-4 line-clamp-2 leading-tight group-hover:text-red-600 transition-colors">
-                  {order.service?.title || "Untitled Service"}
-                </h3>
-
-                <div className="flex items-center justify-between items-end mt-auto pt-6 border-t border-gray-50">
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      {counterparty?.profilePicture ? (
+              return (
+                <div
+                  key={order._id}
+                  onClick={() =>
+                    navigate(`/campus-hub/orders/${order._id}/chat`)
+                  }
+                  className="group bg-white rounded-xl border border-gray-100 p-4 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Top image & badges row */}
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-50 border border-gray-100 mb-3">
+                      {order.service?.images?.[0] ? (
                         <img
-                          src={getImageUrl(counterparty.profilePicture)}
+                          src={getImageUrl(order.service.images[0])}
                           alt=""
-                          className="w-10 h-10 rounded-xl object-cover shadow-sm border border-red-50"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-50 to-rose-100 flex items-center justify-center text-sm font-black text-red-600 border border-white shadow-sm">
-                          {counterparty?.name?.charAt(0) || "P"}
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <svg
+                            className="w-8 h-8"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
+                              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                            />
+                          </svg>
                         </div>
                       )}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+
+                      {/* Status badge */}
+                      <div className="absolute top-2 right-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border backdrop-blur-xs ${conf.badge}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${conf.dot}`}
+                          />
+                          {conf.label}
+                        </span>
+                      </div>
+
+                      {/* Unread Message Pill */}
+                      {hasUnread && (
+                        <div className="absolute top-2 left-2">
+                          <span className="bg-red-600 text-white px-2 py-0.5 rounded-md font-bold text-[10px] shadow-sm animate-pulse">
+                            {order.unreadCount} New
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Role Pill */}
+                      <div className="absolute bottom-2 left-2">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider backdrop-blur-xs ${
+                            isMyService
+                              ? "bg-red-600 text-white"
+                              : "bg-gray-900/80 text-white"
+                          }`}
+                        >
+                          {isMyService ? "Sale" : "Purchase"}
+                        </span>
+                      </div>
+
+                      {/* Price Tag */}
+                      <div className="absolute bottom-2 right-2">
+                        <span className="px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-white font-black text-xs">
+                          ₦{Number(order.service?.price || 0).toLocaleString()}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
-                        {isMyService ? "Client" : "Provider"}
-                      </p>
-                      <p className="text-sm font-black text-gray-900 truncate max-w-[120px]">
-                        {counterparty?.name || "User"}
-                      </p>
-                    </div>
+
+                    {/* Order Title */}
+                    <h3 className="font-bold text-sm text-gray-900 group-hover:text-red-600 transition-colors line-clamp-1 mb-2">
+                      {order.service?.title || "Custom Service Request"}
+                    </h3>
                   </div>
 
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
-                      Ordered
-                    </p>
-                    <p className="text-sm font-black text-gray-900">
-                      {new Date(order.createdAt).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                      })}
-                    </p>
+                  {/* Footer & Counterparty */}
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between mb-3">
+                      {/* Counterparty avatar and name */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        {counterparty?.profilePicture ? (
+                          <img
+                            src={getImageUrl(counterparty.profilePicture)}
+                            alt=""
+                            className="w-7 h-7 rounded-full object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-red-50 text-red-600 font-bold text-xs flex items-center justify-center border border-red-100 shrink-0">
+                            {counterparty?.name?.charAt(0) || "?"}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            {isMyService ? "Client" : "Provider"}
+                          </p>
+                          <p className="text-xs font-semibold text-gray-800 truncate max-w-[110px]">
+                            {counterparty?.name || "Student"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Order Date */}
+                      <div className="text-right shrink-0">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                          Date
+                        </p>
+                        <p className="text-xs font-semibold text-gray-700">
+                          {new Date(order.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <button className="w-full py-2 bg-gray-900 group-hover:bg-red-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                        />
+                      </svg>
+                      <span>Open Chat & Details</span>
+                    </button>
                   </div>
                 </div>
-
-                <div className="mt-6">
-                  <button className="w-full py-3.5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all group-hover:bg-red-600 group-hover:shadow-lg group-hover:shadow-red-500/30 flex items-center justify-center gap-2">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      ></path>
-                    </svg>
-                    Open Chat
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {filteredOrders.length === 0 && (
-        <div className="text-center py-24 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-200 mt-8">
-          <div className="w-24 h-24 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-6 border border-gray-100">
-            <svg
-              className="w-12 h-12 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.5"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              ></path>
-            </svg>
+              );
+            })}
           </div>
-          <h3 className="text-2xl font-black text-gray-900 mb-3 tracking-tight">
-            No orders found
-          </h3>
-          <p className="text-gray-500 font-medium mb-8 max-w-sm mx-auto">
-            Try adjusting your search or filters to find what you're looking
-            for.
-          </p>
-          <Link
-            to="/campus-hub"
-            className="inline-flex px-8 py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-red-500/20 hover:-translate-y-1 transition-all"
-          >
-            Browse Services
-          </Link>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-200">
+            <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-base font-bold text-gray-900 mb-1">
+              {searchQuery || statusFilter !== "all"
+                ? "No matching orders found"
+                : "No orders yet"}
+            </h3>
+            <p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
+              {searchQuery || statusFilter !== "all"
+                ? "Try adjusting your search terms or status filter."
+                : "You have not placed or received any service requests yet."}
+            </p>
+            {searchQuery || statusFilter !== "all" ? (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setStatusFilter("all");
+                }}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-bold text-gray-700 transition cursor-pointer"
+              >
+                Reset Filters
+              </button>
+            ) : (
+              <Link
+                to="/campus-hub"
+                className="inline-flex px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-full font-bold text-xs uppercase tracking-wider shadow-sm transition"
+              >
+                Browse Marketplace
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
