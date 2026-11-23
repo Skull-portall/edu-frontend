@@ -1150,50 +1150,65 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Contact/Support Section */}
+      {/* Leadership & Contact Section */}
       <section
         id="contact"
-        className="py-20 bg-gradient-to-br from-gray-50 to-red-50"
+        className="py-12 sm:py-16 bg-gradient-to-br from-gray-50 via-white to-red-50"
       >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Support Team
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8 sm:mb-10">
+            <span className="inline-block px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-red-100 text-red-700 mb-2">
+              Leadership & Direct Lines
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
+              Meet the Founders
             </h2>
-            <p className="text-xl text-gray-600">
-              Need help? We are here for you.
+            <p className="text-sm sm:text-base text-gray-600 max-w-xl mx-auto">
+              Direct access to the founders building eDu Live. Feel free to connect with us for partnerships, feedback, or any questions.
             </p>
           </div>
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-              <div className="flex-shrink-0 flex justify-center">
-                <div className="w-36 h-36 rounded-full bg-gradient-to-br from-red-600 to-rose-600 shadow-xl flex items-center justify-center p-1">
-                  <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-                    <img
-                      src="/images/logo.svg"
-                      alt="eDu Live Support"
-                      className="w-20 h-20 object-contain"
-                    />
-                  </div>
+
+          {/* Founders Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-4xl mx-auto">
+            {/* Founder Card: Abbas Modibbo Suleiman */}
+            <div className="relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group h-[380px] sm:h-[420px] flex flex-col justify-end border border-gray-200/50">
+              {/* Full Background Portrait Photo */}
+              <img
+                src="/images/abbas.jpeg"
+                alt="Abbas Modibbo Suleiman"
+                className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                loading="eager"
+              />
+
+              {/* Gradient Scrim Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/70 to-transparent transition-opacity duration-300 group-hover:opacity-0"></div>
+
+              {/* Content Layer (Directly on Image) */}
+              <div className="relative z-10 p-5 sm:p-6 text-white flex flex-col justify-end transition-opacity duration-300 group-hover:opacity-0">
+                <div className="mb-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-red-600 text-white shadow-sm mb-1.5">
+                    Founder
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-md leading-tight">
+                    Abbas Modibbo Suleiman
+                  </h3>
+                  <p className="text-xs text-red-200 font-medium mt-0.5">
+                    Vision, Strategy & Student Advocacy
+                  </p>
                 </div>
-              </div>
-              <div className="text-center md:text-left flex-1">
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                  Contact Our Support Team
-                </h3>
-                <p className="text-red-600 text-lg mb-4">Available 24/7</p>
-                <p className="text-gray-600 leading-relaxed mb-6">
-                  Whether you have a question, need to report an issue, or
-                  simply want to learn more, our support team is always ready to
-                  assist you.
+
+                <p className="text-xs text-gray-200 leading-relaxed line-clamp-2 mb-3.5 drop-shadow">
+                  Driving the mission to transform peer-to-peer academic collaboration and empower campus communities across Nigeria.
                 </p>
-                <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+
+                {/* Floating Contact Actions on Image */}
+                <div className="space-y-2">
                   <a
-                    href="mailto:hello.edulive@gmail.com"
-                    className="inline-flex items-center space-x-2 text-red-600 hover:text-red-700 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-red-50"
+                    href="mailto:modibboakheem@gmail.com"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/20 text-xs font-medium transition-all group/btn"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-3.5 h-3.5 text-red-400 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1205,25 +1220,154 @@ const Landing = () => {
                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                       ></path>
                     </svg>
-                    <span>hello.edulive@gmail.com</span>
+                    <span className="truncate">modibboakheem@gmail.com</span>
                   </a>
                   <a
-                    href="https://wa.me/2349028321784?text=Hello%20eDu%20Live%20Support%2C%20I%20need%20help%20with..."
+                    href="https://wa.me/2349163161616?text=Hello%20Abbas%2C%20I%20am%20reaching%20out%20via%20eDu%20Live..."
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-green-50"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600/85 hover:bg-emerald-600 backdrop-blur-md text-white border border-emerald-400/30 text-xs font-medium transition-all"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-3.5 h-3.5 flex-shrink-0"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                     </svg>
-                    <span>WhatsApp: +234 902 832 1784</span>
+                    <span className="truncate">WhatsApp: +234 916 316 1616</span>
                   </a>
                 </div>
               </div>
+            </div>
+
+            {/* Co-Founder Card: Dawood Yusuf Hassan */}
+            <div className="relative rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group h-[380px] sm:h-[420px] flex flex-col justify-end border border-gray-200/50">
+              {/* Full Background Portrait Photo */}
+              <img
+                src="/images/dawood.jpg"
+                alt="Dawood Yusuf Hassan"
+                className="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+                loading="eager"
+              />
+
+              {/* Gradient Scrim Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/70 to-transparent transition-opacity duration-300 group-hover:opacity-0"></div>
+
+              {/* Content Layer (Directly on Image) */}
+              <div className="relative z-10 p-5 sm:p-6 text-white flex flex-col justify-end transition-opacity duration-300 group-hover:opacity-0">
+                <div className="mb-2">
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-white/20 backdrop-blur-md text-white border border-white/30 shadow-sm mb-1.5">
+                    Co-Founder
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white drop-shadow-md leading-tight">
+                    Dawood Yusuf Hassan
+                  </h3>
+                  <p className="text-xs text-gray-300 font-medium mt-0.5">
+                    Engineering, DevOps & Product Architecture
+                  </p>
+                </div>
+
+                <p className="text-xs text-gray-200 leading-relaxed line-clamp-2 mb-3.5 drop-shadow">
+                  Building reliable, modern campus tech infrastructure that keeps students connected and academic workflows blazing fast.
+                </p>
+
+                {/* Floating Contact Actions on Image */}
+                <div className="space-y-2">
+                  <a
+                    href="mailto:dhydevops@gmail.com"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/20 text-xs font-medium transition-all group/btn"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5 text-red-400 flex-shrink-0"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                    <span className="truncate">dhydevops@gmail.com</span>
+                  </a>
+                  <a
+                    href="https://wa.me/2348107488244?text=Hello%20Dawood%2C%20I%20am%20reaching%20out%20via%20eDu%20Live..."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-600/85 hover:bg-emerald-600 backdrop-blur-md text-white border border-emerald-400/30 text-xs font-medium transition-all"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
+                    <span className="truncate">WhatsApp: +234 810 748 8244</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* General 24/7 Support Banner */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                <img
+                  src="/images/logo.svg"
+                  alt="eDu Live Support"
+                  className="w-7 h-7 object-contain"
+                />
+              </div>
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-gray-900">
+                  24/7 Platform & Student Support
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-500">
+                  For account issues, general feedback, or community reports.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 justify-center sm:justify-end">
+              <a
+                href="mailto:hello.edulive@gmail.com"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 text-xs sm:text-sm font-semibold transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  ></path>
+                </svg>
+                hello.edulive@gmail.com
+              </a>
+              <a
+                href="https://wa.me/2349028321784?text=Hello%20eDu%20Live%20Support%2C%20I%20need%20help%20with..."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs sm:text-sm font-semibold transition-colors"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                </svg>
+                +234 902 832 1784
+              </a>
             </div>
           </div>
         </div>
