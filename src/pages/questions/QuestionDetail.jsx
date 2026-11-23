@@ -4,9 +4,10 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { questionsAPI, answersAPI, votesAPI } from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { timeAgo } from "../../utils/timeAgo";
 import toast from "react-hot-toast";
 
-/** Reusable attachment action button with spinner */
+/** Reusable attachment download/view button */
 const ViewAttachmentBtn = ({
   label,
   url,
@@ -25,7 +26,6 @@ const ViewAttachmentBtn = ({
       return;
     }
 
-    // DOWNLOAD: show a brief spinner, then trigger the anchor
     setLoading(true);
     const a = document.createElement("a");
     a.href = url;
@@ -38,31 +38,15 @@ const ViewAttachmentBtn = ({
     setTimeout(() => setLoading(false), 500);
   };
 
-  const DownloadIcon = () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-      />
-    </svg>
-  );
-
   return (
     <button
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className={`inline-flex items-center justify-center gap-2 font-black uppercase tracking-widest transition-all transform hover:-translate-y-0.5 active:scale-95 shadow-xl disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 font-bold uppercase tracking-wider text-xs transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
     >
       {loading ? (
-        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle
             className="opacity-25"
             cx="12"
@@ -78,7 +62,19 @@ const ViewAttachmentBtn = ({
           />
         </svg>
       ) : (
-        <DownloadIcon />
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+          />
+        </svg>
       )}
       {loading ? "Downloading..." : label}
     </button>
@@ -144,7 +140,7 @@ const QuestionDetail = () => {
     onSettled: () => setAcceptingId(null),
     onSuccess: () => {
       queryClient.invalidateQueries(["question", id]);
-      toast.success("You accepted this solution!");
+      toast.success("Accepted as correct solution!");
     },
     onError: () => toast.error("Failed to accept answer"),
   });
@@ -167,7 +163,7 @@ const QuestionDetail = () => {
   };
 
   const handleDelete = () => {
-    if (window.confirm("This action cannot be undone. Delete this question?")) {
+    if (window.confirm("Are you sure you want to delete this question?")) {
       deleteQuestionMutation.mutate();
     }
   };
@@ -194,16 +190,16 @@ const QuestionDetail = () => {
 
   if (!question) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl font-black text-gray-900 mb-4 uppercase">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+        <h2 className="text-2xl font-black text-gray-900 mb-2 uppercase">
           Question Not Found
         </h2>
-        <p className="text-gray-500 mb-8 font-medium italic">
-          "The question you are looking for may have been deleted or moved."
+        <p className="text-gray-500 mb-6 text-sm">
+          The question you are looking for may have been deleted or moved.
         </p>
         <Link
           to="/questions"
-          className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-all"
+          className="inline-flex items-center gap-2 bg-gray-900 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-600 transition-colors"
         >
           Back to Questions
         </Link>
@@ -213,14 +209,18 @@ const QuestionDetail = () => {
 
   const isOwner =
     user && (user.id === question.user?._id || user._id === question.user?._id);
+  const isAnon = question.isAnonymous || question.is_anonymous;
+  const authorName = isAnon ? "Anonymous" : question.user?.name || "Student";
+  const course = question.courseName || question.course_name || null;
+  const isAnswered = answers.length > 0;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-      {/* Question Context */}
-      <div className="mb-10 animate-fade-in">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
+      {/* ── Top Bar: Back & Delete (if owner) ── */}
+      <div className="flex items-center justify-between mb-4">
         <Link
           to="/questions"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-red-600 font-black uppercase tracking-widest text-[10px] mb-6 transition-colors font-mono"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-wider"
         >
           <svg
             className="w-4 h-4"
@@ -231,546 +231,284 @@ const QuestionDetail = () => {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeWidth="3"
+              strokeWidth="2.5"
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
           Back to Questions
         </Link>
 
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-4 flex-wrap">
-              <span className="bg-red-50 text-red-700 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 italic">
-                {question.courseName || "General"}
-              </span>
-              <span className="text-gray-300 hidden sm:inline">•</span>
-              <span className="text-xs font-black text-gray-400 uppercase tracking-widest font-mono">
-                Thread #{id.slice(-6).toUpperCase()}
-              </span>
-              <span className="text-gray-300 hidden sm:inline">•</span>
-              <span className="text-xs font-black text-emerald-600 uppercase tracking-widest font-mono">
-                {answers.length} Responses
-              </span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-tight uppercase tracking-tight break-words">
-              {question.title}
-            </h1>
-          </div>
-
-          {isOwner && (
-            <button
-              onClick={handleDelete}
-              disabled={deleteQuestionMutation.isPending}
-              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-red-100 hover:bg-red-600 hover:text-white transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {deleteQuestionMutation.isPending ? (
-                <>
-                  <svg
-                    className="animate-spin h-3 w-3"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Loading...
-                </>
-              ) : (
-                "Delete Question"
-              )}
-            </button>
-          )}
-        </div>
+        {isOwner && (
+          <button
+            onClick={handleDelete}
+            disabled={deleteQuestionMutation.isPending}
+            className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+          >
+            {deleteQuestionMutation.isPending ? "Deleting..." : "Delete Question"}
+          </button>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 mb-16">
-        {/* Author Stats */}
-        <div className="lg:col-span-1 space-y-8 animate-slide-up">
-          <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
-              Asked By
-            </h4>
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden shadow-lg ring-4 ring-gray-100 mb-4 transition-transform group-hover:scale-110">
-                {!(question.isAnonymous || question.is_anonymous) ? (
-                  question.user?.profilePicture ? (
-                    <img
-                      src={question.user.profilePicture}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-red-600 to-rose-600 flex items-center justify-center text-white text-2xl font-black uppercase">
-                      {question.user?.name?.charAt(0) || "U"}
-                    </div>
-                  )
-                ) : (
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                    <svg
-                      className="w-10 h-10"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              {!(question.isAnonymous || question.is_anonymous) ? (
-                <Link
-                  to={`/profile/${question.user?._id || question.user?.id}`}
-                  className="text-lg font-black text-gray-900 truncate max-w-[200px] uppercase tracking-tight hover:text-red-600"
-                >
-                  {question.user?.name || "STUDENT"}
-                </Link>
-              ) : (
-                <span className="text-lg font-black text-gray-400 uppercase tracking-tight">
-                  ANONYMOUS
-                </span>
-              )}
-              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
-                Posted {new Date(question.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
+      {/* ── Main Question Card ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-7 shadow-sm mb-6">
+        {/* Badges & Meta */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+              isAnswered
+                ? "bg-emerald-500 text-white"
+                : "border border-gray-300 text-gray-500 bg-white"
+            }`}
+          >
+            {isAnswered ? "Answered" : "Unanswered"}
+          </span>
 
-          <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100 text-center">
-            <div className="text-3xl font-black text-gray-900 mb-1">
-              {question.views || 0}
-            </div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-              Total Views
-            </p>
-          </div>
-        </div>
-
-        {/* Question Content */}
-        <div
-          className="lg:col-span-3 space-y-8 animate-slide-up"
-          style={{ animationDelay: "0.1s" }}
-        >
-          <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-            <div className="p-8 sm:p-12">
-              <div className="prose prose-red max-w-none">
-                <p className="whitespace-pre-wrap text-gray-700 leading-relaxed text-lg font-medium italic">
-                  "{question.body}"
-                </p>
-              </div>
-
-              {question.attachment &&
-                (() => {
-                  const attachUrl = question.attachment || "";
-                  // Convert old /api/ paths to properly use full or API URL if needed, or if it's already a full URL
-                  let fileUrl = attachUrl.startsWith("http")
-                    ? attachUrl
-                    : `/api/${attachUrl}`;
-                  const isCloudinary = attachUrl.includes("cloudinary.com");
-
-                  const fileName =
-                    question.attachmentName ||
-                    attachUrl.split("/").pop().split("?")[0] ||
-                    "Supplemental_Material";
-                  const baseName =
-                    fileName
-                      .replace(/\.[^/.]+$/, "")
-                      .replace(/[^a-zA-Z0-9_\-]/g, "_") || "download";
-
-                  let downloadUrl = fileUrl;
-                  if (isCloudinary && attachUrl.includes("/upload/")) {
-                    downloadUrl = attachUrl.replace(
-                      "/upload/",
-                      `/upload/fl_attachment:${baseName}/`,
-                    );
-                  }
-
-                  return (
-                    <div className="mt-10 pt-10 border-t border-gray-100">
-                      <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 border border-red-100">
-                            <svg
-                              className="w-6 h-6"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2.5"
-                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                              />
-                            </svg>
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black uppercase tracking-tight text-gray-900 overflow-hidden text-ellipsis max-w-[200px] sm:max-w-md">
-                              {fileName}
-                            </h4>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
-                              Study Material
-                            </p>
-                          </div>
-                        </div>
-
-                        <ViewAttachmentBtn
-                          label="Download File"
-                          url={downloadUrl}
-                          download={fileName}
-                          className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-black text-[11px]"
-                        />
-                      </div>
-                    </div>
-                  );
-                })()}
-            </div>
-          </div>
-
-          {/* Answer Area */}
-          {user && (
-            <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/10 blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-
-              <div className="relative z-10">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-8">
-                  Your Answer
-                </h2>
-                <form onSubmit={handleSubmitAnswer} className="space-y-6">
-                  <textarea
-                    value={answerBody}
-                    onChange={(e) => setAnswerBody(e.target.value)}
-                    rows="5"
-                    className="w-full bg-white/5 border-white/10 rounded-2xl px-6 py-5 text-white placeholder-gray-500 font-medium focus:ring-2 focus:ring-red-500 focus:bg-white/10 transition-all italic"
-                    placeholder="Write your answer here..."
-                  />
-                  <button
-                    type="submit"
-                    disabled={
-                      submitAnswerMutation.isPending || !answerBody.trim()
-                    }
-                    className={`bg-white text-gray-900 px-8 py-3.5 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 ${
-                      submitAnswerMutation.isPending || !answerBody.trim()
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-red-600 hover:text-white transition-all transform hover:-translate-y-1 active:scale-95 shadow-xl cursor-pointer"
-                    }`}
-                  >
-                    {submitAnswerMutation.isPending ? (
-                      <>
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Loading...
-                      </>
-                    ) : (
-                      "Post Answer"
-                    )}
-                  </button>
-                </form>
-              </div>
-            </div>
+          {course && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-700">
+              {course}
+            </span>
           )}
-        </div>
-      </div>
 
-      {/* Answers List */}
-      <div
-        className="max-w-4xl mx-auto space-y-10 animate-slide-up"
-        style={{ animationDelay: "0.3s" }}
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-2 border-gray-100 pb-6 mb-10">
-          <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight break-words">
-            Community <span className="text-red-600">Answers</span>
-          </h2>
-          <span className="bg-gray-900 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest self-start sm:self-auto">
-            {answers.length} Answers
+          <span className="text-gray-300">•</span>
+          <span className="text-xs text-gray-400 font-mono">
+            {question.views || 0} views
           </span>
         </div>
 
+        {/* Title */}
+        <h1 className="text-xl sm:text-2xl font-black text-gray-900 leading-snug mb-3 tracking-tight">
+          {question.title}
+        </h1>
+
+        {/* Author row */}
+        <div className="flex items-center gap-2 pb-4 mb-4 border-b border-gray-50 text-xs text-gray-500">
+          {!isAnon && question.user?.profilePicture ? (
+            <img
+              src={question.user.profilePicture}
+              alt=""
+              className="w-6 h-6 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-[10px]">
+              {authorName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <span className="font-semibold text-gray-800">
+            {authorName}
+          </span>
+          <span className="text-gray-300">•</span>
+          <span>Asked {timeAgo(question.createdAt)}</span>
+        </div>
+
+        {/* Question Body */}
+        <div className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-wrap font-normal mb-4">
+          {question.body}
+        </div>
+
+        {/* Attachment (if any) */}
+        {question.attachment &&
+          (() => {
+            const attachUrl = question.attachment || "";
+            let fileUrl = attachUrl.startsWith("http")
+              ? attachUrl
+              : `/api/${attachUrl}`;
+            const isCloudinary = attachUrl.includes("cloudinary.com");
+            const fileName =
+              question.attachmentName ||
+              attachUrl.split("/").pop().split("?")[0] ||
+              "Supplemental_Material";
+            const baseName =
+              fileName
+                .replace(/\.[^/.]+$/, "")
+                .replace(/[^a-zA-Z0-9_\-]/g, "_") || "download";
+
+            let downloadUrl = fileUrl;
+            if (isCloudinary && attachUrl.includes("/upload/")) {
+              downloadUrl = attachUrl.replace(
+                "/upload/",
+                `/upload/fl_attachment:${baseName}/`,
+              );
+            }
+
+            return (
+              <div className="pt-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-800 truncate block max-w-xs">
+                      {fileName}
+                    </span>
+                    <span className="text-[10px] text-gray-400">Attached Study Resource</span>
+                  </div>
+                </div>
+
+                <ViewAttachmentBtn
+                  label="Download"
+                  url={downloadUrl}
+                  download={fileName}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3.5 py-1.5 rounded-lg"
+                />
+              </div>
+            );
+          })()}
+      </div>
+
+      {/* ── Add Answer Form ── */}
+      {user ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-6 shadow-sm mb-8">
+          <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
+            Your Contribution / Answer
+          </h2>
+          <form onSubmit={handleSubmitAnswer} className="space-y-3">
+            <textarea
+              value={answerBody}
+              onChange={(e) => setAnswerBody(e.target.value)}
+              rows="4"
+              placeholder="Write a clear, helpful answer to this question..."
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            />
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={submitAnswerMutation.isPending || !answerBody.trim()}
+                className={`px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs flex items-center gap-1.5 transition-all shadow-sm ${
+                  submitAnswerMutation.isPending || !answerBody.trim()
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-red-600 text-white hover:bg-red-700 active:scale-95"
+                }`}
+              >
+                {submitAnswerMutation.isPending ? "Posting..." : "Post Answer"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 text-center mb-8">
+          <p className="text-xs text-gray-600 font-medium mb-3">
+            Want to help answer this question? Sign in with your student account.
+          </p>
+          <Link
+            to="/login"
+            className="inline-block bg-red-600 text-white px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-colors shadow-sm"
+          >
+            Login to Answer
+          </Link>
+        </div>
+      )}
+
+      {/* ── Answers Section ── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+          <h2 className="text-base font-black text-gray-900 uppercase tracking-tight">
+            Answers <span className="text-red-600">({answers.length})</span>
+          </h2>
+        </div>
+
         {answers.length > 0 ? (
-          <div className="space-y-12">
+          <div className="space-y-3">
             {answers
-              .sort((a, b) => b.isAccepted - a.isAccepted)
+              .sort((a, b) => (b.isAccepted ? 1 : 0) - (a.isAccepted ? 1 : 0))
               .map((answer) => (
                 <div
                   key={answer._id}
-                  className={`relative group bg-white rounded-3xl p-6 sm:p-10 border-2 transition-all hover:shadow-2xl hover:shadow-gray-200/50 ${
+                  className={`bg-white rounded-2xl p-4 sm:p-5 border transition-all ${
                     answer.isAccepted
-                      ? "border-emerald-500 shadow-xl shadow-emerald-500/10 mt-6 sm:mt-0"
-                      : "border-gray-50"
+                      ? "border-emerald-500 ring-1 ring-emerald-500 shadow-sm"
+                      : "border-gray-100 shadow-sm"
                   }`}
                 >
+                  {/* Accepted Badge */}
                   {answer.isAccepted && (
-                    <div className="absolute top-0 right-4 sm:right-0 -translate-y-1/2 sm:translate-x-1/2 bg-emerald-500 text-white px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg z-20 whitespace-nowrap">
-                      Accepted Answer
+                    <div className="inline-flex items-center gap-1 mb-2 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Accepted Solution
                     </div>
                   )}
 
-                  <div className="flex flex-col sm:flex-row gap-8">
-                    {/* Voting */}
-                    <div className="flex flex-row sm:flex-col items-center justify-center gap-4 bg-gray-50 rounded-2xl p-3 sm:px-4 sm:py-6 self-start">
+                  <div className="flex gap-4">
+                    {/* Voting Column */}
+                    <div className="flex flex-col items-center justify-start gap-1 shrink-0 pt-0.5">
                       <button
                         onClick={() => handleVote(answer._id, true)}
                         disabled={votingId === answer._id}
-                        className={`transition-colors transform ${votingId === answer._id ? "opacity-50 cursor-not-allowed text-gray-300" : "text-gray-400 hover:text-emerald-500 hover:scale-125"}`}
+                        className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-emerald-600 transition-colors"
+                        title="Upvote"
                       >
-                        {votingId === answer._id ? (
-                          <svg
-                            className="animate-spin h-8 w-8"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="3"
-                              d="M5 15l7-7 7 7"
-                            />
-                          </svg>
-                        )}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+                        </svg>
                       </button>
-                      <span className="font-black text-xl text-gray-900 font-mono leading-none">
+                      <span className="font-bold text-xs font-mono text-gray-700">
                         {answer.votesCount || 0}
                       </span>
                       <button
                         onClick={() => handleVote(answer._id, false)}
                         disabled={votingId === answer._id}
-                        className={`transition-colors transform ${votingId === answer._id ? "opacity-50 cursor-not-allowed text-gray-300" : "text-gray-400 hover:text-red-500 hover:scale-125"}`}
+                        className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-red-500 transition-colors"
+                        title="Downvote"
                       >
-                        {votingId === answer._id ? (
-                          <svg
-                            className="animate-spin h-8 w-8"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-8 h-8"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="3"
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        )}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
                       </button>
                     </div>
 
+                    {/* Answer Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-4">
-                          {(question.isAnonymous || question.is_anonymous) &&
-                          (question.user?._id ===
-                            (answer.user?._id || answer.user?.id) ||
-                            question.user?.id ===
-                              (answer.user?._id || answer.user?.id)) ? (
-                            <>
-                              <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 border border-gray-100 shadow-sm">
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth="2.5"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                                  />
-                                </svg>
-                              </div>
-                              <div>
-                                <span className="block text-xs font-black text-gray-400 uppercase tracking-tight">
-                                  ANONYMOUS (AUTHOR)
-                                </span>
-                                <span className="block text-[8px] font-black text-gray-300 uppercase tracking-widest font-mono mt-1">
-                                  {new Date(
-                                    answer.createdAt,
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-xs font-black uppercase text-gray-400 overflow-hidden shadow-sm">
-                                {answer.user?.profilePicture ? (
-                                  <img
-                                    src={answer.user.profilePicture}
-                                    alt=""
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <span>
-                                    {answer.user?.name?.charAt(0) || "U"}
-                                  </span>
-                                )}
-                              </div>
-                              <div>
-                                <Link
-                                  to={`/profile/${answer.user?._id || answer.user?.id}`}
-                                  className="block text-sm font-black text-gray-900 hover:text-red-600 transition-colors uppercase tracking-tight"
-                                >
-                                  {answer.user?.name}
-                                </Link>
-                                <span className="block text-[8px] font-black text-gray-300 uppercase tracking-widest font-mono mt-1">
-                                  {new Date(
-                                    answer.createdAt,
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </>
-                          )}
+                      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-[9px] font-bold">
+                            {answer.user?.name?.charAt(0) || "U"}
+                          </div>
+                          <span className="text-xs font-bold text-gray-800">
+                            {answer.user?.name || "Student"}
+                          </span>
+                          <span className="text-gray-300">•</span>
+                          <span className="text-[11px] text-gray-400">
+                            {timeAgo(answer.createdAt)}
+                          </span>
                         </div>
 
+                        {/* Accept button for question owner */}
                         {isOwner && !answer.isAccepted && (
                           <button
                             onClick={() => handleAcceptAnswer(answer._id)}
                             disabled={acceptingId === answer._id}
-                            className={`text-[10px] font-black uppercase tracking-widest transition-colors border-2 border-emerald-100 px-4 py-2 rounded-xl bg-emerald-50 flex items-center gap-2 ${acceptingId === answer._id ? "opacity-50 cursor-not-allowed text-emerald-400" : "text-emerald-600 hover:text-emerald-700"}`}
+                            className="text-[10px] font-black uppercase tracking-wider text-emerald-600 hover:text-white bg-emerald-50 hover:bg-emerald-600 border border-emerald-200 px-2.5 py-1 rounded-lg transition-all"
                           >
-                            {acceptingId === answer._id ? (
-                              <>
-                                <svg
-                                  className="animate-spin h-3 w-3"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                Loading...
-                              </>
-                            ) : (
-                              "Accept Answer"
-                            )}
+                            {acceptingId === answer._id ? "Accepting..." : "Accept as Answer"}
                           </button>
                         )}
                       </div>
 
-                      <div className="prose prose-sm max-w-none text-gray-700 font-medium leading-relaxed italic">
-                        <p className="whitespace-pre-wrap">"{answer.body}"</p>
+                      <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {answer.body}
                       </div>
 
+                      {/* Answer Attachment */}
                       {answer.attachment &&
                         (() => {
                           const attachUrl = answer.attachment || "";
                           let fileUrl = attachUrl.startsWith("http")
                             ? attachUrl
                             : `/api/${attachUrl}`;
-                          const isCloudinary =
-                            attachUrl.includes("cloudinary.com");
                           const fileName =
                             attachUrl.split("/").pop().split("?")[0] ||
                             "Attachment";
-                          const baseName =
-                            fileName
-                              .replace(/\.[^/.]+$/, "")
-                              .replace(/[^a-zA-Z0-9_\-]/g, "_") || "download";
-
-                          let downloadUrl = fileUrl;
-                          if (isCloudinary && attachUrl.includes("/upload/")) {
-                            downloadUrl = attachUrl.replace(
-                              "/upload/",
-                              `/upload/fl_attachment:${baseName}/`,
-                            );
-                          }
 
                           return (
-                            <div className="mt-6">
+                            <div className="mt-2.5">
                               <ViewAttachmentBtn
-                                label="Download Attachment"
-                                url={downloadUrl}
+                                label="Download File"
+                                url={fileUrl}
                                 download={fileName}
-                                className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] hover:bg-blue-100"
+                                className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-2.5 py-1 rounded-md text-[10px]"
                               />
                             </div>
                           );
@@ -781,24 +519,9 @@ const QuestionDetail = () => {
               ))}
           </div>
         ) : (
-          <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-gray-100">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg
-                className="w-10 h-10 text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                />
-              </svg>
-            </div>
-            <p className="text-gray-500 font-medium font-mono uppercase tracking-[0.2em] text-xs">
-              No answers yet
+          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center shadow-sm">
+            <p className="text-xs text-gray-400 font-medium">
+              No answers posted yet. Be the first to share an answer!
             </p>
           </div>
         )}
